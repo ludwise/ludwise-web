@@ -79,6 +79,22 @@ jobs:
       - name: Build
         run: pnpm run build
 
+      # Re-run, after the build, the one suite whose subject the build produces.
+      #
+      # `dist/server/wrangler.json` is written by @astrojs/cloudflare merging its
+      # own defaults into `wrangler.jsonc`, so it does not exist during the Test
+      # step above and every rule in that file skips there. Without this step
+      # they never assert in CI at all - the suite reports passes and skips for a
+      # file it never opened, which is the same blind spot that let a SESSION KV
+      # binding appear on a site with no sessions.
+      #
+      # The environment variable turns that skip into a failure, so deleting or
+      # reordering this step breaks the build rather than restoring the gap.
+      - name: Verify deployment bindings
+        env:
+          LUDWISE_REQUIRE_BUILD_OUTPUT: '1'
+        run: pnpm exec vitest run tests/architecture/deployment-bindings.test.ts
+
       # Only Chromium. A second engine doubles the slowest step in this job to
       # re-answer a question about our own markup rather than about a browser.
       - name: Install the end-to-end browser

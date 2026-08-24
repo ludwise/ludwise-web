@@ -157,15 +157,23 @@ interface GeneratedConfig {
 }
 
 /**
- * Read the generated config, or skip.
+ * Set by the CI step that runs this suite after the build. Absent means "the
+ * build output may legitimately not exist yet"; present means "it must, and a
+ * missing file is a failure".
  *
- * Skipping rather than failing is deliberate and is the one soft edge here:
- * `pnpm run test` runs before `pnpm run build` in `pnpm run check`, so on a
- * clean checkout this file does not exist yet and a hard failure would make the
- * suite depend on the order of two independent scripts. CI builds, so it is
- * asserted there; the anti-vacuity test below makes the skip visible rather
- * than silent.
+ * This exists because the original design here was wrong in a way that could
+ * not be seen from the outside. The comment this replaces said the skip was
+ * safe because "CI builds, so it is asserted there" - but `test` runs *before*
+ * `build`, in `pnpm run check` and in `verify.yml` alike, so the skip fired on
+ * every run including CI. Hiding the generated config and rerunning gave
+ * `5 passed | 4 skipped`, all of it about a file that was never opened.
+ *
+ * The ordering is now fixed in the workflow and this flag makes that fix
+ * self-enforcing: reorder the steps or drop the post-build run and the suite
+ * fails rather than quietly going hollow again.
  */
+const REQUIRE_BUILD_OUTPUT = process.env['LUDWISE_REQUIRE_BUILD_OUTPUT'] === '1';
+
 function readGenerated(): GeneratedConfig | undefined {
   if (!existsSync(GENERATED)) return undefined;
   return JSON.parse(readFileSync(GENERATED, 'utf8')) as GeneratedConfig;
@@ -175,9 +183,17 @@ const config = readGenerated();
 
 describe('the generated deployment configuration', () => {
   it('was produced by a build, or these rules are not running', () => {
-    // Not an assertion about the config - an assertion about this suite. If the
-    // build output is missing every test below skips, and a suite that skips
-    // silently is worse than no suite at all.
+    // Not an assertion about the config - an assertion about this suite. Every
+    // rule below is `runIf(config)`, so without this one a run with no build
+    // output reports passes and skips and checks nothing.
+    if (REQUIRE_BUILD_OUTPUT) {
+      expect(
+        config,
+        `${GENERATED} is missing: this suite must run after \`pnpm run build\``,
+      ).toBeDefined();
+      return;
+    }
+
     if (config === undefined) {
       console.warn(
         'dist/server/wrangler.json is absent: run `pnpm run build` for the deployment rules to apply.',
