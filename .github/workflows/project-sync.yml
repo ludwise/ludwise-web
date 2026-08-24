@@ -26,7 +26,14 @@ jobs:
           PROJECT_NUMBER: '2'
           PROJECT_TOKEN: ${{ secrets.LUDWISE_PROJECT_TOKEN }}
         with:
-          github-token: ${{ secrets.LUDWISE_PROJECT_TOKEN }}
+          # Falls back to the built-in token purely so the step can start. This
+          # input is required, and an unset secret makes the action fail with
+          # "Input required and not supplied: github-token" before the script
+          # below is read - so the no-op guard in it never got the chance to
+          # run, and every sync run failed rather than skipping. The fallback
+          # token cannot write organization projects, which is why the guard
+          # still checks PROJECT_TOKEN and returns rather than trying.
+          github-token: ${{ secrets.LUDWISE_PROJECT_TOKEN || secrets.GITHUB_TOKEN }}
           script: |
             const owner = process.env.PROJECT_OWNER;
             const projectNumber = Number(process.env.PROJECT_NUMBER);
