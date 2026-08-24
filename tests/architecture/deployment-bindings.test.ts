@@ -43,6 +43,77 @@ import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 const GENERATED = resolve('dist/server/wrangler.json');
+const AUTHORED = resolve('wrangler.jsonc');
+
+interface Route {
+  readonly pattern?: string;
+  readonly custom_domain?: boolean;
+}
+
+interface AuthoredEnvironment {
+  readonly routes?: readonly Route[];
+  readonly workers_dev?: boolean;
+}
+
+interface AuthoredConfig {
+  readonly workers_dev?: boolean;
+  readonly env?: Readonly<Record<string, AuthoredEnvironment>>;
+}
+
+/** Parse this repository's JSONC config without adding a dependency for one test. */
+function readJsonc(path: string): AuthoredConfig {
+  const source = readFileSync(path, 'utf8');
+  let output = '';
+  let inString = false;
+  let inLineComment = false;
+  let inBlockComment = false;
+
+  for (let index = 0; index < source.length; index += 1) {
+    const char = source[index];
+    const next = source[index + 1];
+
+    if (inLineComment) {
+      if (char === '\n') {
+        inLineComment = false;
+        output += char;
+      }
+      continue;
+    }
+    if (inBlockComment) {
+      if (char === '*' && next === '/') {
+        inBlockComment = false;
+        index += 1;
+      }
+      continue;
+    }
+    if (inString) {
+      output += char;
+      if (char === '\\') {
+        output += next ?? '';
+        index += 1;
+      } else if (char === '"') {
+        inString = false;
+      }
+      continue;
+    }
+    if (char === '"') {
+      inString = true;
+      output += char;
+    } else if (char === '/' && next === '/') {
+      inLineComment = true;
+      index += 1;
+    } else if (char === '/' && next === '*') {
+      inBlockComment = true;
+      index += 1;
+    } else {
+      output += char;
+    }
+  }
+
+  return JSON.parse(output.replace(/,(\s*[}\]])/gu, '$1')) as AuthoredConfig;
+}
+
+const authored = readJsonc(AUTHORED);
 
 /**
  * The bindings this Worker is allowed to receive, and why each one is here.
@@ -181,4 +252,29 @@ describe('the generated deployment configuration', () => {
       expect(backend).not.toBe('ludwise-production');
     }
   });
+});
+
+describe('the authored deployment routing', () => {
+  it.each([
+    ['staging', 'staging.ludwise.com'],
+    ['production', 'ludwise.com'],
+  ] as const)('claims the %s hostname as a custom domain', (environmentName, hostname) => {
+    const environment = authored.env?.[environmentName];
+    const route = environment?.routes?.find((entry) => entry.pattern === hostname);
+
+    expect(route, `${environmentName} route for ${hostname}`).toEqual({
+      pattern: hostname,
+      custom_domain: true,
+    });
+  });
+
+  it.each(['staging', 'production'] as const)(
+    'does not expose the %s environment on workers.dev',
+    (environmentName) => {
+      const environment = authored.env?.[environmentName];
+
+      // Named environments inherit the top-level setting unless they override it.
+      expect(environment?.workers_dev ?? authored.workers_dev).toBe(false);
+    },
+  );
 });

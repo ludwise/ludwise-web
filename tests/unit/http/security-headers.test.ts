@@ -15,13 +15,11 @@ import {
  */
 
 describe('SECURITY_HEADERS', () => {
-  it('denies framing both ways, for browsers that only honour one of the two', () => {
+  it('pins the complete content security policy, not just selected directives', () => {
     expect(SECURITY_HEADERS['x-frame-options']).toBe('DENY');
-    expect(SECURITY_HEADERS['content-security-policy']).toContain("frame-ancestors 'none'");
-  });
-
-  it('locks the <base> tag, which is the standard escalation from partial HTML injection', () => {
-    expect(SECURITY_HEADERS['content-security-policy']).toContain("base-uri 'none'");
+    expect(SECURITY_HEADERS['content-security-policy']).toBe(
+      "frame-ancestors 'none'; base-uri 'none'; object-src 'none'; form-action 'self'",
+    );
   });
 
   it('blocks content sniffing, which is how a non-HTML response gets treated as HTML', () => {
@@ -37,9 +35,9 @@ describe('SECURITY_HEADERS', () => {
   });
 
   it('denies every permissions-policy feature the product does not use', () => {
-    expect(SECURITY_HEADERS['permissions-policy']).toContain('camera=()');
-    expect(SECURITY_HEADERS['permissions-policy']).toContain('microphone=()');
-    expect(SECURITY_HEADERS['permissions-policy']).toContain('geolocation=()');
+    expect(SECURITY_HEADERS['permissions-policy']).toBe(
+      'camera=(), microphone=(), geolocation=(), payment=(), interest-cohort=()',
+    );
   });
 
   it('is frozen, so a caller cannot mutate the shared header set', () => {
