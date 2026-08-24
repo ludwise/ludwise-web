@@ -4,7 +4,7 @@ LUDWISE issues are tracked in the organization project [LUDWISE Development](htt
 
 ## Current inventory
 
-- `ludwise/ludwise-backend`: all 40 existing issues are synchronized.
+- `ludwise/ludwise-backend`: all 38 existing issues are synchronized.
 - `ludwise/ludwise-web`: currently has no issues, but is linked and has the same automation.
 - Both repositories are linked to the organization Project.
 
