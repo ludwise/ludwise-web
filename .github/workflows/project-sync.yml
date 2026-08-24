@@ -33,8 +33,8 @@ jobs:
             const action = context.payload.action;
 
             if (!process.env.PROJECT_TOKEN) {
-              core.setFailed(
-                'LUDWISE_PROJECT_TOKEN is not configured. Add a GitHub token with organization Project read/write access.'
+              core.warning(
+                'LUDWISE_PROJECT_TOKEN is not configured, so this run is a no-op. The project keeps using its built-in auto-add workflows until a token with organization Project read/write access is added.'
               );
               return;
             }

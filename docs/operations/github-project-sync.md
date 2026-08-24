@@ -8,6 +8,19 @@ LUDWISE issues are tracked in the organization project [LUDWISE Development](htt
 - `ludwise/ludwise-web`: currently has no issues, but is linked and has the same automation.
 - Both repositories are linked to the organization Project.
 
+## Link review findings
+
+Reviewed against the live Project:
+
+- All 38 items are real issues. There are no drafts, no archived items, and no orphaned or duplicate entries.
+- Every item's Project `Status` agrees with its issue state, so no item claims `Done` while its issue is open.
+- The Project's own `Auto-add to project (backend)` and `Auto-add to project (web)` workflows are enabled, so new issues are added without any token.
+- `Area` is set for 23 of 38 items. The remaining 15 have no area-bearing label, so the mapping intentionally leaves them unset rather than guessing.
+- The Project `Priority` field has no options defined, so the `priority: *` labels are not represented in the Project. Define the options before expecting priority to appear there.
+- `ludwise/ludwise-backend` has repository projects disabled, which is fine: this is an organization-level Project.
+- `ludwise/ludwise-web` still has `feat/initial-web-client` as its default branch, so scheduled and dispatch runs use that branch until the default changes.
+- `ludwise/ludwise-backend` has this workflow only on `refactor/frontend-extraction`. Scheduled and dispatch triggers run from the default branch, so backend automation starts once that branch merges to `main`.
+
 ## Automation
 
 Each repository contains `.github/workflows/project-sync.yml`. It runs:
