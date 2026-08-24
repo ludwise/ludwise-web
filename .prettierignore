@@ -3,19 +3,11 @@ dist/
 .astro/
 .wrangler/
 coverage/
+test-results/
+playwright-report/
 pnpm-lock.yaml
 CHANGELOG.md
 worker-configuration.d.ts
-
-# Bruno owns its own file format; Prettier has no .bru parser.
-bruno/**/*.bru
-
-# Authored documents owned by their author, not code. Prettier rewrites every
-# markdown bullet from '*' to '-', which is 800+ lines of churn for no benefit.
-PRODUCT.md
-
-# Tooling scratch directory, not part of the project.
-.remember/
 
 # The external design-system handoff, vendored verbatim as the visual source of
 # truth. Its token CSS is minified by the design tooling and its markdown is
@@ -30,6 +22,13 @@ design/
 # cosmetically nobody can see whether they also differ substantively.
 src/styles/tokens/
 src/styles/global.css
+
+# Responses recorded from the backend's real routes, and byte-identical to the
+# copy in its tests/contract/corpus/. The fake backend replays them, so they are
+# a transcript rather than a formatted document - and Prettier collapses a short
+# array onto one line, which is enough to make the two copies differ and the
+# backend's own comparison fail against a response it really does produce.
+tests/fixtures/corpus/
 
 # Per-machine Claude Code state, written by the tool rather than authored here.
 # Ignored globally by git on the machine that produces it, which Prettier does

@@ -4,7 +4,10 @@
     "status": "error",
     "code": "ERR_APP_VALIDATION",
     "request_id": "<request-id>",
-    "fields": ["currencyCode", "marketCode"],
+    "fields": [
+      "currencyCode",
+      "marketCode"
+    ],
     "data": {
       "context": {
         "marketCode": "DE",

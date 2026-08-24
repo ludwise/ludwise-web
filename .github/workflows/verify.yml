@@ -139,6 +139,18 @@ jobs:
             echo "::endgroup::"
           done
 
+      # The audit that only matters because this repository is public: a commit
+      # that lands here cannot be unpublished. It scans everything git tracks -
+      # documentation, workflows, fixtures and configuration, not only src/ -
+      # because those are the files nobody thinks of as code, and therefore the
+      # ones a credential ends up in.
+      #
+      # Only BLOCKING findings fail. An IMPORTANT one is a judgement call, and a
+      # check that failed on every judgement call would be switched off within a
+      # week.
+      - name: Audit what this repository publishes
+        run: node scripts/audit-public.mjs
+
       # The public-repository check that no other step performs: that the built
       # client bundle carries nothing it should not. The architecture suite
       # checks the source; this checks the artifact, which is what a visitor
