@@ -136,6 +136,18 @@ jobs:
             echo "::group::wrangler dry-run ($target)"
             CLOUDFLARE_ENV="$target" pnpm run build
             pnpm exec wrangler deploy --dry-run
+
+            # The bindings the Worker actually ships with, checked per
+            # environment and only ever after a build. The adapter merges its
+            # own additions into dist/server/wrangler.json, so this is the first
+            # point at which the real deployment configuration exists - the
+            # `Test` step above runs before any build and the suite skips there
+            # by design.
+            #
+            # Inside the loop rather than after it because the file is
+            # overwritten on each pass: run once at the end and only production
+            # would ever be examined.
+            pnpm exec vitest run tests/architecture/deployment-bindings.test.ts
             echo "::endgroup::"
           done
 
