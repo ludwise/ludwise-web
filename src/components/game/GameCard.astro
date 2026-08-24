@@ -1,0 +1,196 @@
+---
+// Reference: design/system/components/game.md § GameCard — the discovery
+// primitive: one game and its best current offer. The content hierarchy is
+// ported verbatim and, as the handoff requires, never reordered: game
+// identity, then purchasable state, then price, then deal context, then
+// secondary metadata.
+//
+// The whole card is one link and holds no nested interactive control. That is
+// the handoff's rule, not a simplification — a control inside a card "creates
+// a keyboard trap and an ambiguous click target". It is also why the card
+// links to the canonical game page rather than out to a store: every offer,
+// and every outbound link, already lives there.
+//
+// Ported: title, href, price, referencePrice, discountPercentage, storeCount.
+//
+// Not implemented, each because the data does not exist rather than to save
+// work:
+//   * `artworkSrc` / GameArtwork — no artwork is in the canonical model. A
+//     placeholder tile would be decoration standing in for a fact (#14).
+//   * `ratingSummary` — no rating exists anywhere in the model, and
+//     PRODUCT.md §120 forbids rendering a value that is not there (#25).
+//   * `signal` / PriceSignal — observed-low is #24, and §11.8 allows the
+//     claim only within LUDWISE's own observation window.
+//   * `variant` — only `standard` has a consumer. The handoff is explicit
+//     that exactly three variants exist and a fourth needs a system change,
+//     so the other two arrive with a surface that renders them rather than
+//     being stubbed here.
+//
+// Added, and both are product requirements rather than styling:
+//   * `observedAtMs` / FreshnessIndicator. The handoff puts freshness on
+//     GameRow and not on GameCard, but every number on this card is
+//     commercial data, and PRODUCT.md §55 requires that a visitor is not
+//     misled into believing stale data was freshly verified. A card that
+//     showed a price with no indication of its age would be exactly that.
+//   * `editionLabel`. One game can carry several offers and this card shows
+//     one of them (PRODUCT.md §37). When the represented offer is an edition
+//     rather than the base game, saying so is what keeps the price honest.
+//
+// The handoff composes Price and DiscountBadge side by side; LUDWISE's
+// Price.astro already renders the badge itself, so it is used alone.
+//
+// The handoff's store line is a bare count ("2 stores"). PRODUCT.md §131
+// requires the relevant store itself, not merely how many hold the game, so
+// the count is now paired with StoreIdentity - already the game-detail
+// page's own way of naming a store (OfferTable.astro) - naming the one
+// whose price this card actually shows.
+import Price from './Price.astro';
+import FreshnessIndicator from './FreshnessIndicator.astro';
+import StoreIdentity from './StoreIdentity.astro';
+
+/** Structural, so both the sales and game-detail money views satisfy it. */
+interface CardMoney {
+  amountMinor: number;
+  currencyCode: string;
+  minorUnit: number;
+}
+
+interface Props {
+  title: string;
+  /** The canonical game page. Always internal — the card never links to a store. */
+  href: string;
+  price: CardMoney;
+  referencePrice: CardMoney | null;
+  discountPercentage: number | null;
+  /** How many stores currently hold a qualifying offer. */
+  storeCount: number;
+  /** Named only when the represented offer is not the plain base game. */
+  editionLabel?: string | null | undefined;
+  /** Reduced-precision RFC 3339, so the year is the leading four characters. */
+  releaseDate?: string | null | undefined;
+  observedAtMs: number;
+  storeName: string;
+}
+
+const {
+  title,
+  href,
+  price,
+  referencePrice,
+  discountPercentage,
+  storeCount,
+  editionLabel,
+  releaseDate,
+  observedAtMs,
+  storeName,
+} = Astro.props;
+
+const releaseYear =
+  releaseDate === null || releaseDate === undefined ? null : releaseDate.slice(0, 4);
+---
+
+<a class="lw-game-card" href={href}>
+  <h3 class="lw-game-card__title">{title}</h3>
+
+  <p class="lw-game-card__stores">
+    <StoreIdentity name={storeName} />
+    {storeCount > 1 && <span class="lw-game-card__store-more">and {storeCount - 1} more</span>}
+  </p>
+
+  <div class="lw-game-card__price">
+    <Price
+      price={price}
+      referencePrice={referencePrice}
+      discountPercentage={discountPercentage}
+      availability="available"
+    />
+  </div>
+
+  {
+    (editionLabel || releaseYear) && (
+      <p class="lw-game-card__meta">
+        {editionLabel && <span>{editionLabel}</span>}
+        {editionLabel && releaseYear && <span aria-hidden="true">·</span>}
+        {releaseYear && <span>Released {releaseYear}</span>}
+      </p>
+    )
+  }
+
+  <div class="lw-game-card__freshness">
+    <FreshnessIndicator
+      availability="available"
+      observedAtMs={observedAtMs}
+      storeName={storeName}
+    />
+  </div>
+</a>
+
+<style>
+  .lw-game-card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    min-inline-size: 0;
+    padding: var(--space-4);
+    border: var(--border-width-hairline) solid var(--color-border-default);
+    border-radius: var(--radius-card);
+    background: var(--color-surface-default);
+    color: inherit;
+    text-decoration: none;
+    transition: var(--motion-transition-color);
+  }
+
+  .lw-game-card:hover {
+    border-color: var(--color-border-strong);
+  }
+
+  .lw-game-card__title {
+    display: -webkit-box;
+    overflow: hidden;
+    margin: 0;
+    color: var(--color-text-primary);
+    font: var(--text-heading-sm);
+    letter-spacing: var(--letter-spacing-heading);
+    text-wrap: pretty;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .lw-game-card__stores {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: var(--space-1) var(--space-2);
+    margin: 0;
+    min-inline-size: 0;
+  }
+
+  /* Secondary rather than the tertiary the handoff's mock uses for this line:
+     at caption size, tertiary on the default surface measures 4.19:1, below
+     the 4.5:1 WCAG 1.4.3 asks for. Caught by the accessibility gate, not by
+     eye. */
+  .lw-game-card__store-more {
+    color: var(--color-text-secondary);
+    font: var(--text-caption);
+    white-space: nowrap;
+  }
+
+  /* Pushed to the bottom so a two-line title and a one-line title leave the
+     price on the same baseline across a row of cards. */
+  .lw-game-card__price {
+    display: flex;
+    justify-content: flex-start;
+    margin-block-start: auto;
+    padding-block-start: var(--space-2);
+  }
+
+  .lw-game-card__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1);
+    margin: 0;
+    color: var(--color-text-secondary);
+    font: var(--text-caption);
+    overflow-wrap: anywhere;
+  }
+</style>

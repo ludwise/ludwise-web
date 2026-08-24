@@ -1,0 +1,21 @@
+# Cloudflare Workers Assets serves anything under dist/client without invoking
+# the Worker, so these files never pass through src/middleware.ts and cannot get
+# their cache policy from it. The adapter appends its own /_astro/* rule to this
+# file at build time; check dist/client/_headers if you change anything here.
+
+/favicon.svg
+  # A day, and deliberately not immutable. The filename is not version-pinned,
+  # so an immutable year would strand a stale mark in every tab that had ever
+  # loaded the site. A day is long enough that a browser is not refetching it
+  # per navigation and short enough that a brand change propagates.
+  Cache-Control: public, max-age=86400
+  X-Content-Type-Options: nosniff
+
+/fonts/*
+  # A year, immutable. The filenames are version-pinned by
+  # public/fonts/PROVENANCE.md - a font swap changes the filename - so a
+  # revalidation round trip per navigation buys nothing. Measured before this
+  # existed: two 304s on every navigation, and a full 68 KB re-download on the
+  # third.
+  Cache-Control: public, max-age=31536000, immutable
+  X-Content-Type-Options: nosniff

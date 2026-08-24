@@ -1,0 +1,89 @@
+---
+import Icon from '../foundation/Icon.astro';
+
+interface Props {
+  availability: 'available' | 'unavailable' | 'unknown' | null;
+  observedAtMs: number | null;
+  storeName: string;
+}
+
+const { availability, observedAtMs, storeName } = Astro.props;
+const ageMs = observedAtMs === null ? null : Math.max(0, Date.now() - observedAtMs);
+const hour = 60 * 60 * 1000;
+const day = 24 * hour;
+
+let level: 'fresh' | 'aging' | 'stale' | 'unknown' | 'unavailable' = 'unknown';
+let label = 'Freshness not provided';
+if (availability === 'unavailable') {
+  level = 'unavailable';
+  label = `${storeName} temporarily unavailable`;
+} else if (ageMs !== null && ageMs < hour) {
+  level = 'fresh';
+  label =
+    ageMs < 60 * 1000 ? 'Updated just now' : `Updated ${Math.floor(ageMs / (60 * 1000))} min ago`;
+} else if (ageMs !== null && ageMs < day) {
+  level = 'aging';
+  label = `Checked ${Math.floor(ageMs / hour)} hours ago`;
+} else if (ageMs !== null) {
+  level = 'stale';
+  label =
+    ageMs < 7 * day
+      ? `Last checked ${Math.floor(ageMs / day)} days ago`
+      : 'Price may be out of date';
+}
+
+const absolute =
+  observedAtMs === null
+    ? null
+    : new Intl.DateTimeFormat('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+        timeZoneName: 'short',
+      }).format(new Date(observedAtMs));
+const iso = observedAtMs === null ? null : new Date(observedAtMs).toISOString();
+const icon =
+  level === 'unavailable'
+    ? 'circle-alert'
+    : level === 'stale'
+      ? 'clock-fading'
+      : level === 'unknown'
+        ? 'circle-question-mark'
+        : null;
+---
+
+<span class="lw-freshness" data-level={level} title={absolute ?? undefined}>
+  {icon ? <Icon name={icon} size="sm" /> : <span class="lw-freshness__dot" aria-hidden="true" />}
+  {iso ? <time datetime={iso}>{label}</time> : <span>{label}</span>}
+  {absolute && <span class="lw-visually-hidden">Exact time: {absolute}</span>}
+</span>
+
+<style>
+  .lw-freshness {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    color: var(--color-text-secondary);
+    font: var(--text-caption);
+    line-height: 1.35;
+  }
+  .lw-freshness[data-level='stale'] {
+    color: var(--color-text-secondary);
+  }
+  .lw-freshness[data-level='unavailable'] {
+    color: var(--color-text-secondary);
+  }
+  .lw-freshness__dot {
+    width: 8px;
+    height: 8px;
+    flex: none;
+    border-radius: var(--radius-full);
+    background: var(--color-freshness-fresh);
+  }
+  .lw-freshness[data-level='aging'] .lw-freshness__dot {
+    background: transparent;
+    border: 1.5px solid var(--color-freshness-aging);
+  }
+</style>

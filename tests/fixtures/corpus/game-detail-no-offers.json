@@ -1,0 +1,11 @@
+{
+  "status": 200,
+  "body": {
+    "id": "00000000-0000-7000-8000-000000000009",
+    "slug": "no-offers-demo",
+    "title": "No Offers Demo Game",
+    "metadata": null,
+    "metadataProvenance": [],
+    "offerGroups": []
+  }
+}

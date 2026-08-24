@@ -1,0 +1,28 @@
+---
+import Icon from '../foundation/Icon.astro';
+
+interface Props {
+  name: string;
+}
+
+const { name } = Astro.props;
+---
+
+<span class="lw-store-identity">
+  <Icon name="store" size="md" />
+  <span>{name}</span>
+</span>
+
+<style>
+  .lw-store-identity {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-width: 0;
+    font: var(--text-label-lg);
+    color: var(--color-text-primary);
+  }
+  .lw-store-identity > span {
+    overflow-wrap: anywhere;
+  }
+</style>

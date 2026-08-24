@@ -1,0 +1,142 @@
+---
+// Reference: design/system/components/feedback.md § InlineMessage — prop
+// contract ported verbatim. Bound to the region it describes: a failed
+// panel, a partial result, a stale section (PRODUCT.md §56 — one provider
+// failing must scope its warning to that section, not read as a platform
+// outage).
+//
+// `children` and `action` are ReactNode in the reference; Astro has no
+// equivalent "arbitrary renderable" prop, so they become the default slot and
+// a named "action" slot respectively — the same capability (any markup, not
+// just text), expressed the way this framework passes markup into a component.
+import Icon from '../foundation/Icon.astro';
+import type { IconName } from '../foundation/icons.js';
+
+type MessageTone = 'info' | 'success' | 'warning' | 'danger' | 'neutral';
+
+interface Props {
+  tone?: MessageTone | undefined;
+  /** One clause naming what happened. Not "Error". */
+  title?: string | undefined;
+}
+
+const { tone = 'info', title } = Astro.props;
+
+const TONE_ICON: Record<MessageTone, IconName> = {
+  info: 'info',
+  success: 'circle-check',
+  warning: 'triangle-alert',
+  danger: 'circle-alert',
+  neutral: 'info',
+};
+
+// The icon that carries tone visually (TONE_ICON, above) is aria-hidden, so
+// without this a screen-reader user cannot tell an info message from a
+// warning — accessibility.md's "never colour alone" rule, applied to a
+// channel that isn't colour at all. `neutral` has no assigned word: it is the
+// tone with no claim to make ("no information present"), so there is nothing
+// true to announce.
+const TONE_WORD: Partial<Record<MessageTone, string>> = {
+  info: 'Information',
+  success: 'Success',
+  warning: 'Warning',
+  danger: 'Error',
+};
+---
+
+<div role={tone === 'danger' ? 'alert' : 'status'} class="lw-inline-message" data-tone={tone}>
+  <span class="lw-inline-message__icon">
+    <Icon name={TONE_ICON[tone]} size="md" />
+  </span>
+  <div class="lw-inline-message__body">
+    {title && <span class="lw-inline-message__title">{title}</span>}
+    {TONE_WORD[tone] && <span class="lw-visually-hidden">{TONE_WORD[tone]}: </span>}
+    <div class="lw-inline-message__content"><slot /></div>
+    {
+      Astro.slots.has('action') && (
+        <div class="lw-inline-message__action">
+          <slot name="action" />
+        </div>
+      )
+    }
+  </div>
+</div>
+
+<style>
+  .lw-inline-message {
+    display: flex;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    border-radius: var(--radius-md);
+    border: var(--border-width-hairline) solid var(--color-status-info-border);
+    background: var(--color-status-info-surface);
+  }
+  .lw-inline-message[data-tone='success'] {
+    border-color: var(--color-status-success-border);
+    background: var(--color-status-success-surface);
+  }
+  .lw-inline-message[data-tone='warning'] {
+    border-color: var(--color-status-warning-border);
+    background: var(--color-status-warning-surface);
+  }
+  .lw-inline-message[data-tone='danger'] {
+    border-color: var(--color-status-danger-border);
+    background: var(--color-status-danger-surface);
+  }
+  .lw-inline-message[data-tone='neutral'] {
+    border-color: var(--color-status-neutral-border);
+    background: var(--color-status-neutral-surface);
+  }
+
+  .lw-inline-message__icon {
+    margin-top: 2px;
+    color: var(--color-status-info-text);
+  }
+  .lw-inline-message[data-tone='success'] .lw-inline-message__icon {
+    color: var(--color-status-success-text);
+  }
+  .lw-inline-message[data-tone='warning'] .lw-inline-message__icon {
+    color: var(--color-status-warning-text);
+  }
+  .lw-inline-message[data-tone='danger'] .lw-inline-message__icon {
+    color: var(--color-status-danger-text);
+  }
+  .lw-inline-message[data-tone='neutral'] .lw-inline-message__icon {
+    color: var(--color-status-neutral-text);
+  }
+
+  .lw-inline-message__body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    flex: 1;
+    min-width: 0;
+  }
+  .lw-inline-message__title {
+    font: var(--text-label-lg);
+    /* Paired with its tone's own -text token, not text.primary, matching the
+       icon rules above (accessibility.md: a status surface is always paired
+       with its matching -text, never with text.primary). */
+    color: var(--color-status-info-text);
+  }
+  .lw-inline-message[data-tone='success'] .lw-inline-message__title {
+    color: var(--color-status-success-text);
+  }
+  .lw-inline-message[data-tone='warning'] .lw-inline-message__title {
+    color: var(--color-status-warning-text);
+  }
+  .lw-inline-message[data-tone='danger'] .lw-inline-message__title {
+    color: var(--color-status-danger-text);
+  }
+  .lw-inline-message[data-tone='neutral'] .lw-inline-message__title {
+    color: var(--color-status-neutral-text);
+  }
+  .lw-inline-message__content {
+    font: var(--text-body-sm);
+    color: var(--color-text-secondary);
+    text-wrap: pretty;
+  }
+  .lw-inline-message__action {
+    margin-top: var(--space-2);
+  }
+</style>

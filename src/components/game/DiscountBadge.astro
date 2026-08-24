@@ -1,0 +1,39 @@
+---
+interface Props {
+  percentage?: number | null | undefined;
+  size?: 'sm' | 'md' | undefined;
+}
+
+const { percentage, size = 'md' } = Astro.props;
+const value = percentage === null || percentage === undefined ? null : Math.round(percentage);
+---
+
+{
+  value !== null && value > 0 && (
+    <span class="lw-discount-badge" data-size={size} aria-label={`${value} percent off`}>
+      {'−'}
+      {value}%
+    </span>
+  )
+}
+
+<style>
+  .lw-discount-badge {
+    display: inline-flex;
+    align-items: center;
+    min-height: 24px;
+    padding-inline: var(--space-2);
+    border: var(--border-width-hairline) solid var(--color-discount-border);
+    border-radius: var(--radius-badge);
+    background: var(--color-discount-surface);
+    color: var(--color-discount-text);
+    font: var(--text-label-md);
+    letter-spacing: var(--letter-spacing-label);
+    font-variant-numeric: tabular-nums lining-nums;
+    white-space: nowrap;
+  }
+  .lw-discount-badge[data-size='sm'] {
+    min-height: 20px;
+    font: var(--text-label-sm);
+  }
+</style>

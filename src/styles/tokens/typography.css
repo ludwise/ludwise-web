@@ -1,0 +1,58 @@
+/* LUDWISE type scale. One family (Geist) with a monospace companion.
+   Every price, percentage, count and timestamp uses tabular figures. */
+:root{
+--font-weight-light:300;
+--font-weight-regular:400;
+--font-weight-medium:500;
+--font-weight-semibold:600;
+--font-weight-bold:700;
+
+--font-size-display:44px;
+--font-size-heading-xl:34px;
+--font-size-heading-lg:26px;
+--font-size-heading-md:20px;
+--font-size-heading-sm:17px;
+--font-size-body-lg:17px;
+--font-size-body-md:15px;
+--font-size-body-sm:13px;
+--font-size-label-lg:15px;
+--font-size-label-md:13px;
+--font-size-label-sm:11px;
+--font-size-caption:12px;
+--font-size-numeric-lg:28px;
+--font-size-numeric-md:19px;
+--font-size-numeric-sm:14px;
+--font-size-code:13px;
+
+--line-height-display:1.08;
+--line-height-heading:1.2;
+--line-height-body:1.55;
+--line-height-tight:1.35;
+--line-height-flat:1;
+
+--letter-spacing-display:-0.022em;
+--letter-spacing-heading:-0.014em;
+--letter-spacing-body:0;
+--letter-spacing-label:0.005em;
+--letter-spacing-caps:0.06em;
+--letter-spacing-numeric:-0.01em;
+
+/* Composite text roles. Apply with the .lw-text-* classes in base.css or copy
+   the four properties. */
+--text-display:var(--font-weight-semibold) var(--font-size-display)/var(--line-height-display) var(--font-family-display);
+--text-heading-xl:var(--font-weight-semibold) var(--font-size-heading-xl)/var(--line-height-heading) var(--font-family-sans);
+--text-heading-lg:var(--font-weight-semibold) var(--font-size-heading-lg)/var(--line-height-heading) var(--font-family-sans);
+--text-heading-md:var(--font-weight-semibold) var(--font-size-heading-md)/var(--line-height-heading) var(--font-family-sans);
+--text-heading-sm:var(--font-weight-semibold) var(--font-size-heading-sm)/var(--line-height-tight) var(--font-family-sans);
+--text-body-lg:var(--font-weight-regular) var(--font-size-body-lg)/var(--line-height-body) var(--font-family-sans);
+--text-body-md:var(--font-weight-regular) var(--font-size-body-md)/var(--line-height-body) var(--font-family-sans);
+--text-body-sm:var(--font-weight-regular) var(--font-size-body-sm)/var(--line-height-body) var(--font-family-sans);
+--text-label-lg:var(--font-weight-medium) var(--font-size-label-lg)/var(--line-height-tight) var(--font-family-sans);
+--text-label-md:var(--font-weight-medium) var(--font-size-label-md)/var(--line-height-tight) var(--font-family-sans);
+--text-label-sm:var(--font-weight-medium) var(--font-size-label-sm)/var(--line-height-tight) var(--font-family-sans);
+--text-caption:var(--font-weight-regular) var(--font-size-caption)/var(--line-height-tight) var(--font-family-sans);
+--text-numeric-lg:var(--font-weight-semibold) var(--font-size-numeric-lg)/var(--line-height-flat) var(--font-family-numeric);
+--text-numeric-md:var(--font-weight-semibold) var(--font-size-numeric-md)/var(--line-height-flat) var(--font-family-numeric);
+--text-numeric-sm:var(--font-weight-medium) var(--font-size-numeric-sm)/var(--line-height-flat) var(--font-family-numeric);
+--text-code:var(--font-weight-regular) var(--font-size-code)/1.5 var(--font-family-mono);
+}

@@ -1,0 +1,55 @@
+{
+  "status": 200,
+  "body": {
+    "id": "00000000-0000-7000-8000-000000000110",
+    "slug": "half-off-demo",
+    "title": "Half Off Demo Game",
+    "metadata": {
+      "summary": null,
+      "developer": null,
+      "publisher": null,
+      "releaseDate": "2024-03-01"
+    },
+    "metadataProvenance": [],
+    "offerGroups": [
+      {
+        "market": {
+          "id": "0198f800-0000-7000-8000-000000000012",
+          "code": "DE",
+          "name": "Germany",
+          "countryCode": "DE"
+        },
+        "currency": {
+          "code": "EUR",
+          "minorUnit": 2
+        },
+        "offers": [
+          {
+            "id": "00000000-0000-7000-8000-000000000130",
+            "storeName": "Aurora Market",
+            "storeSlug": "aurora-market",
+            "storePageUrl": null,
+            "offerUrl": null,
+            "kind": "base_game",
+            "editionLabel": null,
+            "availability": "available",
+            "price": {
+              "amountMinor": 2999,
+              "currencyCode": "EUR",
+              "minorUnit": 2
+            },
+            "referencePrice": {
+              "amountMinor": 5999,
+              "currencyCode": "EUR",
+              "minorUnit": 2
+            },
+            "discountPercentage": 50,
+            "discountEndsAtMs": null,
+            "sourceName": "Orbit Source",
+            "observedAtMs": 1750000000000
+          }
+        ]
+      }
+    ]
+  }
+}

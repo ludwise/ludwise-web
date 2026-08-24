@@ -1,0 +1,37 @@
+/* The one skip-link definition, referenced with @import from both
+   BaseLayout.astro and OperationsLayout.astro's own scoped <style> blocks so
+   the two cannot drift into two different looks or two different focus
+   behaviours. See docs/development/design-system.md ("A skip link" under
+   "Additions beyond the handoff") for why this exists at all - no landmark
+   or skip-link guidance appears anywhere in the vendored design bundle.
+
+   Not from the design handoff. `:focus` rather than `:focus-visible`: a skip
+   link is reached only by keyboard, and it has to appear for every mechanism
+   that focuses it, including one a browser might not classify as
+   focus-visible. The ring itself still comes from the single global
+   :focus-visible rule in tokens/base.css. */
+.lw-skip-link {
+  position: fixed;
+  top: var(--space-2);
+  inset-inline-start: var(--space-2);
+  z-index: 100;
+  padding: var(--space-2) var(--space-3);
+  border: var(--border-width-hairline) solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-raised);
+  box-shadow: var(--elevation-1);
+  font: var(--text-label-md);
+  color: var(--color-text-primary);
+  text-decoration: none;
+}
+
+.lw-skip-link:not(:focus) {
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}

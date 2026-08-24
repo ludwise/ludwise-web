@@ -1,0 +1,121 @@
+{
+  "status": 200,
+  "body": {
+    "games": [
+      {
+        "id": "00000000-0000-7000-8000-000000000008",
+        "slug": "canonical-demo",
+        "title": "Canonical Demo Game",
+        "releaseDate": "2025-04-18"
+      },
+      {
+        "id": "00000000-0000-7000-8000-000000000112",
+        "slug": "equal-price-demo",
+        "title": "Equal Price Demo Game",
+        "releaseDate": null
+      },
+      {
+        "id": "00000000-0000-7000-8000-000000000110",
+        "slug": "half-off-demo",
+        "title": "Half Off Demo Game",
+        "releaseDate": "2024-03-01"
+      },
+      {
+        "id": "00000000-0000-7000-8000-000000000009",
+        "slug": "no-offers-demo",
+        "title": "No Offers Demo Game",
+        "releaseDate": null
+      },
+      {
+        "id": "00000000-0000-7000-8000-000000000115",
+        "slug": "steep-discount-demo",
+        "title": "Steep Discount Demo Game",
+        "releaseDate": null
+      },
+      {
+        "id": "00000000-0000-7000-8000-000000000111",
+        "slug": "two-store-demo",
+        "title": "Two Store Demo Game",
+        "releaseDate": null
+      },
+      {
+        "id": "00000000-0000-7000-8000-000000000113",
+        "slug": "withdrawn-demo",
+        "title": "Withdrawn Demo Game",
+        "releaseDate": null
+      },
+      {
+        "id": "00000000-0000-7000-8000-000000000114",
+        "slug": "yen-sale-demo",
+        "title": "Yen Sale Demo Game",
+        "releaseDate": null
+      }
+    ],
+    "resultCount": 8,
+    "page": 1,
+    "pageSize": 24,
+    "pageCount": 1,
+    "facets": {
+      "stores": [
+        {
+          "slug": "aurora-market",
+          "name": "Aurora Market"
+        },
+        {
+          "slug": "copper-shop",
+          "name": "Copper Shop"
+        },
+        {
+          "slug": "orbit-market",
+          "name": "Orbit Market"
+        },
+        {
+          "slug": "vertex-store",
+          "name": "Vertex Store"
+        }
+      ],
+      "markets": [
+        {
+          "code": "DE",
+          "name": "Germany",
+          "currencies": [
+            {
+              "code": "EUR",
+              "minorUnit": 2
+            }
+          ]
+        },
+        {
+          "code": "EU",
+          "name": "European Union",
+          "currencies": [
+            {
+              "code": "EUR",
+              "minorUnit": 2
+            }
+          ]
+        },
+        {
+          "code": "JP",
+          "name": "Japan",
+          "currencies": [
+            {
+              "code": "JPY",
+              "minorUnit": 0
+            }
+          ]
+        },
+        {
+          "code": "KW",
+          "name": "Kuwait",
+          "currencies": [
+            {
+              "code": "KWD",
+              "minorUnit": 3
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

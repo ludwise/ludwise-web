@@ -1,0 +1,225 @@
+---
+import type { OfferGroupView, OfferView } from '../../lib/api/contract.js';
+import FreshnessIndicator from '../game/FreshnessIndicator.astro';
+import Price from '../game/Price.astro';
+import StoreIdentity from '../game/StoreIdentity.astro';
+
+interface Props {
+  group: OfferGroupView;
+  gameTitle: string;
+}
+
+const { group, gameTitle } = Astro.props;
+
+const KIND_LABELS: Record<string, string> = {
+  base_game: 'Base game',
+  edition: 'Edition',
+  bundle: 'Bundle',
+  dlc: 'Downloadable content',
+  other: 'Offer',
+};
+
+function editionLabel(offer: OfferView): string {
+  return offer.editionLabel ?? KIND_LABELS[offer.kind] ?? 'Offer';
+}
+
+function actionUrl(offer: OfferView): string | null {
+  return offer.availability === 'available' ? (offer.offerUrl ?? offer.storePageUrl) : null;
+}
+---
+
+<div class="lw-offer-table__viewport">
+  <table class="lw-offer-table">
+    <caption class="lw-visually-hidden">
+      {group.market?.name ?? 'Market not provided'}
+      {group.currency ? `, ${group.currency.code} offers` : ', currency not provided'} for {
+        gameTitle
+      }
+    </caption>
+    <thead>
+      <tr>
+        <th scope="col">Store</th>
+        <th scope="col">Edition</th>
+        <th scope="col" class="lw-offer-table__price-heading">Price</th>
+        <th scope="col">Checked</th>
+        <th scope="col"><span class="lw-visually-hidden">Action</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      {
+        group.offers.map((offer) => {
+          const href = actionUrl(offer);
+          return (
+            <tr data-availability={offer.availability ?? 'unknown'}>
+              <td data-label="Store">
+                <StoreIdentity name={offer.storeName} />
+                {offer.sourceName && (
+                  <details class="lw-offer-table__source">
+                    <summary>Source details</summary>
+                    <dl>
+                      <dt>Source</dt>
+                      <dd>{offer.sourceName}</dd>
+                    </dl>
+                  </details>
+                )}
+              </td>
+              <td data-label="Edition">
+                <span>{editionLabel(offer)}</span>
+              </td>
+              <td data-label="Price" class="lw-offer-table__price-cell">
+                <Price
+                  price={offer.price}
+                  referencePrice={offer.referencePrice}
+                  discountPercentage={offer.discountPercentage}
+                  availability={offer.availability}
+                />
+                {offer.discountPercentage !== null && (
+                  <span class="lw-visually-hidden">Discount applies to this current price.</span>
+                )}
+              </td>
+              <td data-label="Checked">
+                <FreshnessIndicator
+                  availability={offer.availability}
+                  observedAtMs={offer.observedAtMs}
+                  storeName={offer.storeName}
+                />
+              </td>
+              <td data-label="Action" class="lw-offer-table__action">
+                {href ? (
+                  <a href={href} target="_blank" rel="noopener noreferrer">
+                    View at {offer.storeName}
+                    <span class="lw-visually-hidden">
+                      , {editionLabel(offer)}, {gameTitle}
+                    </span>
+                  </a>
+                ) : (
+                  <span class="lw-offer-table__not-provided">
+                    {offer.availability === 'unavailable' ? 'Unavailable' : 'Not provided'}
+                  </span>
+                )}
+              </td>
+            </tr>
+          );
+        })
+      }
+    </tbody>
+  </table>
+</div>
+
+<style>
+  .lw-offer-table__viewport {
+    overflow-x: auto;
+    border: var(--border-width-hairline) solid var(--color-border-default);
+    border-radius: var(--radius-card);
+    background: var(--color-surface-default);
+  }
+  .lw-offer-table {
+    width: 100%;
+    min-width: 680px;
+    text-align: start;
+  }
+  .lw-offer-table th {
+    padding: var(--space-3) var(--space-4);
+    border-bottom: var(--border-width-hairline) solid var(--color-border-default);
+    background: var(--color-surface-sunken);
+    color: var(--color-text-secondary);
+    font: var(--text-label-sm);
+    text-align: start;
+    text-transform: uppercase;
+    letter-spacing: var(--letter-spacing-caps);
+  }
+  .lw-offer-table td {
+    padding: var(--space-4);
+    border-bottom: var(--border-width-hairline) solid var(--color-border-subtle);
+    vertical-align: middle;
+  }
+  .lw-offer-table tbody tr:last-child td {
+    border-bottom: 0;
+  }
+  .lw-offer-table tbody tr[data-availability='unavailable'] {
+    color: var(--color-text-secondary);
+  }
+  .lw-offer-table__price-heading,
+  .lw-offer-table__price-cell {
+    text-align: end;
+  }
+  .lw-offer-table__source {
+    margin-top: var(--space-2);
+    color: var(--color-text-secondary);
+    font: var(--text-caption);
+  }
+  .lw-offer-table__source summary {
+    width: fit-content;
+    cursor: pointer;
+  }
+  .lw-offer-table__source dl {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: var(--space-1) var(--space-2);
+    margin-top: var(--space-2);
+  }
+  .lw-offer-table__source dt {
+    color: var(--color-text-secondary);
+  }
+  .lw-offer-table__source dd {
+    overflow-wrap: anywhere;
+  }
+  .lw-offer-table__action {
+    text-align: end;
+    white-space: nowrap;
+  }
+  .lw-offer-table__not-provided {
+    color: var(--color-text-secondary);
+    font: var(--text-caption);
+  }
+  @media (max-width: 700px) {
+    .lw-offer-table__viewport {
+      overflow: visible;
+    }
+    .lw-offer-table {
+      min-width: 0;
+    }
+    .lw-offer-table thead {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      white-space: nowrap;
+    }
+    .lw-offer-table tbody,
+    .lw-offer-table tr,
+    .lw-offer-table td {
+      display: block;
+    }
+    .lw-offer-table tr {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: var(--space-3) var(--space-4);
+      padding: var(--space-4);
+      border-bottom: var(--border-width-hairline) solid var(--color-border-subtle);
+    }
+    .lw-offer-table td {
+      display: grid;
+      grid-template-columns: 5.25rem minmax(0, 1fr);
+      gap: var(--space-3);
+      align-items: start;
+      padding: 0;
+      border: 0;
+    }
+    .lw-offer-table td::before {
+      content: attr(data-label);
+      color: var(--color-text-tertiary);
+      font: var(--text-label-sm);
+      letter-spacing: var(--letter-spacing-caps);
+      text-transform: uppercase;
+    }
+    .lw-offer-table__price-cell,
+    .lw-offer-table__action {
+      text-align: start;
+    }
+    .lw-offer-table__price-cell .lw-price {
+      justify-content: flex-start;
+    }
+  }
+</style>

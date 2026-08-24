@@ -1,0 +1,203 @@
+{
+  "status": 200,
+  "body": {
+    "id": "00000000-0000-7000-8000-000000000008",
+    "slug": "canonical-demo",
+    "title": "Canonical Demo Game",
+    "metadata": {
+      "summary": "A small fixture proving that a game page reads canonical data without knowing its source.",
+      "developer": "Example Studio",
+      "publisher": "Example Publisher",
+      "releaseDate": "2025-04-18"
+    },
+    "metadataProvenance": [
+      {
+        "field": "summary",
+        "sourceName": "Orbit Source",
+        "method": "direct",
+        "observedAtMs": 1750000000000
+      },
+      {
+        "field": "title",
+        "sourceName": "Orbit Source",
+        "method": "direct",
+        "observedAtMs": 1750000000000
+      }
+    ],
+    "offerGroups": [
+      {
+        "market": {
+          "id": "00000000-0000-7000-8000-000000000005",
+          "code": "EU",
+          "name": "European Union",
+          "countryCode": "EU"
+        },
+        "currency": {
+          "code": "EUR",
+          "minorUnit": 2
+        },
+        "offers": [
+          {
+            "id": "00000000-0000-7000-8000-000000000013",
+            "storeName": "Orbit Market",
+            "storeSlug": "orbit-market",
+            "storePageUrl": "https://orbit-market.example.test/canonical-demo",
+            "offerUrl": null,
+            "kind": "edition",
+            "editionLabel": "Deluxe edition",
+            "availability": "available",
+            "price": {
+              "amountMinor": 0,
+              "currencyCode": "EUR",
+              "minorUnit": 2
+            },
+            "referencePrice": null,
+            "discountPercentage": null,
+            "discountEndsAtMs": null,
+            "sourceName": "Orbit Source",
+            "observedAtMs": 1750000000000
+          },
+          {
+            "id": "00000000-0000-7000-8000-000000000012",
+            "storeName": "Orbit Market",
+            "storeSlug": "orbit-market",
+            "storePageUrl": "https://orbit-market.example.test/canonical-demo",
+            "offerUrl": "https://orbit-market.example.test/buy/canonical-demo",
+            "kind": "base_game",
+            "editionLabel": "Base game",
+            "availability": "available",
+            "price": {
+              "amountMinor": 1299,
+              "currencyCode": "EUR",
+              "minorUnit": 2
+            },
+            "referencePrice": {
+              "amountMinor": 1999,
+              "currencyCode": "EUR",
+              "minorUnit": 2
+            },
+            "discountPercentage": 35,
+            "discountEndsAtMs": null,
+            "sourceName": "Orbit Source",
+            "observedAtMs": 1750000000000
+          },
+          {
+            "id": "00000000-0000-7000-8000-000000000014",
+            "storeName": "Copper Shop",
+            "storeSlug": "copper-shop",
+            "storePageUrl": "https://copper-shop.example.test/canonical-demo",
+            "offerUrl": "https://copper-shop.example.test/buy/canonical-demo",
+            "kind": "base_game",
+            "editionLabel": "Base game",
+            "availability": "available",
+            "price": {
+              "amountMinor": 1499,
+              "currencyCode": "EUR",
+              "minorUnit": 2
+            },
+            "referencePrice": null,
+            "discountPercentage": null,
+            "discountEndsAtMs": null,
+            "sourceName": "Copper Source",
+            "observedAtMs": 1750000000000
+          }
+        ]
+      },
+      {
+        "market": {
+          "id": "0198f800-0000-7000-8000-000000000014",
+          "code": "JP",
+          "name": "Japan",
+          "countryCode": "JP"
+        },
+        "currency": {
+          "code": "JPY",
+          "minorUnit": 0
+        },
+        "offers": [
+          {
+            "id": "00000000-0000-7000-8000-000000000012",
+            "storeName": "Orbit Market",
+            "storeSlug": "orbit-market",
+            "storePageUrl": "https://orbit-market.example.test/canonical-demo",
+            "offerUrl": "https://orbit-market.example.test/buy/canonical-demo",
+            "kind": "base_game",
+            "editionLabel": "Base game",
+            "availability": "available",
+            "price": {
+              "amountMinor": 1800,
+              "currencyCode": "JPY",
+              "minorUnit": 0
+            },
+            "referencePrice": null,
+            "discountPercentage": null,
+            "discountEndsAtMs": null,
+            "sourceName": "Orbit Source",
+            "observedAtMs": 1750000000000
+          }
+        ]
+      },
+      {
+        "market": {
+          "id": "0198f800-0000-7000-8000-000000000014",
+          "code": "JP",
+          "name": "Japan",
+          "countryCode": "JP"
+        },
+        "currency": null,
+        "offers": [
+          {
+            "id": "00000000-0000-7000-8000-000000000013",
+            "storeName": "Orbit Market",
+            "storeSlug": "orbit-market",
+            "storePageUrl": "https://orbit-market.example.test/canonical-demo",
+            "offerUrl": null,
+            "kind": "edition",
+            "editionLabel": "Deluxe edition",
+            "availability": "unavailable",
+            "price": null,
+            "referencePrice": null,
+            "discountPercentage": null,
+            "discountEndsAtMs": null,
+            "sourceName": "Orbit Source",
+            "observedAtMs": 1750000000000
+          }
+        ]
+      },
+      {
+        "market": {
+          "id": "00000000-0000-7000-8000-000000000007",
+          "code": "KW",
+          "name": "Kuwait",
+          "countryCode": "KW"
+        },
+        "currency": {
+          "code": "KWD",
+          "minorUnit": 3
+        },
+        "offers": [
+          {
+            "id": "00000000-0000-7000-8000-000000000014",
+            "storeName": "Copper Shop",
+            "storeSlug": "copper-shop",
+            "storePageUrl": "https://copper-shop.example.test/canonical-demo",
+            "offerUrl": "https://copper-shop.example.test/buy/canonical-demo",
+            "kind": "base_game",
+            "editionLabel": "Base game",
+            "availability": "available",
+            "price": {
+              "amountMinor": 3500,
+              "currencyCode": "KWD",
+              "minorUnit": 3
+            },
+            "referencePrice": null,
+            "discountPercentage": null,
+            "discountEndsAtMs": null,
+            "sourceName": "Copper Source",
+            "observedAtMs": 1750000000000
+          }
+        ]
+      }
+    ]
+  }
+}

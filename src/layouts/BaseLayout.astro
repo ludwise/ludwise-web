@@ -1,0 +1,152 @@
+---
+import { AppHeader } from '../components/navigation/AppHeader.tsx';
+import { readThemeCookie } from '../lib/http/theme.js';
+import '../styles/global.css';
+
+interface Props {
+  title: string;
+  description?: string | undefined;
+  /** Which nav destination is current. Omit on pages outside the nav, e.g. 404. */
+  activeNavId?: string | undefined;
+}
+
+/**
+ * Primary destinations. The design system caps these at three to five and
+ * puts everything else one level down; there are three real ones today, and a
+ * nav item pointing at a route that does not exist is worse than a short nav.
+ */
+const NAV_ITEMS = [
+  { id: 'home', label: 'Home', href: '/' },
+  { id: 'games', label: 'Games', href: '/games' },
+  { id: 'sales', label: 'Sales', href: '/sales' },
+];
+
+const { title, description, activeNavId } = Astro.props;
+const canonical = new URL(Astro.url.pathname, Astro.site ?? Astro.url.origin);
+
+// Resolved server-side so the first response already carries the right theme.
+// null means the visitor has expressed no preference, which is a different
+// answer from "light" - it is what hands the decision to the pre-paint script
+// below rather than asserting a preference nobody made.
+const theme = readThemeCookie(Astro.request.headers.get('cookie'));
+
+// Belt to the X-Robots-Tag header's braces. The header is what a crawler
+// honours and what src/lib/http/security-headers.ts sets on every response;
+// this covers the case where a page is saved, proxied or re-served somewhere
+// the header did not survive. Neither is a security control - Cloudflare
+// Access is - and production must never receive either.
+const indexable = Astro.locals.config.environment === 'production';
+---
+
+<!doctype html>
+<html lang={Astro.currentLocale ?? 'en'} data-theme={theme ?? undefined}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    {
+      /* The two weights that render above the fold on every page: body text at
+         400, and headings at 600 - every `h1` uses `--text-heading-xl`, which
+         is semibold, and so does the wordmark. Preloading them collapses the
+         swap window `font-display: swap` would otherwise leave visible.
+
+         500 is deliberately not preloaded, and this was measured rather than
+         guessed: on a throttled connection, preloading 400+500 had the
+         headline face arriving at 1,361ms, and 400+600 at 719ms, with 124ms
+         better FCP. 500 renders one pill in the header and is discovered from
+         the stylesheet like every other weight.
+
+         `crossorigin` is required even same-origin: fonts are always fetched
+         in CORS mode, and without it the preload is discarded and fetched
+         twice. */
+      ['geist-sans-latin-400-normal', 'geist-sans-latin-600-normal'].map((file) => (
+        <link rel="preload" href={`/fonts/${file}.woff2`} as="font" type="font/woff2" crossorigin />
+      ))
+    }
+
+    <title>{title}</title>
+    {description && <meta name="description" content={description} />}
+    {!indexable && <meta name="robots" content="noindex,nofollow" />}
+    <link rel="canonical" href={canonical.href} />
+
+    {
+      /* The design system's logo mark, served verbatim and pinned to it by
+         tests/integration/design/asset-parity.test.ts.
+
+         SVG only. A raster fallback would need a rasterisation step and an
+         image dependency to produce .ico and apple-touch-icon variants, and
+         every browser this project supports reads an SVG icon. A browser that
+         does not falls back to probing /favicon.ico, gets a 404 and shows its
+         own default glyph, which is the same thing it showed before this
+         existed. */
+    }
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+
+    {
+      /* Runs before first paint, and only when the server had no preference to
+         render. Inline rather than a file because an external script would need
+         the round trip that a render-blocking script in <head> exists to avoid,
+         and after that round trip the flash has already happened.
+
+         It deliberately does NOT write the cookie. Storing a value on a
+         visitor's device with no act on their part is not covered by
+         ePrivacy's strictly-necessary exemption, and it would not be necessary
+         anyway: this script has already resolved and applied the theme for the
+         page in front of them. Persisting it would only save *this same
+         script* from running on later pages - an optimisation, and an
+         optimisation is not the exemption. So the cookie exists only when the
+         visitor used the toggle, which is squarely inside it. The cost is a
+         few hundred inline bytes per page for a visitor who never toggles. */
+      theme === null && (
+        <script is:inline>
+          {(() => {
+            document.documentElement.dataset.theme = window.matchMedia(
+              '(prefers-color-scheme: dark)',
+            ).matches
+              ? 'dark'
+              : 'light';
+          })()}
+        </script>
+      )
+    }
+  </head>
+  <body>
+    <a class="lw-skip-link" href="#main-content">Skip to content</a>
+
+    <AppHeader
+      client:load
+      items={NAV_ITEMS}
+      activeId={activeNavId}
+      theme={theme ?? 'light'}
+      searchAction="/games"
+      searchValue={Astro.url.searchParams.get('q') ?? undefined}
+    />
+
+    {
+      /* tabindex="-1" so the skip link moves focus rather than only moving the
+         sequential navigation start point. Current browsers do the latter
+         correctly on their own; a screen reader virtual cursor historically
+         did not follow a target it could not focus, and one attribute removes
+         the question. */
+    }
+    <main id="main-content" tabindex="-1">
+      <slot />
+    </main>
+
+    <style is:global>
+      /* Single shared definition in src/styles/skip-link.css, referenced with
+         @import rather than copy-pasted: OperationsLayout.astro renders the
+         same link and imports the same file, so the two cannot drift into
+         two different looks or two different focus behaviours. is:global
+         because a scoped `.lw-skip-link` rule would be harmless here (the
+         link lives in this same file) but there is no reason to scope a
+         shared utility class at all. */
+      @import '../styles/skip-link.css';
+    </style>
+    <style>
+      main {
+        padding-block: var(--space-8) var(--space-16);
+      }
+    </style>
+  </body>
+</html>

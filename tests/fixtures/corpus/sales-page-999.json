@@ -1,0 +1,57 @@
+{
+  "status": 200,
+  "body": {
+    "context": {
+      "marketCode": "DE",
+      "marketName": "Germany",
+      "currencyCode": "EUR",
+      "currencyMinorUnit": 2,
+      "gameCount": 3
+    },
+    "resultCount": 3,
+    "contextCount": 3,
+    "page": 999,
+    "pageSize": 24,
+    "sort": "discount",
+    "facets": {
+      "stores": [
+        {
+          "slug": "aurora-market",
+          "name": "Aurora Market"
+        },
+        {
+          "slug": "vertex-store",
+          "name": "Vertex Store"
+        }
+      ],
+      "contexts": [
+        {
+          "marketCode": "DE",
+          "marketName": "Germany",
+          "currencyCode": "EUR",
+          "currencyMinorUnit": 2,
+          "gameCount": 3
+        },
+        {
+          "marketCode": "EU",
+          "marketName": "European Union",
+          "currencyCode": "EUR",
+          "currencyMinorUnit": 2,
+          "gameCount": 1
+        },
+        {
+          "marketCode": "JP",
+          "marketName": "Japan",
+          "currencyCode": "JPY",
+          "currencyMinorUnit": 0,
+          "gameCount": 1
+        }
+      ]
+    },
+    "hasAnyOfferData": true,
+    "games": [],
+    "pageCount": 1,
+    "rangeStart": 0,
+    "rangeEnd": 0
+  }
+}

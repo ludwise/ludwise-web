@@ -1,0 +1,169 @@
+name: Deploy production
+
+# Never a branch push. Production deploys when a GitHub Release is published
+# from the `production` branch, which makes "what is live" a thing somebody
+# chose rather than a thing that happened.
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  # Never cancel a deploy in flight. A cancelled `wrangler deploy` can leave a
+  # Worker half-published, which is the one state worth avoiding.
+  group: deploy-production
+  cancel-in-progress: false
+
+env:
+  FORCE_COLOR: '1'
+
+jobs:
+  verify:
+    name: Verify
+    uses: ./.github/workflows/verify.yml
+    permissions:
+      contents: read
+
+  deploy:
+    name: Deploy to Cloudflare
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # A GitHub environment with its own protection rules. The approval gate
+    # lives there rather than in this file, so changing who may release does
+    # not need a commit.
+    environment:
+      name: production
+      url: ${{ vars.SITE_URL }}
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+
+      - name: Install Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # See the staging workflow for why this exists. It matters in the other
+      # direction here: a production site bound to the staging backend would
+      # serve test data to the public.
+      - name: Refuse a cross-environment backend binding
+        run: node scripts/check-environment.mjs production
+
+      - name: Build
+        run: pnpm run build
+        env:
+          CLOUDFLARE_ENV: production
+          SITE_URL: ${{ vars.SITE_URL }}
+
+      - name: Deploy
+        run: pnpm exec wrangler deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+
+      # Anonymous, unlike staging: production is public and an authenticated
+      # probe would prove the wrong thing.
+      - name: Verify deployment
+        env:
+          SITE_URL: ${{ vars.SITE_URL }}
+        run: |
+          timeout 120 bash -c 'until curl -sf -o /dev/null "${SITE_URL}/api/health"; do sleep 5; done'
+
+          body="$(curl -sf "${SITE_URL}/api/health")"
+          echo "${body}"
+
+          echo "${body}" | grep -q '"environment":"production"' || {
+            echo "::error::The deployed Worker does not report environment=production."
+            exit 1
+          }
+          echo "${body}" | grep -q '"service":"ludwise-web"' || {
+            echo "::error::Something other than ludwise-web is answering this hostname."
+            exit 1
+          }
+
+      # The mirror image of staging's check, and the one whose failure is
+      # silent, expensive and slow to notice. De-indexing a live site does not
+      # announce itself; it shows up weeks later as missing traffic.
+      - name: Confirm production IS indexable
+        env:
+          SITE_URL: ${{ vars.SITE_URL }}
+        run: |
+          # Polled for the same reason staging's is: a Worker deployment is
+          # eventually consistent, and asserting immediately races the rollout.
+          deadline=$(( SECONDS + 120 ))
+
+          while true; do
+            headers="$(curl -s -o /dev/null -D - "${SITE_URL}/")"
+
+            if printf '%s' "${headers}" | grep -qi '^x-robots-tag'; then
+              if [ "${SECONDS}" -ge "${deadline}" ]; then
+                echo "::error::Production is sending X-Robots-Tag, which de-indexes the live site."
+                printf '%s' "${headers}" | grep -i '^x-robots-tag'
+                exit 1
+              fi
+              sleep 5
+              continue
+            fi
+
+            echo "production sends no X-Robots-Tag, as it must"
+            break
+          done
+
+          robots="$(curl -sf "${SITE_URL}/robots.txt")"
+          echo "${robots}"
+          echo "${robots}" | grep -q 'Allow: /' || {
+            echo "::error::Production robots.txt does not allow crawling."
+            exit 1
+          }
+
+      # Operations and the read API belong to the backend Worker at its own
+      # hostname (ADR 0026, ADR 0024). On a public hostname this is not a
+      # tidiness check: `/ops` is the operations dashboard and `/v1` is a search
+      # that scans the catalogue per request. Neither may answer here.
+      - name: Confirm internal surfaces are not served here
+        env:
+          SITE_URL: ${{ vars.SITE_URL }}
+        run: |
+          for path in /ops /ops/logs /v1/games /v1/sales; do
+            status="$(curl -s -o /dev/null -w '%{http_code}' "${SITE_URL}${path}")"
+            echo "GET ${path} responded ${status}"
+            case "${status}" in
+              404) ;;
+              *)
+                echo "::error::${path} answered ${status} on the public site."
+                echo "It must not exist here. See docs/architecture.md."
+                exit 1
+                ;;
+            esac
+          done
+
+      # A page, not just the health endpoint. Health proves the Worker booted;
+      # this proves it can still reach the backend and render a catalogue,
+      # which is the thing a visitor came for.
+      - name: Smoke test the public pages
+        env:
+          SITE_URL: ${{ vars.SITE_URL }}
+        run: |
+          for path in / /games /sales; do
+            status="$(curl -s -o /dev/null -w '%{http_code}' "${SITE_URL}${path}")"
+            echo "GET ${path} responded ${status}"
+            [ "${status}" = "200" ] || {
+              echo "::error::${path} answered ${status} rather than 200."
+              exit 1
+            }
+          done

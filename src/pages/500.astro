@@ -1,0 +1,66 @@
+---
+import PageContainer from '../components/layout/PageContainer.astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+export const prerender = false;
+
+/**
+ * The last line before an opaque platform error page.
+ *
+ * Astro renders this for an unhandled failure. `locals.requestId` is set by the
+ * correlation middleware, which runs first and cannot fail - but this page can
+ * also be reached for a failure that happened before that, so the id is read
+ * defensively rather than assumed.
+ *
+ * Nothing about the failure itself is rendered: not the message, not the
+ * cause, not a stack. The request id is the whole bridge between what a
+ * visitor can see and what an operator can find, which is why it is here and
+ * why nothing else is.
+ */
+const requestId: string | undefined = Astro.locals.requestId;
+---
+
+{
+  /* Not in the design handoff, which documents four product screens and no
+     error pages. The wording follows the application-failure pattern in
+     design/system/guidelines/content-style.md - what happened, what you are
+     seeing instead, what you can do - and the addition is recorded in
+     docs/development/design-system.md.
+
+     Deliberately NOT built from InlineMessage. That component is an assertive
+     live region, which is right for a failure appearing *into* a page the
+     visitor is already reading and wrong for a failure that *is* the page:
+     it would announce the entire document as an alert, and its title would be
+     a span, leaving this page with no heading for anyone navigating by one. */
+}
+<BaseLayout title="Something failed — LUDWISE">
+  <PageContainer width="reading">
+    <h1 class="lw-text-heading-lg">Something failed on our side</h1>
+    <p class="lw-text-body-md">
+      We could not load this page, and nothing you did caused it. Try again in a moment.
+    </p>
+    {
+      requestId !== undefined && (
+        <p class="lw-text-body-md">
+          Quote request id <code class="lw-text-code">{requestId}</code> if you report it.
+        </p>
+      )
+    }
+  </PageContainer>
+</BaseLayout>
+
+<style>
+  h1 {
+    margin-block-end: var(--space-4);
+  }
+
+  p + p {
+    margin-block-start: var(--space-4);
+  }
+
+  code {
+    padding: var(--space-05) var(--space-1);
+    border-radius: var(--radius-xs);
+    background: var(--color-surface-sunken);
+  }
+</style>

@@ -1,0 +1,19 @@
+# Normalise all text files to LF in the repository and in the working tree.
+# Development happens on Windows; CI and Cloudflare Workers run on Linux.
+# Without eol=lf, `prettier --check` passes locally and fails in CI.
+* text=auto eol=lf
+
+# Explicitly binary, so Git never attempts line-ending conversion.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.avif binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.pdf binary
+
+# Generated: collapse in pull request diffs.
+pnpm-lock.yaml linguist-generated=true -diff

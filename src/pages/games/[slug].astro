@@ -1,0 +1,300 @@
+---
+import EmptyState from '../../components/feedback/EmptyState.astro';
+import InlineMessage from '../../components/feedback/InlineMessage.astro';
+import OfferTable from '../../components/game/OfferTable.astro';
+import PageContainer from '../../components/layout/PageContainer.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import type { GameDetailView } from '../../lib/api/contract.js';
+import { isApiError, toLogContext } from '../../lib/api/errors.js';
+import { formatReleaseDate } from '../../lib/formatting/game-detail.js';
+import { EVENTS } from '../../lib/logging/events.js';
+
+export const prerender = false;
+
+const slug = Astro.params.slug ?? '';
+let view: GameDetailView | null = null;
+let failureCode: string | null = null;
+
+try {
+  view = await Astro.locals.backend().getGameDetail(slug);
+} catch (error) {
+  if (!isApiError(error)) throw error;
+
+  failureCode = error.code;
+  // Never 400 here. A slug is a path segment rather than a filter a visitor
+  // chose from a form, so there is no control for them to correct and no advice
+  // worth rendering - the honest answer is that we could not load the page.
+  Astro.response.status = 503;
+  Astro.locals.logger.error(EVENTS.APPLICATION_QUERY_FAILED, 'Game detail query failed', {
+    error,
+    error_category: 'application',
+    ...toLogContext(error),
+  });
+}
+
+// The distinction the whole page turns on. `view === null` with no failure
+// means the backend answered, and its answer is that no game carries this slug
+// - which is a real 404. `view === null` with a failure means we could not find
+// out, which must never be rendered as "this game does not exist": a visitor
+// following a good link would be told their link is broken.
+const notFound = view === null && failureCode === null;
+if (notFound) Astro.response.status = 404;
+
+const pageTitle =
+  view === null ? (notFound ? 'Game not found' : 'Game could not be loaded') : view.title;
+const pageDescription = view?.metadata?.summary ?? undefined;
+const metadata = view?.metadata;
+const releaseDate = formatReleaseDate(metadata?.releaseDate ?? null);
+const hasMetadata =
+  metadata !== null &&
+  metadata !== undefined &&
+  (metadata.developer !== null || metadata.publisher !== null || releaseDate !== null);
+---
+
+<BaseLayout title={`${pageTitle} — LUDWISE`} description={pageDescription} activeNavId="games">
+  <PageContainer width="standard">
+    {
+      notFound ? (
+        <EmptyState icon="search" title="Game not found" titleAs="h1">
+          This game page does not exist. Check the address or return to the game catalogue.
+          <a slot="action" href="/games">
+            Browse games
+          </a>
+        </EmptyState>
+      ) : failureCode !== null ? (
+        <section class="lw-game-detail__failure" aria-labelledby="game-detail-failure-title">
+          <h1 id="game-detail-failure-title" class="lw-text-heading-xl">
+            Game could not be loaded
+          </h1>
+          <InlineMessage tone="danger" title="The game page is unavailable">
+            Something failed on our side, so this page is not shown. Try again later. Quote code{' '}
+            <code class="lw-text-code">{failureCode}</code> and request id{' '}
+            <code class="lw-text-code">{Astro.locals.requestId}</code> if you report this.
+          </InlineMessage>
+        </section>
+      ) : (
+        view && (
+          <article class="lw-game-detail">
+            <nav class="lw-game-detail__breadcrumbs" aria-label="Breadcrumb">
+              <ol>
+                <li>
+                  <a href="/games">Games</a>
+                </li>
+                <li aria-current="page">{view.title}</li>
+              </ol>
+            </nav>
+
+            <header class="lw-game-detail__header">
+              <p class="lw-text-label-sm">Game</p>
+              <h1 class="lw-text-heading-xl">{view.title}</h1>
+            </header>
+
+            {metadata?.summary && (
+              <section class="lw-game-detail__section" aria-labelledby="about-game-title">
+                <h2 id="about-game-title" class="lw-text-heading-md">
+                  About this game
+                </h2>
+                <p class="lw-text-body-lg">{metadata.summary}</p>
+              </section>
+            )}
+
+            {hasMetadata && metadata && (
+              <section class="lw-game-detail__section" aria-labelledby="game-details-title">
+                <h2 id="game-details-title" class="lw-text-heading-md">
+                  Game details
+                </h2>
+                <dl class="lw-game-detail__metadata">
+                  {metadata.developer && (
+                    <>
+                      <dt>Developer</dt>
+                      <dd>{metadata.developer}</dd>
+                    </>
+                  )}
+                  {metadata.publisher && (
+                    <>
+                      <dt>Publisher</dt>
+                      <dd>{metadata.publisher}</dd>
+                    </>
+                  )}
+                  {releaseDate && (
+                    <>
+                      <dt>Release date</dt>
+                      <dd>{releaseDate}</dd>
+                    </>
+                  )}
+                </dl>
+                {view.metadataProvenance.length > 0 && (
+                  <details class="lw-game-detail__provenance">
+                    <summary>Metadata source details</summary>
+                    <ul>
+                      {view.metadataProvenance.map((item) => (
+                        <li>
+                          {item.field.replaceAll('_', ' ')}: {item.sourceName} ({item.method})
+                        </li>
+                      ))}
+                    </ul>
+                  </details>
+                )}
+              </section>
+            )}
+
+            <section
+              class="lw-game-detail__section lw-game-detail__offers"
+              aria-labelledby="current-offers-title"
+            >
+              <div class="lw-game-detail__section-heading">
+                <h2 id="current-offers-title" class="lw-text-heading-md">
+                  Current offers
+                </h2>
+                {view.offerGroups.length > 0 && (
+                  <p class="lw-text-body-sm">
+                    Offers are grouped by market and currency. Available prices are lowest first
+                    within each currency.
+                  </p>
+                )}
+              </div>
+              {view.offerGroups.length === 0 ? (
+                <EmptyState icon="store" title="No current offers" compact>
+                  There are no current store offers to compare for this game.
+                </EmptyState>
+              ) : (
+                <div class="lw-game-detail__offer-groups">
+                  {view.offerGroups.map((group, index) => (
+                    <section
+                      class="lw-game-detail__offer-group"
+                      aria-labelledby={`offer-group-${index}`}
+                    >
+                      <h3 id={`offer-group-${index}`} class="lw-text-heading-sm">
+                        {group.market?.name ?? 'Market not provided'}
+                        {group.currency && (
+                          <span class="lw-game-detail__currency"> · {group.currency.code}</span>
+                        )}
+                      </h3>
+                      <OfferTable group={group} gameTitle={view.title} />
+                    </section>
+                  ))}
+                </div>
+              )}
+            </section>
+          </article>
+        )
+      )
+    }
+  </PageContainer>
+</BaseLayout>
+
+<style>
+  .lw-game-detail {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8);
+  }
+  .lw-game-detail__breadcrumbs ol {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    list-style: none;
+    color: var(--color-text-secondary);
+    font: var(--text-body-sm);
+  }
+  .lw-game-detail__breadcrumbs li + li::before {
+    content: '/';
+    margin-inline-end: var(--space-2);
+    color: var(--color-text-secondary);
+  }
+  .lw-game-detail__breadcrumbs [aria-current='page'] {
+    overflow-wrap: anywhere;
+  }
+  .lw-game-detail__header {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    max-width: 800px;
+  }
+  .lw-game-detail__header .lw-text-label-sm {
+    color: var(--color-text-secondary);
+  }
+  .lw-game-detail__section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    max-width: 900px;
+  }
+  .lw-game-detail__section > p {
+    max-width: 760px;
+    color: var(--color-text-secondary);
+    text-wrap: pretty;
+  }
+  .lw-game-detail__metadata {
+    display: grid;
+    grid-template-columns: minmax(7rem, auto) minmax(0, 1fr);
+    gap: var(--space-3) var(--space-6);
+    max-width: 640px;
+  }
+  .lw-game-detail__metadata dt {
+    color: var(--color-text-secondary);
+    font: var(--text-label-md);
+  }
+  .lw-game-detail__metadata dd {
+    overflow-wrap: anywhere;
+  }
+  .lw-game-detail__provenance {
+    color: var(--color-text-secondary);
+    font: var(--text-body-sm);
+  }
+  .lw-game-detail__provenance summary {
+    width: fit-content;
+    cursor: pointer;
+  }
+  .lw-game-detail__provenance ul {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    padding-inline-start: var(--space-5);
+    margin-top: var(--space-2);
+  }
+  .lw-game-detail__offers {
+    max-width: none;
+    padding-top: var(--space-2);
+  }
+  .lw-game-detail__section-heading {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+  .lw-game-detail__section-heading > p {
+    color: var(--color-text-secondary);
+  }
+  .lw-game-detail__offer-groups {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+  }
+  .lw-game-detail__offer-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+  .lw-game-detail__currency {
+    color: var(--color-text-secondary);
+    font: var(--text-label-md);
+  }
+  .lw-game-detail__failure {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+    max-width: 720px;
+  }
+  @media (max-width: 600px) {
+    .lw-game-detail {
+      gap: var(--space-6);
+    }
+    .lw-game-detail__metadata {
+      grid-template-columns: 1fr;
+      gap: var(--space-1);
+    }
+    .lw-game-detail__metadata dd + dt {
+      margin-top: var(--space-2);
+    }
+  }
+</style>

@@ -1,0 +1,72 @@
+{
+  "status": 200,
+  "body": {
+    "games": [],
+    "resultCount": 0,
+    "page": 1,
+    "pageSize": 24,
+    "pageCount": 0,
+    "facets": {
+      "stores": [
+        {
+          "slug": "aurora-market",
+          "name": "Aurora Market"
+        },
+        {
+          "slug": "copper-shop",
+          "name": "Copper Shop"
+        },
+        {
+          "slug": "orbit-market",
+          "name": "Orbit Market"
+        },
+        {
+          "slug": "vertex-store",
+          "name": "Vertex Store"
+        }
+      ],
+      "markets": [
+        {
+          "code": "DE",
+          "name": "Germany",
+          "currencies": [
+            {
+              "code": "EUR",
+              "minorUnit": 2
+            }
+          ]
+        },
+        {
+          "code": "EU",
+          "name": "European Union",
+          "currencies": [
+            {
+              "code": "EUR",
+              "minorUnit": 2
+            }
+          ]
+        },
+        {
+          "code": "JP",
+          "name": "Japan",
+          "currencies": [
+            {
+              "code": "JPY",
+              "minorUnit": 0
+            }
+          ]
+        },
+        {
+          "code": "KW",
+          "name": "Kuwait",
+          "currencies": [
+            {
+              "code": "KWD",
+              "minorUnit": 3
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,415 @@
+/* AppHeader — plain CSS, not CSS-in-JS.
+   React components have no Astro-style scoped <style> block, so this is a
+   normal stylesheet imported once by AppHeader.tsx. Class names are prefixed
+   `lw-header__` / `lw-search__` to avoid collisions with any other
+   stylesheet loaded on the same page; there is no build-time scoping here the
+   way there is for the .astro components.
+
+   CSS, not React state, decides which layout is showing. AppHeader.tsx
+   renders BOTH the desktop DOM (inline nav, inline search, market button in
+   the bar) and the compact DOM (menu button, full-width mobile search row)
+   unconditionally, on every render including the server one. Exactly one set
+   is ever visible:
+
+     - By default, a media query keyed to 1024px switches between them —
+       matching --breakpoint-lg in src/styles/tokens/layout.css. A media
+       query cannot read a custom property, so 1024 is repeated literally
+       below; if that token ever changes, this number has to be updated by
+       hand (same caveat AppHeader.tsx's DEFAULT_COMPACT_BREAKPOINT carries).
+     - When the `compact` prop is supplied, AppHeader.tsx writes
+       `data-compact="true"|"false"` on the root <header>, and every rule
+       below that starts with `.lw-header[data-compact=...]` has higher
+       selector specificity than the plain class/media-query rules, so the
+       override wins regardless of viewport width.
+
+   This is why the header no longer breaks before hydration: there was
+   previously no CSS layout at all for the two shapes, only a JS boolean
+   (useIsCompactHeader, resolved in a useEffect) deciding which DOM to render
+   — correct once mounted, wrong for the entire server-rendered and
+   pre-hydration window, which is a defect given this repo's server-rendered
+   HTML requirement (PRODUCT.md §83, §89).
+
+   Hidden elements use `display: none`, not opacity or visibility, so a
+   screen reader never finds two nav landmarks or two search fields at once —
+   display:none removes an element from the accessibility tree entirely. */
+
+.lw-header {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  background: var(--color-background-primary);
+  border-bottom: var(--border-width-hairline) solid var(--color-border-default);
+}
+
+.lw-header__bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-5);
+  height: var(--layout-header-height);
+  max-width: var(--layout-max-width-wide);
+  margin: 0 auto;
+  padding-inline: var(--layout-gutter-desktop);
+}
+
+/* Shrinkable, not `flex: none`, and the reason is 320px specifically: the
+   compact utilities row (theme toggle + sign-in + menu button, all at their
+   44px touch size) is intrinsically wide enough that it and a rigid logo
+   together overflow a 320px viewport by a few pixels even with the nav and
+   inline search already hidden. Letting the logo (and only the logo — not
+   the sign-in control, which stays exactly as specified) absorb that little
+   negative space via a normal flex-shrink, backstopped by `text-overflow:
+   ellipsis` on the wordmark text below, closes the gap. Confirmed inert at
+   375px and up: `min-width: 0` only matters when the row cannot fit, and
+   from 375px it already does. */
+.lw-header__logo {
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
+.lw-header__wordmark {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}
+.lw-header__mark {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--ludwise-amber-400);
+}
+.lw-header__wordmark-text {
+  font-family: var(--font-family-display);
+  font-weight: var(--font-weight-semibold);
+  line-height: 1;
+  /* Lockup-specific tracking — see the matching note in Wordmark.astro. */
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--color-text-primary);
+  /* Backstop for `.lw-header__logo`'s flex-shrink, above: in the narrowest
+     viewport this repository targets (320px) the wordmark never actually
+     needs to truncate (there is just enough room once it can shrink at
+     all), but if a narrower one ever mattered, clipping the wordmark is
+     preferable to a horizontally-scrolling page. */
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.lw-header__wordmark-accent {
+  color: var(--color-accent-primary);
+}
+
+/* Base nav styling shared by both DOM instances (see AppHeader.tsx's
+   renderNav). `--bar` is the inline desktop row; `--panel` is the column of
+   touch-sized links inside the mobile menu panel. Which one is visible is
+   decided below, in the layout-switch section — this block only styles
+   shape, not visibility. */
+.lw-header__nav {
+  display: flex;
+  gap: var(--space-1);
+  min-width: 0;
+}
+.lw-header__nav--bar {
+  flex-direction: row;
+  align-items: center;
+}
+.lw-header__nav--panel {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.lw-header__nav-link {
+  display: inline-flex;
+  align-items: center;
+  height: 36px;
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  font: var(--text-body-md);
+  color: var(--color-text-secondary);
+  background: transparent;
+  white-space: nowrap;
+}
+/* The panel copy is always the touch-sized variant — it never appears
+   anywhere but inside the compact menu panel, so this does not need to be
+   conditional on viewport width the way visibility does. */
+.lw-header__nav--panel .lw-header__nav-link {
+  height: var(--target-min-touch);
+}
+.lw-header__nav-link[aria-current='page'] {
+  font: var(--text-label-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  background: var(--color-background-tertiary);
+}
+
+.lw-header__market-button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  height: 36px;
+  padding: 0 var(--space-3);
+  flex: none;
+  border: var(--border-width-hairline) solid var(--color-border-default);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-secondary);
+  font: var(--text-label-md);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.lw-header__search-slot {
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: 420px;
+  margin-inline-start: auto;
+}
+
+.lw-header__utilities-slot {
+  margin-inline-start: auto;
+  display: flex;
+  min-width: 0;
+}
+.lw-header__utilities {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  flex: none;
+}
+
+.lw-header__signin {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-button);
+  border: var(--border-width-hairline) solid var(--color-border-default);
+  background: var(--color-surface-interactive);
+  color: var(--color-action-secondary-text);
+  font: var(--text-label-md);
+  letter-spacing: var(--letter-spacing-label);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: var(--motion-transition-color);
+}
+.lw-header__signin:hover {
+  background: var(--color-surface-interactive-hover);
+}
+.lw-header__signin:active {
+  background: var(--color-surface-interactive-active);
+}
+
+/* Icon-only utility buttons (theme, account, menu). A second, header-local
+   copy of the IconButton visual language: IconButton.astro cannot be
+   imported into this React island, since Astro components do not cross into
+   React (see AppHeader.tsx's file comment).
+
+   Sized 40px (pointer) by default, 44px (touch) at compact widths — this is
+   itself a CSS media-query rule now rather than a JS-computed `size` prop,
+   for the same server/pre-hydration reason as the layout switch above. */
+.lw-header__icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--target-min);
+  height: var(--target-min);
+  padding: 0;
+  border-radius: var(--radius-button);
+  border: var(--border-width-hairline) solid transparent;
+  background: transparent;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: var(--motion-transition-color);
+}
+.lw-header__icon-button:hover {
+  background: var(--color-surface-interactive-hover);
+}
+.lw-header__icon-button[data-pressed] {
+  background: var(--color-surface-selected);
+}
+/* The menu button only ever appears at compact widths (see the layout switch
+   below), so it is pinned to the touch size unconditionally rather than
+   tracking the same 40/44 breakpoint rule as the theme/account buttons,
+   which appear at both widths. */
+.lw-header__icon-button.lw-header__menu-button {
+  width: var(--target-min-touch);
+  height: var(--target-min-touch);
+}
+
+.lw-header__mobile-search {
+  padding: 0 var(--layout-gutter-mobile) var(--space-3);
+  max-width: var(--layout-max-width-wide);
+  margin: 0 auto;
+}
+
+.lw-header__mobile-panel {
+  padding: var(--space-2) var(--layout-gutter-mobile) var(--space-4);
+  border-top: var(--border-width-hairline) solid var(--color-border-subtle);
+  max-width: var(--layout-max-width-wide);
+  margin: 0 auto;
+}
+.lw-header__mobile-market {
+  margin-top: var(--space-3);
+}
+
+/* --- The layout switch ---------------------------------------------------
+   Everything above styles shape; this section decides which shape shows.
+   Order matters here only for the plain-class vs. media-query rules, which
+   share specificity (0,1,0) — the media query is written after the base
+   rule so it wins the tie at narrow viewports. The `[data-compact]`
+   override rules do not depend on this ordering: `.lw-header[data-compact=…]`
+   plus a class is specificity (0,3,0)/(0,2,0), which beats a bare class or
+   a class inside a media query regardless of where either appears in the
+   file. */
+
+.lw-header__menu-button,
+.lw-header__mobile-search {
+  display: none;
+}
+
+@media (max-width: 1023.98px) {
+  /* mirrors --breakpoint-lg = 1024px, src/styles/tokens/layout.css */
+  .lw-header__bar {
+    gap: var(--space-3);
+    padding-inline: var(--layout-gutter-mobile);
+  }
+  .lw-header__nav--bar,
+  .lw-header__search-slot,
+  .lw-header__market-desktop {
+    display: none;
+  }
+  .lw-header__menu-button {
+    display: inline-flex;
+  }
+  .lw-header__mobile-search {
+    display: block;
+  }
+  .lw-header__icon-button {
+    width: var(--target-min-touch);
+    height: var(--target-min-touch);
+  }
+}
+
+@media (min-width: 1024px) {
+  /* Backstop for `.lw-header__mobile-panel`: it is gated on `menuOpen` in
+     React, but if the viewport were ever wide while `menuOpen` is still true
+     (a resize the auto-close effect in AppHeader.tsx has not caught yet),
+     this keeps it out of the desktop layout regardless. */
+  .lw-header__mobile-panel {
+    display: none;
+  }
+}
+
+.lw-header[data-compact='true'] .lw-header__bar {
+  gap: var(--space-3);
+  padding-inline: var(--layout-gutter-mobile);
+}
+.lw-header[data-compact='true'] .lw-header__nav--bar,
+.lw-header[data-compact='true'] .lw-header__search-slot,
+.lw-header[data-compact='true'] .lw-header__market-desktop {
+  display: none;
+}
+.lw-header[data-compact='true'] .lw-header__menu-button {
+  display: inline-flex;
+}
+.lw-header[data-compact='true'] .lw-header__mobile-search {
+  display: block;
+}
+.lw-header[data-compact='true'] .lw-header__icon-button {
+  width: var(--target-min-touch);
+  height: var(--target-min-touch);
+}
+
+.lw-header[data-compact='false'] .lw-header__bar {
+  gap: var(--space-5);
+  padding-inline: var(--layout-gutter-desktop);
+}
+.lw-header[data-compact='false'] .lw-header__nav--bar,
+.lw-header[data-compact='false'] .lw-header__market-desktop {
+  display: flex;
+}
+.lw-header[data-compact='false'] .lw-header__search-slot {
+  display: block;
+}
+.lw-header[data-compact='false'] .lw-header__menu-button,
+.lw-header[data-compact='false'] .lw-header__mobile-search,
+.lw-header[data-compact='false'] .lw-header__mobile-panel {
+  display: none;
+}
+.lw-header[data-compact='false'] .lw-header__icon-button {
+  width: var(--target-min);
+  height: var(--target-min);
+}
+
+/* SearchField */
+.lw-search {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  padding: 0 var(--space-3);
+  background: var(--color-surface-default);
+  border: var(--border-width-hairline) solid var(--color-border-default);
+  border-radius: var(--radius-input);
+  transition: var(--motion-transition-color);
+}
+.lw-search[data-size='sm'] {
+  height: 36px;
+}
+.lw-search[data-size='md'] {
+  height: var(--target-min);
+}
+.lw-search[data-size='lg'] {
+  height: 48px;
+}
+
+.lw-search__icon {
+  display: inline-flex;
+  color: var(--color-text-tertiary);
+}
+.lw-search__spinner {
+  display: inline-flex;
+  animation: lw-spin var(--motion-duration-ambient) linear infinite;
+}
+@keyframes lw-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Nothing in this file reacts to focus any more. There was previously a
+   hand-rolled ring on the `.lw-search` container — a border-colour and
+   box-shadow pair driven by a container-level pseudo-class that fires
+   whenever any descendant has focus — plus a property on this input
+   suppressing its own native ring so the container's hand-rolled one could
+   stand in instead. Both are gone: the design system's rule is one global
+   focus-visible rule, in tokens/base.css, and no per-component override of
+   it, which is what the removed pair amounted to (and, combined, drew two
+   concentric rings at once). Focusing the input now shows that ordinary
+   global ring around the input itself. */
+.lw-search__input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  font: var(--text-body-md);
+  color: var(--color-text-primary);
+}
+.lw-search[data-size='lg'] .lw-search__input {
+  font: var(--text-body-lg);
+}
+
+.lw-search__clear {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--target-min-inline);
+  height: var(--target-min-inline);
+  border: none;
+  background: transparent;
+  color: var(--color-text-tertiary);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+}

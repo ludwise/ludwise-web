@@ -1,0 +1,79 @@
+name: CI
+
+on:
+  pull_request:
+  # Not main. A push to main runs the staging deployment workflow, which calls
+  # the same reusable verify workflow before it deploys. Listing main here too
+  # would run the identical suite twice on every merge.
+  push:
+    branches: [production]
+  workflow_dispatch:
+
+# Deny everything by default, so a new job has to opt in to any scope
+# explicitly. Deployment and release run in separate workflow files precisely so
+# that their elevated scopes never sit beside the job that executes pull request
+# code.
+permissions: {}
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  # Cancel superseded pull request runs, never a push to production. Cancelling
+  # those leaves commits with no status and can kill a release or deploy
+  # mid-flight.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  # Actions pins are commit SHAs with the tag in a trailing comment, and the set
+  # that may run at all is an organisation-wide allowlist. This repository is
+  # public, so CodeQL is available and worth adding; until it is, pinning is the
+  # supply-chain control that is actually in place.
+  FORCE_COLOR: '1'
+
+jobs:
+  verify:
+    name: Verify
+    uses: ./.github/workflows/verify.yml
+    # A called workflow can only ever reduce the caller's scopes, and the
+    # workflow-level default above is empty. Without this the checkout inside
+    # verify has no read access at all.
+    permissions:
+      contents: read
+
+  commitlint:
+    name: Commit messages
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # Full history: the commit range has to be walked. This is why the job
+          # is separate rather than merged into verify, which wants a shallow
+          # clone on every run.
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+
+      - name: Install Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Conventional Commits are what release-please reads to compute the next
+      # version, so a malformed message is a silently missed release.
+      - name: Validate commit messages
+        run: >
+          pnpm exec commitlint
+          --from ${{ github.event.pull_request.base.sha }}
+          --to ${{ github.event.pull_request.head.sha }}
+          --verbose

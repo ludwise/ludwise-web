@@ -1,0 +1,62 @@
+version: 2
+
+updates:
+  # Grouped so a routine week produces one or two pull requests rather than
+  # fifteen. Ungrouped dependency updates get ignored, which is worse than
+  # having none: it trains you to dismiss the notifications that matter.
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: build
+      prefix-development: build
+      include: scope
+    groups:
+      astro:
+        patterns:
+          - astro
+          - '@astrojs/*'
+      cloudflare:
+        patterns:
+          - wrangler
+          - '@cloudflare/*'
+          - miniflare
+      linting:
+        patterns:
+          - eslint
+          - 'eslint-*'
+          - '@eslint/*'
+          - typescript-eslint
+          - '@typescript-eslint/*'
+          - prettier
+          - 'prettier-*'
+      testing:
+        patterns:
+          - vitest
+          - '@vitest/*'
+          - '@usebruno/*'
+      minor-and-patch:
+        update-types:
+          - minor
+          - patch
+    ignore:
+      # TypeScript majors break typescript-eslint and @astrojs/check peer
+      # ranges. See docs/adr/0005-pin-typescript-6.md before changing this.
+      - dependency-name: typescript
+        update-types: [version-update:semver-major]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    commit-message:
+      prefix: ci
+      include: scope
+    groups:
+      actions:
+        patterns:
+          - '*'

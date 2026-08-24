@@ -1,0 +1,828 @@
+---
+import EmptyState from '../components/feedback/EmptyState.astro';
+import InlineMessage from '../components/feedback/InlineMessage.astro';
+import Icon from '../components/foundation/Icon.astro';
+import GameCard from '../components/game/GameCard.astro';
+import PageContainer from '../components/layout/PageContainer.astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import type { BrowseSalesInput, BrowseSalesView } from '../lib/api/contract.js';
+import { isApiError, toLogContext } from '../lib/api/errors.js';
+import { adviseSales } from '../lib/http/filter-advice.js';
+import { pathForPage, pathWithoutFilter } from '../lib/http/sales-filter-links.js';
+import { PAIR_SEPARATOR, toBrowseSalesInput } from '../lib/http/sales-query.js';
+import { compareText } from '../lib/text/order.js';
+import { EVENTS } from '../lib/logging/events.js';
+
+export const prerender = false;
+
+const { locals } = Astro;
+const params = Astro.url.searchParams;
+const input: BrowseSalesInput = toBrowseSalesInput(params);
+
+const SORT_LABELS = [
+  { value: 'discount', label: 'Discount, largest first' },
+  { value: 'price', label: 'Price, lowest first' },
+] as const;
+
+let view: BrowseSalesView | null = null;
+let failureCode: string | null = null;
+let rejectedFilters: readonly string[] = [];
+
+try {
+  view = await locals.backend().browseSales(input);
+} catch (error) {
+  if (!isApiError(error)) throw error;
+
+  Astro.response.status = error.isRejection ? 400 : 503;
+
+  if (error.isRejection) {
+    // A rejected filter combination is something a visitor did, not something
+    // that broke, so it is a warning rather than an error - an alert on every
+    // mistyped year would bury the failures that matter.
+    locals.logger.warn(EVENTS.APPLICATION_QUERY_FAILED, 'Sales filters were rejected', {
+      error_category: 'application',
+      ...toLogContext(error),
+    });
+
+    rejectedFilters = adviseSales(error.fields);
+
+    // The form is built from what is actually on sale, and a visitor who cannot
+    // see it again cannot correct the combination they just sent. The backend
+    // rebuilt it alongside the rejection, reusing the pair enumeration the
+    // failed read had already done - the most expensive query the product
+    // issues, on a path anyone can reach by editing the address bar (ADR 0025).
+    // Before the split this page paid for that enumeration twice.
+    view = (error.data as BrowseSalesView | undefined) ?? null;
+
+    if (view === null) {
+      failureCode = error.code;
+      locals.logger.warn(
+        EVENTS.APPLICATION_QUERY_FAILED,
+        'Sales rejection carried no rebuilt view',
+        { error_category: 'application', ...toLogContext(error) },
+      );
+    }
+  } else {
+    failureCode = error.code;
+    locals.logger.error(EVENTS.APPLICATION_QUERY_FAILED, 'Sales query failed', {
+      error,
+      error_category: 'application',
+      ...toLogContext(error),
+    });
+  }
+}
+
+const filtersRejected = rejectedFilters.length > 0;
+
+const plural = new Intl.PluralRules('en-US');
+const counted = (count: number, one: string, other: string): string =>
+  `${count.toLocaleString('en-US')} ${plural.select(count) === 'one' ? one : other}`;
+
+const context = view?.context ?? null;
+const selectedStores = new Set(input.stores ?? []);
+const storeCount = view?.facets.stores.length ?? 0;
+
+// The pairs holding a sale, plus the one the visitor asked for when it holds
+// none. Without it the select would offer a pair nobody chose while the
+// address bar said otherwise. Sorted with a locale-independent rule rather
+// than localeCompare, so this list and every other order this page renders
+// agree with each other regardless of the visitor's locale.
+const offeredContexts =
+  context !== null &&
+  !(view?.facets.contexts ?? []).some(
+    (c) => c.marketCode === context.marketCode && c.currencyCode === context.currencyCode,
+  )
+    ? [...(view?.facets.contexts ?? []), context].sort(
+        (left, right) =>
+          compareText(left.marketCode, right.marketCode) ||
+          compareText(left.currencyCode, right.currencyCode),
+      )
+    : (view?.facets.contexts ?? []);
+
+const hasFilters =
+  (input.stores?.length ?? 0) > 0 ||
+  input.minDiscountPercentage !== undefined ||
+  input.minPriceMajor !== undefined ||
+  input.maxPriceMajor !== undefined ||
+  input.releaseYearFrom !== undefined ||
+  input.releaseYearTo !== undefined;
+const inputValue = (value: number | undefined): string =>
+  value === undefined || !Number.isFinite(value) ? '' : String(value);
+
+// The out-of-range-page state (paginating past the last page) is the only way
+// `games` is empty while `resultCount` is not: a page inside the valid range
+// always slices at least one result. Kept distinct from "no games match these
+// filters" - one names a page that does not exist, the other a filter that
+// excluded everything.
+const pageOutOfRange = view !== null && view.games.length === 0 && view.resultCount > 0;
+---
+
+<BaseLayout
+  title="Sales — LUDWISE"
+  description="Games discounted right now at legitimate stores."
+  activeNavId="sales"
+>
+  <PageContainer width="wide">
+    <div class="lw-sales__heading-row">
+      <div>
+        <h1 class="lw-text-heading-xl">Current sales</h1>
+        {
+          view && context && view.contextCount > 0 && !filtersRejected && (
+            <p class="lw-text-body-md lw-sales__intro">
+              {counted(view.contextCount, 'game is', 'games are')} on sale at{' '}
+              {counted(storeCount, 'store', 'stores')}. Showing {context.marketName} prices, in{' '}
+              {context.currencyCode}.
+            </p>
+          )
+        }
+      </div>
+
+      {
+        view && context && view.contextCount > 0 && !filtersRejected && (
+          <form method="get" action="/sales" class="lw-sales__sort">
+            {/* Carried so changing the order keeps the filters the visitor set. */}
+            <input type="hidden" name="market" value={context.marketCode} />
+            <input type="hidden" name="currency" value={context.currencyCode} />
+            {input.stores?.map((store) => (
+              <input type="hidden" name="store" value={store} />
+            ))}
+            {input.minDiscountPercentage !== undefined && (
+              <input
+                type="hidden"
+                name="minDiscount"
+                value={inputValue(input.minDiscountPercentage)}
+              />
+            )}
+            {input.minPriceMajor !== undefined && (
+              <input type="hidden" name="min" value={inputValue(input.minPriceMajor)} />
+            )}
+            {input.maxPriceMajor !== undefined && (
+              <input type="hidden" name="max" value={inputValue(input.maxPriceMajor)} />
+            )}
+            {input.releaseYearFrom !== undefined && (
+              <input type="hidden" name="fromYear" value={inputValue(input.releaseYearFrom)} />
+            )}
+            {input.releaseYearTo !== undefined && (
+              <input type="hidden" name="toYear" value={inputValue(input.releaseYearTo)} />
+            )}
+            <label>
+              <span>Sort</span>
+              <select name="sort">
+                {SORT_LABELS.map((option) => (
+                  <option value={option.value} selected={option.value === view?.sort}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            {/* Submitted by a button rather than on change. A select that
+                navigates as the value changes fires on every option a keyboard
+                user arrows past, and it would be the only client script on a
+                page that otherwise needs none. */}
+            <button type="submit">Apply</button>
+          </form>
+        )
+      }
+    </div>
+
+    {
+      failureCode !== null && (
+        <InlineMessage tone="danger" title="Sales could not be loaded">
+          Something failed on our side, so no sales are shown. If you report this, the code is{' '}
+          <code class="lw-text-code">{failureCode}</code> and the request id is{' '}
+          <code class="lw-text-code">{locals.requestId}</code>.
+        </InlineMessage>
+      )
+    }
+
+    {
+      filtersRejected && (
+        <InlineMessage tone="warning" title="Some of those filters could not be used">
+          <ul class="lw-sales__advice">
+            {rejectedFilters.map((advice) => (
+              <li>{advice}</li>
+            ))}
+          </ul>
+        </InlineMessage>
+      )
+    }
+
+    {
+      view && context === null ? (
+        view.hasAnyOfferData ? (
+          <EmptyState icon="tag" title="No games are on sale right now">
+            LUDWISE lists a game here only when a store supplies both a current price and a regular
+            price to compare it against. No game meets that today.
+          </EmptyState>
+        ) : (
+          <EmptyState icon="tag" title="LUDWISE has not collected any prices yet">
+            LUDWISE hasn't observed anything from any store yet, so there's nothing to compare. That
+            isn't a claim that no game is discounted.
+          </EmptyState>
+        )
+      ) : view && context ? (
+        <>
+          <details class="lw-sale-filters">
+            <summary>Filters</summary>
+
+            <form method="get" action="/sales" class="lw-sale-filters__pair-form">
+              {/* Every other filter is carried forward except the price bounds,
+                  which are amounts in the currency being left - keeping them
+                  would silently reinterpret them in another one. */}
+              {input.stores?.map((store) => (
+                <input type="hidden" name="store" value={store} />
+              ))}
+              {input.minDiscountPercentage !== undefined && (
+                <input
+                  type="hidden"
+                  name="minDiscount"
+                  value={inputValue(input.minDiscountPercentage)}
+                />
+              )}
+              {input.releaseYearFrom !== undefined && (
+                <input type="hidden" name="fromYear" value={inputValue(input.releaseYearFrom)} />
+              )}
+              {input.releaseYearTo !== undefined && (
+                <input type="hidden" name="toYear" value={inputValue(input.releaseYearTo)} />
+              )}
+              {input.sort && <input type="hidden" name="sort" value={input.sort} />}
+
+              <label>
+                <span>Market and currency</span>
+                {/* One control offering only the pairs that hold a sale, so a
+                    visitor cannot submit a market and a currency that were
+                    never paired - unlike two independent selects, where
+                    changing one can leave the other pointed at a currency the
+                    new market never quoted in. */}
+                <select name="pair">
+                  {offeredContexts.map((option) => (
+                    <option
+                      value={`${option.marketCode}${PAIR_SEPARATOR}${option.currencyCode}`}
+                      selected={
+                        option.marketCode === context.marketCode &&
+                        option.currencyCode === context.currencyCode
+                      }
+                    >
+                      {option.marketName}, {option.currencyCode}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <button type="submit">Apply market</button>
+            </form>
+
+            <form method="get" action="/sales" class="lw-sale-filters__form">
+              {/* The pair is not a control in this form, so it is carried
+                  forward rather than left to default. */}
+              <input type="hidden" name="market" value={context.marketCode} />
+              <input type="hidden" name="currency" value={context.currencyCode} />
+              {input.sort && <input type="hidden" name="sort" value={input.sort} />}
+
+              <fieldset>
+                <legend>Store</legend>
+                <div class="lw-sale-filters__options">
+                  {view.facets.stores.length === 0 ? (
+                    <span class="lw-text-caption">No stores hold a sale here yet</span>
+                  ) : (
+                    view.facets.stores.map((store) => (
+                      <label>
+                        <input
+                          type="checkbox"
+                          name="store"
+                          value={store.slug}
+                          checked={selectedStores.has(store.slug)}
+                        />
+                        <span>{store.name}</span>
+                      </label>
+                    ))
+                  )}
+                </div>
+              </fieldset>
+
+              <fieldset>
+                <legend>Discount and price</legend>
+                <div class="lw-sale-filters__pair">
+                  <label>
+                    <span>Smallest discount (%)</span>
+                    <input
+                      type="number"
+                      name="minDiscount"
+                      min="1"
+                      max="100"
+                      step="1"
+                      value={inputValue(input.minDiscountPercentage)}
+                    />
+                  </label>
+                </div>
+                <div class="lw-sale-filters__pair">
+                  <label>
+                    <span>Lowest price ({context.currencyCode})</span>
+                    <input
+                      type="number"
+                      name="min"
+                      min="0"
+                      step="1"
+                      value={inputValue(input.minPriceMajor)}
+                      aria-describedby="lw-price-format-hint"
+                    />
+                  </label>
+                  <label>
+                    <span>Highest price ({context.currencyCode})</span>
+                    <input
+                      type="number"
+                      name="max"
+                      min="0"
+                      step="1"
+                      value={inputValue(input.maxPriceMajor)}
+                      aria-describedby="lw-price-format-hint"
+                    />
+                  </label>
+                </div>
+                <p class="lw-text-caption" id="lw-price-format-hint">
+                  Whole numbers only.
+                </p>
+              </fieldset>
+
+              <fieldset>
+                <legend>Release year</legend>
+                <div class="lw-sale-filters__pair">
+                  <label>
+                    <span>Earliest release year</span>
+                    <input
+                      type="number"
+                      name="fromYear"
+                      min="1"
+                      max="9999"
+                      step="1"
+                      value={inputValue(input.releaseYearFrom)}
+                    />
+                  </label>
+                  <label>
+                    <span>Latest release year</span>
+                    <input
+                      type="number"
+                      name="toYear"
+                      min="1"
+                      max="9999"
+                      step="1"
+                      value={inputValue(input.releaseYearTo)}
+                    />
+                  </label>
+                </div>
+              </fieldset>
+
+              <div class="lw-sale-filters__actions">
+                <button type="submit">Apply filters</button>
+                <a href="/sales">Reset filters</a>
+              </div>
+            </form>
+          </details>
+
+          {hasFilters && (
+            <section class="lw-sales__active" aria-labelledby="lw-active-filters-heading">
+              <span class="lw-text-label-md" id="lw-active-filters-heading">
+                Active filters
+              </span>
+              <ul>
+                {input.stores?.map((storeSlug) => {
+                  const store = view?.facets.stores.find((item) => item.slug === storeSlug);
+                  const label = store?.name ?? storeSlug;
+                  return (
+                    <li>
+                      <a
+                        href={pathWithoutFilter(params, 'store', storeSlug)}
+                        aria-label={`Remove filter: ${label}`}
+                      >
+                        {label} ×
+                      </a>
+                    </li>
+                  );
+                })}
+                {input.minDiscountPercentage !== undefined && (
+                  <li>
+                    <a
+                      href={pathWithoutFilter(params, 'minDiscount')}
+                      aria-label={`Remove filter: ${inputValue(input.minDiscountPercentage)}% or more`}
+                    >
+                      {inputValue(input.minDiscountPercentage)}% or more ×
+                    </a>
+                  </li>
+                )}
+                {(input.minPriceMajor !== undefined || input.maxPriceMajor !== undefined) && (
+                  <li>
+                    <a
+                      href={pathWithoutFilter(params, 'min')}
+                      aria-label="Remove filter: Price limits"
+                    >
+                      Price limits ×
+                    </a>
+                  </li>
+                )}
+                {(input.releaseYearFrom !== undefined || input.releaseYearTo !== undefined) && (
+                  <li>
+                    <a
+                      href={pathWithoutFilter(params, 'fromYear')}
+                      aria-label="Remove filter: Release year"
+                    >
+                      Release year ×
+                    </a>
+                  </li>
+                )}
+                <li>
+                  <a href="/sales">Reset all</a>
+                </li>
+              </ul>
+            </section>
+          )}
+
+          <div class="lw-sales__layout">
+            <div>
+              <h2 class="lw-visually-hidden">Games on sale</h2>
+              {filtersRejected ? null : view.contextCount === 0 ? (
+                <EmptyState icon="tag" title={`No ${context.marketName} sales right now`}>
+                  Prices are only compared inside one market and currency, so a sale in another
+                  market does not appear here.
+                </EmptyState>
+              ) : view.resultCount === 0 ? (
+                <EmptyState icon="funnel" title="No games match these filters">
+                  {`Remove a filter to see the ${view.contextCount} ${context.marketName} games on sale.`}
+                </EmptyState>
+              ) : pageOutOfRange ? (
+                <EmptyState icon="funnel" title={`There is no page ${view.page}`}>
+                  This search has {counted(view.pageCount, 'page', 'pages')}.
+                  <a slot="action" href={pathForPage(params, 1)}>
+                    Go to page 1
+                  </a>
+                </EmptyState>
+              ) : (
+                <>
+                  <p class="lw-text-body-sm lw-sales__range">
+                    Showing{' '}
+                    {`${view.rangeStart.toLocaleString('en-US')}–${view.rangeEnd.toLocaleString('en-US')}`}{' '}
+                    of {counted(view.resultCount, 'game', 'games')}
+                  </p>
+                  <ul class="lw-sales__grid" aria-label="Games on sale">
+                    {view.games.map((game) => (
+                      <li>
+                        <GameCard
+                          title={game.title}
+                          href={`/games/${game.slug}`}
+                          price={game.offer.price}
+                          referencePrice={game.offer.referencePrice}
+                          discountPercentage={game.offer.discountPercentage}
+                          storeCount={game.storeCount}
+                          editionLabel={game.offer.editionLabel}
+                          releaseDate={game.releaseDate}
+                          observedAtMs={game.offer.observedAtMs}
+                          storeName={game.offer.storeName}
+                        />
+                      </li>
+                    ))}
+                  </ul>
+                  {view.pageCount > 1 && (
+                    <nav class="lw-sales__pagination" aria-label="Sale result pages">
+                      {view.page > 1 ? (
+                        <a href={pathForPage(params, view.page - 1)}>Previous</a>
+                      ) : (
+                        <span>Previous</span>
+                      )}
+                      <span>
+                        Page {view.page} of {view.pageCount}
+                      </span>
+                      {view.page < view.pageCount ? (
+                        <a href={pathForPage(params, view.page + 1)}>Next</a>
+                      ) : (
+                        <span>Next</span>
+                      )}
+                    </nav>
+                  )}
+                </>
+              )}
+            </div>
+
+            <aside class="lw-sales__aside">
+              <div class="lw-sales__note">
+                <p class="lw-text-label-md lw-sales__note-title">
+                  <Icon name="shield-check" size="sm" />
+                  Legitimate stores only
+                </p>
+                <p class="lw-text-body-sm">
+                  LUDWISE compares first-party storefronts and authorised retailers. Key resellers
+                  and account marketplaces are not listed.
+                </p>
+              </div>
+            </aside>
+          </div>
+        </>
+      ) : null
+    }
+  </PageContainer>
+</BaseLayout>
+
+<style>
+  .lw-sales__heading-row {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: var(--space-4);
+    margin-block-end: var(--space-6);
+  }
+
+  .lw-sales__heading-row h1 {
+    margin-block-end: var(--space-1);
+  }
+
+  .lw-sales__intro,
+  .lw-sales__range {
+    color: var(--color-text-secondary);
+  }
+
+  .lw-sales__range {
+    margin-block-end: var(--space-3);
+  }
+
+  .lw-sales__sort {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: end;
+    gap: var(--space-2);
+  }
+
+  .lw-sales__sort label {
+    display: grid;
+    gap: var(--space-1);
+  }
+
+  .lw-sales__sort select {
+    inline-size: auto;
+  }
+
+  .lw-sale-filters {
+    margin-block-end: var(--space-6);
+    border: var(--border-width-hairline) solid var(--color-border-default);
+    border-radius: var(--radius-card);
+    background: var(--color-surface-default);
+  }
+
+  .lw-sale-filters summary {
+    padding: var(--space-4);
+    color: var(--color-text-primary);
+    font: var(--text-label-lg);
+    cursor: pointer;
+  }
+
+  /* Setting `display` here is harmless whether or not the browser is
+     currently rendering this content: closed <details> content is hidden
+     through its `::details-content` box (see the desktop media query
+     below), not through overriding the display an author gives the
+     content itself - so declaring the layout unconditionally does not
+     fight the native collapsed state a narrow viewport starts in. */
+  .lw-sale-filters__pair-form {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: end;
+    gap: var(--space-3);
+    padding: 0 var(--space-4) var(--space-4);
+  }
+
+  .lw-sale-filters__pair-form label {
+    display: grid;
+    gap: var(--space-1);
+    min-inline-size: 12rem;
+  }
+
+  .lw-sale-filters__form {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--space-5);
+    padding: var(--space-4) var(--space-4) var(--space-4);
+    border-block-start: var(--border-width-hairline) solid var(--color-border-subtle);
+  }
+
+  fieldset {
+    min-inline-size: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  legend,
+  .lw-sale-filters label > span,
+  .lw-sale-filters__pair-form label > span,
+  .lw-sales__sort label > span {
+    color: var(--color-text-secondary);
+    font: var(--text-label-md);
+  }
+
+  legend {
+    margin-block-end: var(--space-2);
+  }
+
+  .lw-sale-filters .lw-text-caption {
+    display: block;
+    margin-block-start: var(--space-2);
+    color: var(--color-text-secondary);
+  }
+
+  .lw-sale-filters__options,
+  .lw-sale-filters__pair {
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .lw-sale-filters__pair + .lw-sale-filters__pair {
+    margin-block-start: var(--space-2);
+  }
+
+  .lw-sale-filters__options label {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    color: var(--color-text-primary);
+  }
+
+  .lw-sale-filters__pair label {
+    display: grid;
+    gap: var(--space-1);
+  }
+
+  select,
+  input[type='number'] {
+    inline-size: 100%;
+    min-block-size: var(--target-min-touch);
+    padding: var(--space-2) var(--space-3);
+    /* A stronger border than the page's own default: at this size, a
+       hairline in --color-border-default measures 1.34:1 against the raised
+       surface behind it in the light theme, leaving focus as the only real
+       affordance. --color-border-strong is the existing token this repo
+       already uses for exactly that judgement (GameCard's own hover state);
+       it is not a new one invented for this page. */
+    border: var(--border-width-hairline) solid var(--color-border-strong);
+    border-radius: var(--radius-md);
+    background: var(--color-surface-raised);
+    color: var(--color-text-primary);
+    font: var(--text-body-md);
+  }
+
+  .lw-sale-filters__actions {
+    display: flex;
+    align-items: end;
+    gap: var(--space-3);
+  }
+
+  .lw-sale-filters__actions button,
+  .lw-sale-filters__pair-form button,
+  .lw-sales__sort button {
+    min-block-size: var(--target-min-touch);
+    padding-inline: var(--space-4);
+    border: 0;
+    border-radius: var(--radius-md);
+    background: var(--color-action-primary);
+    color: var(--color-action-primary-text);
+    font: var(--text-label-md);
+    cursor: pointer;
+  }
+
+  .lw-sale-filters__actions button:hover,
+  .lw-sale-filters__pair-form button:hover,
+  .lw-sales__sort button:hover {
+    background: var(--color-action-primary-hover);
+  }
+
+  .lw-sale-filters__actions button:active,
+  .lw-sale-filters__pair-form button:active,
+  .lw-sales__sort button:active {
+    background: var(--color-action-primary-active);
+  }
+
+  .lw-sale-filters__actions a,
+  .lw-sales__pagination a {
+    color: var(--color-text-link);
+    font: var(--text-label-md);
+  }
+
+  .lw-sales__advice {
+    display: grid;
+    gap: var(--space-1);
+    margin-block-start: var(--space-1);
+    padding-inline-start: var(--space-5);
+  }
+
+  .lw-sales__active {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2);
+    margin-block-end: var(--space-4);
+  }
+
+  .lw-sales__active ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    list-style: none;
+  }
+
+  .lw-sales__active a {
+    display: inline-block;
+    padding: var(--space-1) var(--space-2);
+    border: var(--border-width-hairline) solid var(--color-border-strong);
+    border-radius: var(--radius-pill);
+    color: var(--color-text-primary);
+    /* A stronger border alone repeats the page's own low-contrast default;
+       an underline is a second, non-colour cue that this pill is a control
+       rather than a label, on top of the stronger border above. */
+    text-decoration: underline;
+    text-underline-offset: var(--space-1);
+  }
+
+  .lw-sales__layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 300px;
+    gap: var(--space-8);
+    align-items: start;
+  }
+
+  .lw-sales__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap: var(--space-4);
+    list-style: none;
+  }
+
+  .lw-sales__aside {
+    position: sticky;
+    inset-block-start: var(--space-16);
+  }
+
+  .lw-sales__note {
+    padding: var(--space-4);
+    border: var(--border-width-hairline) solid var(--color-border-default);
+    border-radius: var(--radius-card);
+    background: var(--color-surface-default);
+    color: var(--color-text-secondary);
+  }
+
+  .lw-sales__note-title {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-block-end: var(--space-2);
+  }
+
+  .lw-sales__pagination {
+    display: flex;
+    justify-content: center;
+    gap: var(--space-4);
+    margin-block-start: var(--space-6);
+  }
+
+  @media (min-width: 1024px) {
+    .lw-sale-filters summary {
+      display: none;
+    }
+
+    /* Below --breakpoint-lg, the markup deliberately never sets `open`, so a
+       narrow viewport starts collapsed instead of re-expanding on every
+       navigation - and a closed <details> hides its content through the
+       `::details-content` box below, not through the content's own
+       `display`, which is why overriding `display` here would not have been
+       enough on its own. At this width the disclosure no longer applies:
+       the summary above is hidden and the content is shown unconditionally,
+       matching the desktop layout this page has always had. */
+    .lw-sale-filters::details-content {
+      content-visibility: visible;
+      overflow: visible;
+      block-size: auto;
+    }
+
+    .lw-sale-filters__pair-form {
+      padding-block-start: var(--space-4);
+    }
+  }
+
+  @media (max-width: 1023px) {
+    .lw-sale-filters__form {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .lw-sales__layout {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .lw-sales__aside {
+      position: static;
+    }
+  }
+
+  /* Below --breakpoint-sm (480px). */
+  @media (max-width: 479px) {
+    .lw-sales__heading-row {
+      align-items: start;
+      flex-direction: column;
+    }
+
+    .lw-sale-filters__form {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

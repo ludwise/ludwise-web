@@ -1,0 +1,78 @@
+{
+  "status": 200,
+  "body": {
+    "context": {
+      "marketCode": "JP",
+      "marketName": "Japan",
+      "currencyCode": "JPY",
+      "currencyMinorUnit": 0,
+      "gameCount": 1
+    },
+    "resultCount": 1,
+    "contextCount": 1,
+    "page": 1,
+    "pageSize": 24,
+    "sort": "discount",
+    "facets": {
+      "stores": [
+        {
+          "slug": "aurora-market",
+          "name": "Aurora Market"
+        }
+      ],
+      "contexts": [
+        {
+          "marketCode": "DE",
+          "marketName": "Germany",
+          "currencyCode": "EUR",
+          "currencyMinorUnit": 2,
+          "gameCount": 3
+        },
+        {
+          "marketCode": "EU",
+          "marketName": "European Union",
+          "currencyCode": "EUR",
+          "currencyMinorUnit": 2,
+          "gameCount": 1
+        },
+        {
+          "marketCode": "JP",
+          "marketName": "Japan",
+          "currencyCode": "JPY",
+          "currencyMinorUnit": 0,
+          "gameCount": 1
+        }
+      ]
+    },
+    "hasAnyOfferData": true,
+    "games": [
+      {
+        "id": "00000000-0000-7000-8000-000000000114",
+        "slug": "yen-sale-demo",
+        "title": "Yen Sale Demo Game",
+        "releaseDate": null,
+        "offer": {
+          "storeSlug": "aurora-market",
+          "storeName": "Aurora Market",
+          "editionLabel": null,
+          "price": {
+            "amountMinor": 2392,
+            "currencyCode": "JPY",
+            "minorUnit": 0
+          },
+          "referencePrice": {
+            "amountMinor": 5980,
+            "currencyCode": "JPY",
+            "minorUnit": 0
+          },
+          "discountPercentage": 60,
+          "observedAtMs": 1750000000000
+        },
+        "storeCount": 1
+      }
+    ],
+    "pageCount": 1,
+    "rangeStart": 1,
+    "rangeEnd": 1
+  }
+}

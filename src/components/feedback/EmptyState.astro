@@ -1,0 +1,95 @@
+---
+// Reference: design/system/components/feedback.md § EmptyState — prop
+// contract ported verbatim. Every empty state answers three questions in
+// order: what happened, why the space is empty, what to do next — enforced
+// here only by the title/default-slot/action ordering, not by validation.
+//
+// `children`, `action` and `secondaryAction` are ReactNode in the reference;
+// as in InlineMessage, they become the default slot and two named slots.
+//
+// `titleAs` is NOT in the handoff's prop contract — an addition, justified
+// because the bundle ships no error-page composition, so nothing in it ever
+// needed the title to be a heading. Without one, `/404` and `/500` (which
+// compose from EmptyState) have no programmatic heading at all: the title is
+// the only heading-styled text on the page, but a bare <span> leaves a
+// screen-reader user navigating by heading with no structure to land on
+// (WCAG 1.3.1). Defaults to 'span' so every in-page use (e.g. `/games`,
+// where EmptyState sits inside a page that already has its own heading
+// hierarchy) is unaffected and gains no stray heading.
+import Icon from '../foundation/Icon.astro';
+import type { IconName } from '../foundation/icons.js';
+
+interface Props {
+  icon?: IconName | undefined;
+  /** States the fact, e.g. "No games match these filters". */
+  title: string;
+  /** Element the title renders as. Default 'span' matches every existing
+   *  in-page use; pass a heading level only where this IS the page's
+   *  heading, e.g. an error page composed entirely from EmptyState. */
+  titleAs?: 'span' | 'h1' | 'h2' | 'h3' | undefined;
+  compact?: boolean | undefined;
+}
+
+const { icon = 'search', title, titleAs = 'span', compact = false } = Astro.props;
+
+const hasActions = Astro.slots.has('action') || Astro.slots.has('secondaryAction');
+
+// Astro supports a dynamic tag via a capitalised variable holding the tag
+// name (same technique Wordmark.astro uses for its href-or-not <a>/<span>).
+// The class below sets the full font shorthand regardless of tag, so h1/h2/h3
+// carry the identical visual treatment a <span> would — only the semantics
+// change.
+const TitleTag = titleAs;
+---
+
+<div class="lw-empty-state" data-compact={compact || undefined}>
+  <span class="lw-empty-state__icon">
+    <Icon name={icon} size="xl" />
+  </span>
+  <TitleTag class="lw-empty-state__title">{title}</TitleTag>
+  <span class="lw-empty-state__body"><slot /></span>
+  {
+    hasActions && (
+      <div class="lw-empty-state__actions">
+        <slot name="action" />
+        <slot name="secondaryAction" />
+      </div>
+    )
+  }
+</div>
+
+<style>
+  .lw-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: var(--space-3);
+    padding: var(--space-16) var(--space-6);
+    max-width: 480px;
+    margin: 0 auto;
+  }
+  .lw-empty-state[data-compact] {
+    padding: var(--space-8) var(--space-4);
+  }
+  .lw-empty-state__icon {
+    color: var(--color-text-tertiary);
+  }
+  .lw-empty-state__title {
+    font: var(--text-heading-sm);
+    letter-spacing: var(--letter-spacing-heading);
+    color: var(--color-text-primary);
+  }
+  .lw-empty-state__body {
+    font: var(--text-body-md);
+    color: var(--color-text-secondary);
+    text-wrap: pretty;
+  }
+  .lw-empty-state__actions {
+    display: flex;
+    gap: var(--space-2);
+    margin-top: var(--space-2);
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+</style>

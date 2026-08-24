@@ -1,0 +1,226 @@
+name: Deploy staging
+
+# Every push to main deploys staging. There is no separate promotion step and no
+# manual gate: main is defined as continuously healthy, so if it is healthy it
+# should be the thing running on staging.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  # Never cancel a deploy in flight. A cancelled `wrangler deploy` can leave a
+  # Worker half-published, which is the one state worth avoiding.
+  group: deploy-staging
+  cancel-in-progress: false
+
+env:
+  FORCE_COLOR: '1'
+
+jobs:
+  verify:
+    name: Verify
+    uses: ./.github/workflows/verify.yml
+    permissions:
+      contents: read
+
+  deploy:
+    name: Deploy to Cloudflare
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: staging
+      url: ${{ vars.SITE_URL }}
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+
+      - name: Install Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # The guardrail that matters most in a split architecture, checked before
+      # anything is built.
+      #
+      # A staging site reading production data is not a configuration mistake
+      # with a cosmetic symptom: it publishes production prices on a hostname
+      # that is not meant to be public, and it makes staging's own data
+      # untrustworthy for the testing it exists to do.
+      #
+      # Cloudflare's own model makes this mostly structural - a service binding
+      # names a Worker script, so there is no URL a mistyped variable could
+      # redirect - and this is the check for the case the structure cannot
+      # catch: a binding edited to name the wrong script.
+      - name: Refuse a cross-environment backend binding
+        run: node scripts/check-environment.mjs staging
+
+      # CLOUDFLARE_ENV selects the environment, and it does so here rather than
+      # at deploy time. The adapter flattens wrangler.jsonc into the build
+      # output, so by the time `wrangler deploy` runs the environment is already
+      # baked in and --env would have nothing left to select.
+      - name: Build
+        run: pnpm run build
+        env:
+          CLOUDFLARE_ENV: staging
+          SITE_URL: ${{ vars.SITE_URL }}
+
+      - name: Deploy
+        run: pnpm exec wrangler deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+
+      # After the deploy rather than before, on purpose. A pre-deploy check
+      # would read this workflow's environment rather than the bindings the
+      # Worker actually receives, so it could pass while the deployment was
+      # misconfigured. A Worker with invalid configuration answers 503 here and
+      # the job fails.
+      #
+      # Authenticated, because staging is private: an anonymous request is
+      # answered by the Cloudflare Access login page, so CI needs an identity of
+      # its own. That identity is a service token, not a bypass - the request is
+      # authenticated by Access and signed like any other, and the token's
+      # policy covers /api/health and nothing else. A bypass would make the
+      # endpoint anonymous, which is how a narrow exception becomes a public
+      # endpoint on a private site.
+      - name: Verify deployment
+        env:
+          SITE_URL: ${{ vars.SITE_URL }}
+          CF_ACCESS_CLIENT_ID: ${{ secrets.CF_ACCESS_CLIENT_ID }}
+          CF_ACCESS_CLIENT_SECRET: ${{ secrets.CF_ACCESS_CLIENT_SECRET }}
+        run: |
+          if [ -z "${CF_ACCESS_CLIENT_ID}" ] || [ -z "${CF_ACCESS_CLIENT_SECRET}" ]; then
+            echo "::error::The staging environment has no Access service token."
+            echo "Store the pair as CF_ACCESS_CLIENT_ID and CF_ACCESS_CLIENT_SECRET"
+            echo "on the staging GitHub environment."
+            exit 1
+          fi
+          timeout 120 bash -c '
+            until curl -sf -o /dev/null \
+              -H "CF-Access-Client-Id: ${CF_ACCESS_CLIENT_ID}" \
+              -H "CF-Access-Client-Secret: ${CF_ACCESS_CLIENT_SECRET}" \
+              "${SITE_URL}/api/health"; do sleep 5; done'
+
+          body="$(curl -sf \
+            -H "CF-Access-Client-Id: ${CF_ACCESS_CLIENT_ID}" \
+            -H "CF-Access-Client-Secret: ${CF_ACCESS_CLIENT_SECRET}" \
+            "${SITE_URL}/api/health")"
+          echo "${body}"
+
+          # The deployed Worker's own account of which environment it is. This
+          # is the second half of the binding check above: that one reads the
+          # configuration file, this reads what actually shipped.
+          echo "${body}" | grep -q '"environment":"staging"' || {
+            echo "::error::The deployed Worker does not report environment=staging."
+            exit 1
+          }
+          echo "${body}" | grep -q '"service":"ludwise-web"' || {
+            echo "::error::Something other than ludwise-web is answering this hostname."
+            exit 1
+          }
+
+      # The check that catches the state this hostname could quietly fall into:
+      # deployed, working, and readable by anyone.
+      #
+      # Runs on every deploy rather than once at setup, because the thing being
+      # guarded against is a later change - an Access application deleted,
+      # renamed, or scoped to the wrong hostname - and none of those announce
+      # themselves. 302 is Access refusing at the edge; 401 and 403 are a
+      # refusal further in. Any is correct. A 200 means staging is public.
+      - name: Confirm staging is not publicly reachable
+        env:
+          SITE_URL: ${{ vars.SITE_URL }}
+        run: |
+          # /robots.txt as well as /, because an exemption is exactly the kind
+          # of thing that gets added to a path nobody thinks of as a page.
+          for path in / /games /robots.txt; do
+            status="$(curl -s -o /dev/null -w '%{http_code}' "${SITE_URL}${path}")"
+            echo "anonymous GET ${path} responded ${status}"
+            case "${status}" in
+              302|303|401|403) ;;
+              *)
+                echo "::error::Staging answered ${status} to an anonymous request for ${path}."
+                echo "It must be behind Cloudflare Access."
+                exit 1
+                ;;
+            esac
+          done
+
+      # `/ops` belongs to the backend Worker at its own hostname (ADR 0026) and
+      # must not be reachable here at all. Asserted rather than assumed, because
+      # "the route is gone" and "the route is refused" look the same from the
+      # outside and only one of them is what the split promised.
+      #
+      # Anonymous, so an Access redirect is an acceptable answer too: this
+      # hostname is behind Access in its entirety, and a 302 means Access
+      # answered before the Worker could - which proves it is unreachable just
+      # as firmly as a 404 would.
+      - name: Confirm the operations dashboard is not served here
+        env:
+          SITE_URL: ${{ vars.SITE_URL }}
+        run: |
+          for path in /ops /ops/logs /v1/games; do
+            status="$(curl -s -o /dev/null -w '%{http_code}' "${SITE_URL}${path}")"
+            echo "anonymous GET ${path} responded ${status}"
+            case "${status}" in
+              302|303|401|403|404) ;;
+              *)
+                echo "::error::${path} answered ${status} on the public site hostname."
+                echo "Operations and the read API belong to the backend Worker (ADR 0026)."
+                exit 1
+                ;;
+            esac
+          done
+
+      # Not security - Access is that - but the layer that keeps staging out of
+      # a search index if a page ever does leave the boundary. Asserted here
+      # because the failure is silent everywhere else.
+      #
+      # Polled rather than asserted once: a Worker deployment is eventually
+      # consistent and the health probe cannot tell old from new, so an
+      # immediate assertion races the rollout and fails a correct deploy. A real
+      # regression still fails, it just takes the full window - a slow true
+      # failure beats a fast false one on every deploy.
+      - name: Confirm staging is not indexable
+        env:
+          SITE_URL: ${{ vars.SITE_URL }}
+          CF_ACCESS_CLIENT_ID: ${{ secrets.CF_ACCESS_CLIENT_ID }}
+          CF_ACCESS_CLIENT_SECRET: ${{ secrets.CF_ACCESS_CLIENT_SECRET }}
+        run: |
+          deadline=$(( SECONDS + 120 ))
+
+          while true; do
+            headers="$(curl -s -o /dev/null -D - \
+              -H "CF-Access-Client-Id: ${CF_ACCESS_CLIENT_ID}" \
+              -H "CF-Access-Client-Secret: ${CF_ACCESS_CLIENT_SECRET}" \
+              "${SITE_URL}/api/health")"
+
+            if printf '%s' "${headers}" | grep -qi '^x-robots-tag: *noindex'; then
+              echo "staging is sending X-Robots-Tag: noindex, nofollow"
+              break
+            fi
+
+            if [ "${SECONDS}" -ge "${deadline}" ]; then
+              echo "::error::Staging is not sending X-Robots-Tag: noindex, nofollow."
+              printf '%s' "${headers}" | grep -i '^x-robots-tag' || echo "(no such header)"
+              exit 1
+            fi
+
+            sleep 5
+          done

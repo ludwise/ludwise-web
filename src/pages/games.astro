@@ -1,0 +1,619 @@
+---
+import EmptyState from '../components/feedback/EmptyState.astro';
+import InlineMessage from '../components/feedback/InlineMessage.astro';
+import PageContainer from '../components/layout/PageContainer.astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import type { GameSearchInput, GameSearchView } from '../lib/api/contract.js';
+import { isApiError, toLogContext } from '../lib/api/errors.js';
+import { adviseGameSearch } from '../lib/http/filter-advice.js';
+import { toGameSearchInput } from '../lib/http/game-search-query.js';
+import { EVENTS } from '../lib/logging/events.js';
+
+export const prerender = false;
+
+const { locals } = Astro;
+const params = Astro.url.searchParams;
+
+const input: GameSearchInput = toGameSearchInput(params);
+
+/**
+ * Three outcomes, and they are deliberately not two.
+ *
+ * `view === null` with `failureCode` set means we could not find out what the
+ * catalogue holds. That is not the same as a catalogue holding nothing, and
+ * rendering it as an empty result would tell a visitor there are no games when
+ * the truth is that we failed to ask. The template keeps them apart and this
+ * frontmatter has to give it the information to do so.
+ *
+ * A rejection is the third: the request was refused for what it contained, the
+ * visitor can fix it, and the filter form has to come back so they can.
+ */
+let view: GameSearchView | null = null;
+let failureCode: string | null = null;
+let rejectedFilters: readonly string[] = [];
+
+try {
+  view = await locals.backend().searchGames(input);
+} catch (error) {
+  if (!isApiError(error)) throw error;
+
+  Astro.response.status = error.isRejection ? 400 : 503;
+
+  if (error.isRejection) {
+    // A rejected filter combination is something a visitor did, not something
+    // that broke, so it is a warning rather than an error - an alert on every
+    // mistyped year would bury the failures that matter.
+    locals.logger.warn(EVENTS.APPLICATION_QUERY_FAILED, 'Game search filters were rejected', {
+      error_category: 'application',
+      ...toLogContext(error),
+    });
+
+    rejectedFilters = adviseGameSearch(error.fields);
+
+    // The form is built from catalogue facets, and a visitor who cannot see it
+    // again cannot correct the combination they just sent. The backend rebuilt
+    // it and sent it along with the rejection, so this costs no second round
+    // trip - see ADR 0025.
+    //
+    // Cast rather than validated, and narrowly: `data` is typed `unknown` on
+    // the contract because which view it holds depends on which endpoint
+    // answered, and this call site is the place that knows. A backend that sent
+    // something else produces a page with no filter form, which the template
+    // already handles.
+    view = (error.data as GameSearchView | undefined) ?? null;
+
+    if (view === null) {
+      failureCode = error.code;
+      locals.logger.warn(
+        EVENTS.APPLICATION_QUERY_FAILED,
+        'Game search rejection carried no rebuilt view',
+        { error_category: 'application', ...toLogContext(error) },
+      );
+    }
+  } else {
+    failureCode = error.code;
+    locals.logger.error(EVENTS.APPLICATION_QUERY_FAILED, 'Game search query failed', {
+      error,
+      error_category: 'application',
+      ...toLogContext(error),
+    });
+  }
+}
+
+const filtersRejected = rejectedFilters.length > 0;
+
+function pathWith(next: URLSearchParams): string {
+  const query = next.toString();
+  return query === '' ? '/games' : `/games?${query}`;
+}
+
+function without(name: string, value?: string): string {
+  const next = new URLSearchParams(params);
+  if (name === 'store' && value !== undefined) {
+    next.delete('store');
+    for (const store of params.getAll('store')) {
+      if (store !== value) next.append('store', store);
+    }
+  } else {
+    next.delete(name);
+    if (name === 'market' || name === 'currency') {
+      next.delete('market');
+      next.delete('currency');
+    }
+    if (name === 'min') next.delete('max');
+    if (name === 'fromYear') next.delete('toYear');
+  }
+  next.delete('page');
+  return pathWith(next);
+}
+
+function pagePath(page: number): string {
+  const next = new URLSearchParams(params);
+  next.set('page', String(page));
+  return pathWith(next);
+}
+
+const selectedStores = new Set(input.stores ?? []);
+const selectedMarket = view?.facets.markets.find((market) => market.code === input.marketCode);
+const currencyOptions = selectedMarket
+  ? selectedMarket.currencies
+  : (view?.facets.markets.flatMap((market) => market.currencies) ?? []).filter(
+      (currency, index, currencies) =>
+        currencies.findIndex((item) => item.code === currency.code) === index,
+    );
+const hasFilters =
+  (input.stores?.length ?? 0) > 0 ||
+  input.marketCode !== undefined ||
+  input.currencyCode !== undefined ||
+  input.minPriceMinor !== undefined ||
+  input.maxPriceMinor !== undefined ||
+  input.discounted === true ||
+  input.releaseYearFrom !== undefined ||
+  input.releaseYearTo !== undefined;
+const hasSearch = (input.query ?? '').trim() !== '';
+const hasQueryOrFilters = hasSearch || hasFilters || (input.page ?? 1) > 1;
+const inputValue = (value: number | undefined): string =>
+  value === undefined || !Number.isFinite(value) ? '' : String(value);
+---
+
+<BaseLayout
+  title="Games — LUDWISE"
+  description="Search the LUDWISE game catalogue."
+  activeNavId="games"
+>
+  <PageContainer width="wide">
+    <div class="lw-games__heading-row">
+      <div>
+        <h1 class="lw-text-heading-xl">Games</h1>
+        <p class="lw-text-body-md lw-games__intro">Search the canonical LUDWISE game catalogue.</p>
+      </div>
+      {
+        view && !filtersRejected && (
+          <p class="lw-text-body-sm lw-games__count">{view.resultCount} games</p>
+        )
+      }
+    </div>
+
+    {
+      failureCode !== null && (
+        <InlineMessage tone="danger" title="The game catalogue could not be loaded">
+          Something failed on our side, so no games are shown. Quote code{' '}
+          <code class="lw-text-code">{failureCode}</code> and request id{' '}
+          <code class="lw-text-code">{locals.requestId}</code> if you report this.
+        </InlineMessage>
+      )
+    }
+
+    {
+      filtersRejected && (
+        <InlineMessage tone="warning" title="Those filters do not go together">
+          <ul class="lw-games__advice">
+            {rejectedFilters.map((advice) => (
+              <li>{advice}</li>
+            ))}
+          </ul>
+        </InlineMessage>
+      )
+    }
+
+    {
+      view && (
+        <>
+          <details class="lw-game-filters" open>
+            <summary>Filters</summary>
+            <form method="get" action="/games" class="lw-game-filters__form">
+              {input.query && <input type="hidden" name="q" value={input.query} />}
+
+              <fieldset>
+                <legend>Store</legend>
+                <div class="lw-game-filters__options">
+                  {view.facets.stores.length === 0 ? (
+                    <span class="lw-text-caption">No store data yet</span>
+                  ) : (
+                    view.facets.stores.map((store) => (
+                      <label>
+                        <input
+                          type="checkbox"
+                          name="store"
+                          value={store.slug}
+                          checked={selectedStores.has(store.slug)}
+                        />
+                        <span>{store.name}</span>
+                      </label>
+                    ))
+                  )}
+                </div>
+              </fieldset>
+
+              <fieldset>
+                <legend>Market and currency</legend>
+                <div class="lw-game-filters__pair">
+                  <label>
+                    <span>Market</span>
+                    <select name="market">
+                      <option value="">Any market</option>
+                      {view.facets.markets.map((market) => (
+                        <option value={market.code} selected={market.code === input.marketCode}>
+                          {market.name} ({market.code})
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label>
+                    <span>Currency</span>
+                    <select name="currency">
+                      <option value="">Any currency</option>
+                      {currencyOptions.map((currency) => (
+                        <option
+                          value={currency.code}
+                          selected={currency.code === input.currencyCode}
+                        >
+                          {currency.code}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                </div>
+              </fieldset>
+
+              <fieldset>
+                <legend>Price in the selected market and currency</legend>
+                <div class="lw-game-filters__pair">
+                  <label>
+                    <span>Minimum price (minor units)</span>
+                    <input
+                      type="number"
+                      name="min"
+                      min="0"
+                      step="1"
+                      value={inputValue(input.minPriceMinor)}
+                    />
+                  </label>
+                  <label>
+                    <span>Maximum price (minor units)</span>
+                    <input
+                      type="number"
+                      name="max"
+                      min="0"
+                      step="1"
+                      value={inputValue(input.maxPriceMinor)}
+                    />
+                  </label>
+                </div>
+              </fieldset>
+
+              <fieldset>
+                <legend>Sale and release</legend>
+                <label class="lw-game-filters__checkbox">
+                  <input
+                    type="checkbox"
+                    name="discounted"
+                    value="true"
+                    checked={input.discounted === true}
+                  />
+                  <span>Currently discounted</span>
+                </label>
+                <div class="lw-game-filters__pair">
+                  <label>
+                    <span>Released from year</span>
+                    <input
+                      type="number"
+                      name="fromYear"
+                      min="1"
+                      max="9999"
+                      step="1"
+                      value={inputValue(input.releaseYearFrom)}
+                    />
+                  </label>
+                  <label>
+                    <span>Released through year</span>
+                    <input
+                      type="number"
+                      name="toYear"
+                      min="1"
+                      max="9999"
+                      step="1"
+                      value={inputValue(input.releaseYearTo)}
+                    />
+                  </label>
+                </div>
+              </fieldset>
+
+              <div class="lw-game-filters__actions">
+                <button type="submit">Apply filters</button>
+                <a href="/games">Reset</a>
+              </div>
+            </form>
+          </details>
+
+          {hasFilters && !filtersRejected && (
+            <div class="lw-games__active" aria-label="Active filters">
+              <span class="lw-text-label-md">Active filters</span>
+              <ul>
+                {input.stores?.map((storeSlug) => {
+                  const store = view?.facets.stores.find((item) => item.slug === storeSlug);
+                  return (
+                    <li>
+                      <a
+                        href={without('store', storeSlug)}
+                        aria-label={`Remove store filter: ${store?.name ?? storeSlug}`}
+                      >
+                        {store?.name ?? storeSlug} ×
+                      </a>
+                    </li>
+                  );
+                })}
+                {input.marketCode && input.currencyCode && (
+                  <li>
+                    <a href={without('market')} aria-label="Remove market and currency filter">
+                      {input.marketCode} · {input.currencyCode} ×
+                    </a>
+                  </li>
+                )}
+                {(input.minPriceMinor !== undefined || input.maxPriceMinor !== undefined) && (
+                  <li>
+                    <a href={without('min')} aria-label="Remove minimum price filter">
+                      Price bounds ×
+                    </a>
+                  </li>
+                )}
+                {input.discounted === true && (
+                  <li>
+                    <a href={without('discounted')} aria-label="Remove discount filter">
+                      Discounted ×
+                    </a>
+                  </li>
+                )}
+                {(input.releaseYearFrom !== undefined || input.releaseYearTo !== undefined) && (
+                  <li>
+                    <a href={without('fromYear')} aria-label="Remove release year filter">
+                      Release year ×
+                    </a>
+                  </li>
+                )}
+                <li>
+                  <a href="/games">Reset all</a>
+                </li>
+              </ul>
+            </div>
+          )}
+
+          {filtersRejected ? null : view.resultCount === 0 ? (
+            <EmptyState
+              icon="search"
+              title={
+                hasQueryOrFilters ? 'No games match your search' : 'No games in the catalogue yet'
+              }
+            >
+              {hasQueryOrFilters
+                ? 'Try a different title or remove a filter.'
+                : 'Games appear here when LUDWISE has canonical catalogue data.'}
+            </EmptyState>
+          ) : (
+            <>
+              <ul class="lw-game-list" aria-label="Game results">
+                {view.games.map((game) => (
+                  <li class="lw-game-list__item">
+                    <a href={`/games/${game.slug}`} class="lw-game-list__link">
+                      {game.title}
+                    </a>
+                    {game.releaseDate && (
+                      <span class="lw-text-caption">Release date: {game.releaseDate}</span>
+                    )}
+                  </li>
+                ))}
+              </ul>
+              {view.pageCount > 1 && (
+                <nav class="lw-games__pagination" aria-label="Game results pages">
+                  {view.page > 1 ? (
+                    <a href={pagePath(view.page - 1)}>Previous</a>
+                  ) : (
+                    <span>Previous</span>
+                  )}
+                  <span>
+                    Page {view.page} of {view.pageCount}
+                  </span>
+                  {view.page < view.pageCount ? (
+                    <a href={pagePath(view.page + 1)}>Next</a>
+                  ) : (
+                    <span>Next</span>
+                  )}
+                </nav>
+              )}
+            </>
+          )}
+        </>
+      )
+    }
+  </PageContainer>
+</BaseLayout>
+
+<style>
+  .lw-games__heading-row {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: var(--space-4);
+    margin-block-end: var(--space-6);
+  }
+
+  .lw-games__heading-row h1 {
+    margin-block-end: var(--space-1);
+  }
+
+  .lw-games__intro,
+  .lw-games__count {
+    color: var(--color-text-secondary);
+  }
+
+  .lw-game-filters {
+    margin-block-end: var(--space-6);
+    border: var(--border-width-hairline) solid var(--color-border-default);
+    border-radius: var(--radius-card);
+    background: var(--color-surface-default);
+  }
+
+  .lw-game-filters summary {
+    padding: var(--space-4);
+    color: var(--color-text-primary);
+    font: var(--text-label-lg);
+    cursor: pointer;
+  }
+
+  .lw-game-filters__form {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--space-5);
+    padding: 0 var(--space-4) var(--space-4);
+  }
+
+  fieldset {
+    min-inline-size: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  legend,
+  .lw-game-filters label > span {
+    color: var(--color-text-secondary);
+    font: var(--text-label-md);
+  }
+
+  legend {
+    margin-block-end: var(--space-2);
+  }
+
+  .lw-game-filters .lw-text-caption {
+    color: var(--color-text-secondary);
+  }
+
+  .lw-game-filters__options,
+  .lw-game-filters__pair {
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .lw-game-filters__options label,
+  .lw-game-filters__checkbox {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    color: var(--color-text-primary);
+  }
+
+  .lw-game-filters__pair label {
+    display: grid;
+    gap: var(--space-1);
+  }
+
+  select,
+  input[type='number'] {
+    inline-size: 100%;
+    min-block-size: 2.75rem;
+    padding: var(--space-2) var(--space-3);
+    border: var(--border-width-hairline) solid var(--color-border-default);
+    border-radius: var(--radius-md);
+    background: var(--color-surface-raised);
+    color: var(--color-text-primary);
+    font: var(--text-body-md);
+  }
+
+  .lw-game-filters__actions {
+    display: flex;
+    align-items: end;
+    gap: var(--space-3);
+  }
+
+  .lw-game-filters__actions button {
+    min-block-size: 2.75rem;
+    padding-inline: var(--space-4);
+    border: 0;
+    border-radius: var(--radius-md);
+    background: var(--color-accent-primary);
+    color: var(--color-action-primary-text);
+    font: var(--text-label-md);
+    cursor: pointer;
+  }
+
+  .lw-game-filters__actions a,
+  .lw-games__pagination a {
+    color: var(--color-text-link);
+    font: var(--text-label-md);
+  }
+
+  .lw-games__advice {
+    display: grid;
+    gap: var(--space-1);
+    margin-block-start: var(--space-1);
+    padding-inline-start: var(--space-5);
+  }
+
+  .lw-games__active {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2);
+    margin-block-end: var(--space-4);
+  }
+
+  .lw-games__active ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    list-style: none;
+  }
+
+  .lw-games__active a {
+    display: inline-block;
+    padding: var(--space-1) var(--space-2);
+    border: var(--border-width-hairline) solid var(--color-border-default);
+    border-radius: var(--radius-pill);
+    color: var(--color-text-primary);
+    text-decoration: none;
+  }
+
+  .lw-game-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    list-style: none;
+  }
+
+  .lw-game-list__item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    padding: var(--space-3) var(--space-4);
+    border: var(--border-width-hairline) solid var(--color-border-default);
+    border-radius: var(--radius-card);
+    background: var(--color-surface-default);
+  }
+
+  .lw-game-list__link {
+    color: var(--color-text-primary);
+    font: var(--text-heading-sm);
+    text-decoration: none;
+  }
+
+  .lw-game-list__link:hover {
+    text-decoration: underline;
+  }
+
+  .lw-game-list__item .lw-text-caption {
+    color: var(--color-text-secondary);
+  }
+
+  .lw-games__pagination {
+    display: flex;
+    justify-content: center;
+    gap: var(--space-4);
+    margin-block-start: var(--space-6);
+  }
+
+  @media (min-width: 1024px) {
+    .lw-game-filters summary {
+      display: none;
+    }
+
+    .lw-game-filters__form {
+      padding-block-start: var(--space-4);
+    }
+  }
+
+  @media (max-width: 1023px) {
+    .lw-game-filters__form {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 600px) {
+    .lw-games__heading-row {
+      align-items: start;
+      flex-direction: column;
+    }
+
+    .lw-game-filters__form {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

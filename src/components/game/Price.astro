@@ -1,0 +1,88 @@
+---
+import type { MoneyView } from '../../lib/api/contract.js';
+import { formatMoney } from '../../lib/formatting/money.js';
+import DiscountBadge from '../game/DiscountBadge.astro';
+
+interface Props {
+  price: MoneyView | null;
+  referencePrice: MoneyView | null;
+  discountPercentage: number | null;
+  availability: 'available' | 'unavailable' | 'unknown' | null;
+}
+
+const { price, referencePrice, discountPercentage, availability } = Astro.props;
+const currentText = price === null ? null : price.amountMinor === 0 ? 'Free' : formatMoney(price);
+const referenceText = referencePrice === null ? null : formatMoney(referencePrice);
+const hasDiscount = currentText !== null && referenceText !== null && discountPercentage !== null;
+const accessibleText =
+  hasDiscount && currentText !== null && referenceText !== null
+    ? `Discounted price ${currentText}. Regular price ${referenceText}.`
+    : currentText !== null
+      ? `Current price ${currentText}.`
+      : availability === 'unavailable'
+        ? 'Unavailable.'
+        : 'Price not provided.';
+---
+
+<div class="lw-price" aria-label={accessibleText}>
+  {
+    hasDiscount && referenceText !== null && (
+      <span class="lw-price__reference">
+        <span class="lw-visually-hidden">Regular price: </span>
+        <del>{referenceText}</del>
+      </span>
+    )
+  }
+  {
+    currentText !== null ? (
+      <strong
+        class:list={['lw-price__current', price?.amountMinor === 0 && 'lw-price__current--free']}
+      >
+        {currentText}
+      </strong>
+    ) : (
+      <span
+        class:list={[
+          'lw-price__missing',
+          availability === 'unavailable' && 'lw-price__missing--unavailable',
+        ]}
+      >
+        {availability === 'unavailable' ? 'Unavailable' : 'Not provided'}
+      </span>
+    )
+  }
+  {hasDiscount && <DiscountBadge percentage={discountPercentage} size="sm" />}
+</div>
+
+<style>
+  .lw-price {
+    display: inline-flex;
+    align-items: baseline;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    max-width: 100%;
+    font-variant-numeric: tabular-nums lining-nums;
+  }
+  .lw-price__reference {
+    color: var(--color-text-secondary);
+    font: var(--text-body-sm);
+  }
+  .lw-price__current {
+    color: var(--color-price-current);
+    font: var(--text-numeric-md);
+    letter-spacing: var(--letter-spacing-numeric);
+    white-space: nowrap;
+  }
+  .lw-price__current--free {
+    color: var(--color-price-free);
+    font: var(--text-label-lg);
+  }
+  .lw-price__missing {
+    color: var(--color-text-secondary);
+    font: var(--text-body-sm);
+  }
+  .lw-price__missing--unavailable {
+    font-style: italic;
+  }
+</style>

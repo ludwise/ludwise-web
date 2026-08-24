@@ -1,0 +1,65 @@
+---
+// Reference: design/system/components/foundation.md § Icon — prop contract ported
+// verbatim; markup and sizing come from the shared name→path-data map in
+// ./icons.ts rather than being duplicated here (AppHeader.tsx needs the same
+// 49 glyphs and cannot import an .astro file, so the map lives in a
+// framework-neutral module both can reach).
+import { ICON_SIZES, LUDWISE_ICONS, type IconName, type IconSize } from './icons.js';
+
+interface Props {
+  /** Lucide icon name. Only names in the LUDWISE set are available. */
+  name: IconName;
+  /** xs 12 / sm 14 / md 16 / lg 20 / xl 24, or an explicit pixel number. */
+  size?: IconSize | number | undefined;
+  /** Normalised to 1.75 across the system. Change only with a documented reason. */
+  strokeWidth?: number | undefined;
+  /** Provide ONLY when the icon carries meaning no adjacent text carries.
+   *  Omitting it marks the icon aria-hidden, which is correct beside a label. */
+  title?: string | undefined;
+  class?: string | undefined;
+}
+
+const { name, size = 'md', strokeWidth = 1.75, title, class: className } = Astro.props;
+
+const px = typeof size === 'number' ? size : (ICON_SIZES[size] ?? ICON_SIZES.md);
+
+// Switching off escaping below is safe only because this is a lookup into the
+// compile-time LUDWISE_ICONS map, keyed by the closed IconName union - a
+// constant, never a runtime value.
+//
+// `title` is deliberately NOT composed into that string. It is a prop, so the
+// first caller writing `title={game.title}` would put provider data, through
+// the database, into unescaped markup. The accessible name comes from
+// `aria-label` instead: Astro escapes attributes, and aria-label wins over an
+// SVG <title> in the accessible name computation anyway.
+const markup = LUDWISE_ICONS[name];
+---
+
+{
+  markup && (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width={px}
+      height={px}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width={strokeWidth}
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      role={title ? 'img' : undefined}
+      aria-hidden={title ? undefined : 'true'}
+      aria-label={title}
+      focusable="false"
+      class:list={['lw-icon', className]}
+      set:html={markup}
+    />
+  )
+}
+
+<style>
+  .lw-icon {
+    display: block;
+    flex: none;
+  }
+</style>

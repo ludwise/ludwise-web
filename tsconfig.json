@@ -1,0 +1,26 @@
+{
+  "extends": "astro/tsconfigs/strict",
+  "compilerOptions": {
+    "strictNullChecks": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "noFallthroughCasesInSwitch": true,
+    "exactOptionalPropertyTypes": true,
+    "verbatimModuleSyntax": true,
+    "erasableSyntaxOnly": true,
+    "jsx": "react-jsx",
+    "jsxImportSource": "react",
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+    "types": ["astro/client"]
+  },
+  "include": [
+    ".astro/types.d.ts",
+    "worker-configuration.d.ts",
+    "src/**/*",
+    "*.config.mjs",
+    "*.config.ts"
+  ],
+  "exclude": ["dist", "node_modules", "tests"]
+}

@@ -1,0 +1,85 @@
+/* LUDWISE colour primitives. Never reference these directly in product code —
+   use the semantic tokens in color-semantic.css. Primitives exist so the semantic
+   layer can be re-pointed without a hunt through components. */
+:root{
+/* Neutral — warm-tinted graphite. Warm because the LUDWISE accent is amber;
+   a cool grey ramp makes amber read as dirty yellow. */
+--ludwise-neutral-0:#FFFFFF;
+--ludwise-neutral-25:#FBFAF8;
+--ludwise-neutral-50:#F6F4F1;
+--ludwise-neutral-100:#EDEAE5;
+--ludwise-neutral-200:#DEDAD3;
+--ludwise-neutral-300:#C6C1B8;
+--ludwise-neutral-400:#A39D93;
+--ludwise-neutral-500:#817B71;
+--ludwise-neutral-600:#605B53;
+--ludwise-neutral-700:#46423C;
+--ludwise-neutral-800:#2D2A26;
+--ludwise-neutral-850:#232120;
+--ludwise-neutral-900:#1B1A18;
+--ludwise-neutral-950:#131211;
+--ludwise-neutral-1000:#0B0B0A;
+
+/* Amber — the LUDWISE accent. 400 is the brand value. */
+--ludwise-amber-50:#FDF5E7;
+--ludwise-amber-100:#FAE8C9;
+--ludwise-amber-200:#F5D396;
+--ludwise-amber-300:#EFBD66;
+--ludwise-amber-400:#E8A33D;
+--ludwise-amber-500:#D18A21;
+--ludwise-amber-600:#AA6D13;
+--ludwise-amber-700:#8A5A11;
+--ludwise-amber-800:#5F3E0C;
+--ludwise-amber-900:#3B2707;
+
+/* Teal — positive / confirmed / decrease. Bluish-green, not a signal green,
+   so it stays separable from clay under deuteranopia. */
+--ludwise-teal-50:#E6F5F1;
+--ludwise-teal-100:#C2E7DE;
+--ludwise-teal-300:#5CBFA8;
+--ludwise-teal-400:#2FA98D;
+--ludwise-teal-500:#0E8A6E;
+--ludwise-teal-600:#0A6E58;
+--ludwise-teal-800:#083F34;
+--ludwise-teal-900:#052A22;
+
+/* Clay — negative / failed / increase. Warm red, lower lightness than teal. */
+--ludwise-clay-50:#FCEDEA;
+--ludwise-clay-100:#F7D6CE;
+--ludwise-clay-300:#E58974;
+--ludwise-clay-400:#D45F44;
+--ludwise-clay-500:#BC3F26;
+--ludwise-clay-600:#98311C;
+--ludwise-clay-800:#521A0F;
+--ludwise-clay-900:#37110A;
+
+/* Slate blue — informational only. Never used for prices or deals. */
+--ludwise-azure-50:#E9F0F8;
+--ludwise-azure-100:#CCDDF0;
+--ludwise-azure-300:#7FA9D8;
+--ludwise-azure-400:#4C87C4;
+--ludwise-azure-500:#2F6FB0;
+--ludwise-azure-600:#23558A;
+--ludwise-azure-800:#152F4C;
+--ludwise-azure-900:#0D1F33;
+
+/* Chart series. Ordered for maximum separation; series 1 is always the
+   LUDWISE-observed price line. Each must also be given a distinct dash
+   pattern and marker — colour alone never encodes a series. */
+--ludwise-series-1:#E8A33D;
+--ludwise-series-2:#2F6FB0;
+--ludwise-series-3:#0E8A6E;
+--ludwise-series-4:#8B5FC9;
+--ludwise-series-5:#BC3F26;
+--ludwise-series-6:#817B71;
+
+/* Retailer identity. Reference only, for logo lockups and at most a 3px
+   identity rule. Never a surface, never a text colour, never a button. */
+--ludwise-store-steam:#1B2838;
+--ludwise-store-gog:#7B2FBE;
+--ludwise-store-epic:#121212;
+--ludwise-store-humble:#CC2929;
+--ludwise-store-fanatical:#F09A26;
+--ludwise-store-gmg:#4C9E43;
+--ludwise-store-gamesplanet:#1D6FB8;
+}

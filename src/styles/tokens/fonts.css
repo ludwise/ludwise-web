@@ -1,0 +1,24 @@
+/* LUDWISE webfonts - Geist & Geist Mono, SIL Open Font License 1.1.
+   Self-hosted. This is the one file the design bundle expects to differ:
+   design/system/tokens/fonts.css loads these from Google Fonts because the
+   design tooling had no way to ship binaries, and PRODUCT.md section 91 makes
+   performance a product feature. Token names and values below are unchanged.
+
+   The files are vendored by scripts/vendor-fonts.mjs; see
+   public/fonts/PROVENANCE.md for versions.
+
+   No unicode-range is declared, deliberately. It exists to let a browser skip
+   subsets it does not need, and only the Latin subset is shipped - so a range
+   here could only ever remove glyphs the file already contains. When a locale
+   beyond English arrives it brings a latin-ext subset with it, and that is the
+   change that makes unicode-range meaningful. */
+@font-face{font-family:"Geist";font-style:normal;font-weight:400;font-display:swap;src:url("/fonts/geist-sans-latin-400-normal.woff2") format("woff2")}
+@font-face{font-family:"Geist";font-style:normal;font-weight:500;font-display:swap;src:url("/fonts/geist-sans-latin-500-normal.woff2") format("woff2")}
+@font-face{font-family:"Geist";font-style:normal;font-weight:600;font-display:swap;src:url("/fonts/geist-sans-latin-600-normal.woff2") format("woff2")}
+@font-face{font-family:"Geist Mono";font-style:normal;font-weight:400;font-display:swap;src:url("/fonts/geist-mono-latin-400-normal.woff2") format("woff2")}
+:root{
+--font-family-sans:"Geist","Geist Fallback",-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+--font-family-mono:"Geist Mono",ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+--font-family-display:var(--font-family-sans);
+--font-family-numeric:var(--font-family-sans);
+}

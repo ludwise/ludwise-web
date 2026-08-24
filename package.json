@@ -1,0 +1,68 @@
+{
+  "name": "ludwise-web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "The public LUDWISE website.",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ludwise/ludwise-web.git"
+  },
+  "packageManager": "pnpm@11.18.0",
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "sync": "astro sync",
+    "cf-typegen": "wrangler types",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "typecheck": "astro check",
+    "typecheck:tests": "tsc -p tsconfig.test.json --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:e2e": "playwright test",
+    "test:e2e:empty": "playwright test --config=playwright.states.config.ts",
+    "test:e2e:degraded": "node scripts/run-degraded.mjs",
+    "check": "pnpm run format:check && pnpm run lint && pnpm run cf-typegen && pnpm run typecheck && pnpm run typecheck:tests && pnpm run test && pnpm run build",
+    "prepare": "husky"
+  },
+  "dependencies": {
+    "astro": "7.2.4",
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
+  },
+  "devDependencies": {
+    "@astrojs/check": "0.9.10",
+    "@astrojs/cloudflare": "14.2.3",
+    "@astrojs/react": "6.0.4",
+    "@axe-core/playwright": "4.13.0",
+    "@commitlint/cli": "21.2.2",
+    "@commitlint/config-conventional": "21.2.2",
+    "@eslint/js": "^10.0.1",
+    "@playwright/test": "1.62.1",
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.4",
+    "@typescript-eslint/parser": "8.67.0",
+    "@vitest/coverage-v8": "4.1.11",
+    "eslint": "10.9.0",
+    "eslint-plugin-astro": "3.1.0",
+    "eslint-plugin-jsx-a11y": "6.10.2",
+    "globals": "^17.11.0",
+    "husky": "9.1.7",
+    "lint-staged": "17.3.0",
+    "prettier": "3.9.6",
+    "prettier-plugin-astro": "0.14.1",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.67.0",
+    "vitest": "4.1.11",
+    "wrangler": "4.125.0"
+  }
+}

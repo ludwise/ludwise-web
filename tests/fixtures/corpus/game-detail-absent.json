@@ -1,0 +1,8 @@
+{
+  "status": 404,
+  "body": {
+    "status": "error",
+    "code": "ERR_NOT_FOUND",
+    "request_id": "<request-id>"
+  }
+}

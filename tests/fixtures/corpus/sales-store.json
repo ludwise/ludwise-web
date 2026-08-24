@@ -1,0 +1,82 @@
+{
+  "status": 200,
+  "body": {
+    "context": {
+      "marketCode": "DE",
+      "marketName": "Germany",
+      "currencyCode": "EUR",
+      "currencyMinorUnit": 2,
+      "gameCount": 3
+    },
+    "resultCount": 1,
+    "contextCount": 3,
+    "page": 1,
+    "pageSize": 24,
+    "sort": "discount",
+    "facets": {
+      "stores": [
+        {
+          "slug": "aurora-market",
+          "name": "Aurora Market"
+        },
+        {
+          "slug": "vertex-store",
+          "name": "Vertex Store"
+        }
+      ],
+      "contexts": [
+        {
+          "marketCode": "DE",
+          "marketName": "Germany",
+          "currencyCode": "EUR",
+          "currencyMinorUnit": 2,
+          "gameCount": 3
+        },
+        {
+          "marketCode": "EU",
+          "marketName": "European Union",
+          "currencyCode": "EUR",
+          "currencyMinorUnit": 2,
+          "gameCount": 1
+        },
+        {
+          "marketCode": "JP",
+          "marketName": "Japan",
+          "currencyCode": "JPY",
+          "currencyMinorUnit": 0,
+          "gameCount": 1
+        }
+      ]
+    },
+    "hasAnyOfferData": true,
+    "games": [
+      {
+        "id": "00000000-0000-7000-8000-000000000111",
+        "slug": "two-store-demo",
+        "title": "Two Store Demo Game",
+        "releaseDate": null,
+        "offer": {
+          "storeSlug": "vertex-store",
+          "storeName": "Vertex Store",
+          "editionLabel": null,
+          "price": {
+            "amountMinor": 1999,
+            "currencyCode": "EUR",
+            "minorUnit": 2
+          },
+          "referencePrice": {
+            "amountMinor": 5999,
+            "currencyCode": "EUR",
+            "minorUnit": 2
+          },
+          "discountPercentage": 66,
+          "observedAtMs": 1750000000000
+        },
+        "storeCount": 2
+      }
+    ],
+    "pageCount": 1,
+    "rangeStart": 1,
+    "rangeEnd": 1
+  }
+}

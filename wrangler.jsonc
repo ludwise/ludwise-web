@@ -1,0 +1,149 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "ludwise-web",
+  "main": "@astrojs/cloudflare/entrypoints/server",
+  "compatibility_date": "2026-08-15",
+
+  // nodejs_compat_populate_process_env is pinned explicitly rather than relying
+  // on the compatibility date default. If the date is ever rolled back,
+  // process.env silently empties and every request fails configuration
+  // validation.
+  "compatibility_flags": ["nodejs_compat", "nodejs_compat_populate_process_env"],
+
+  // Never fall back to a *.workers.dev hostname. Cloudflare's own default, when
+  // neither this nor `routes` is set, is to expose the Worker there anyway -
+  // which for the top-level block below would publish a site with
+  // ENVIRONMENT=development on a public hostname nobody chose, reading from
+  // whatever backend the binding happened to name.
+  "workers_dev": false,
+
+  "assets": {
+    "binding": "ASSETS",
+    "directory": "./dist",
+  },
+
+  // Without this, Workers Logs retains nothing at all and the structured logger
+  // produces output that is never queryable. The correlation identifiers this
+  // Worker forwards to the backend are only useful if both sides' records are
+  // actually retained.
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1,
+  },
+
+  // ---------------------------------------------------------------------------
+  // Top level is the LOCAL environment, and is never deployed.
+  //
+  // `vars` and `services` are not inherited by named environments - per
+  // wrangler's own config schema, no binding is - so both are repeated in full
+  // below. That repetition is load-bearing here rather than annoying: it means
+  // the service binding for each environment is written out where a reviewer
+  // can see which backend it names.
+  // ---------------------------------------------------------------------------
+  "vars": {
+    "ENVIRONMENT": "development",
+    "LOG_LEVEL": "debug",
+    "ANALYTICS_ENABLED": "false",
+    "SITE_URL": "http://localhost:4321",
+
+    // Longer than staging and production, deliberately. A local backend under
+    // `wrangler dev` pays a cold-isolate cost on the first request of a session
+    // that a deployed Worker does not, and a developer seeing timeout pages
+    // because of it would learn to distrust the timeout rather than the
+    // latency.
+    "BACKEND_TIMEOUT_MS": "15000",
+  },
+
+  // The whole architecture, in four lines (ADR 0024).
+  //
+  // The site reaches the backend over a service binding rather than a public
+  // hostname. There is no URL for a browser to call, so there is no public API
+  // surface: no CORS, no API key, no rate limiting on `/v1`, and no second
+  // Cloudflare Access application - none of which defend a surface that is not
+  // routable. The backend declares no route serving `/v1` and keeps
+  // `workers_dev: false`, which is what makes that a fact about routing rather
+  // than a claim in a document.
+  //
+  // `service` names a Worker script in the same account. Each environment below
+  // names its own, which is what keeps a staging site from reading production
+  // data structurally rather than by configuration discipline. There is no
+  // value here a mistyped environment variable could redirect.
+  //
+  // Note what a binding does NOT do: it bypasses Cloudflare Access entirely,
+  // because Access is an edge control and a binding dispatches straight to the
+  // target script. A request arriving at the backend this way has been
+  // authenticated by nothing, which is exactly why `/ops` authorization lives
+  // in the backend's own middleware and must never move to the edge.
+  "services": [
+    {
+      "binding": "BACKEND",
+      "service": "ludwise",
+    },
+  ],
+
+  "env": {
+    // Deployed by .github/workflows/deploy-staging.yml on every push to main.
+    "staging": {
+      "name": "ludwise-web-staging",
+      "vars": {
+        "ENVIRONMENT": "staging",
+        "LOG_LEVEL": "info",
+        "ANALYTICS_ENABLED": "false",
+        "SITE_URL": "https://staging.ludwise.com",
+        "BACKEND_TIMEOUT_MS": "5000",
+      },
+      // Staging reads the staging backend. Named explicitly rather than
+      // inherited, because inheritance would make the most dangerous possible
+      // mistake - a staging site reading production - invisible in this file.
+      "services": [
+        {
+          "binding": "BACKEND",
+          "service": "ludwise-staging",
+        },
+      ],
+      // custom_domain lets Cloudflare own the DNS record and the certificate.
+      // Creating the record by hand and pointing a route at it duplicates the
+      // same fact in two places that then drift.
+      //
+      // This hostname previously belonged to the backend Worker. Two Workers
+      // must never claim it at once: the backend's route is removed in the same
+      // change that adds this one.
+      "routes": [
+        {
+          "pattern": "staging.ludwise.com",
+          "custom_domain": true,
+        },
+      ],
+    },
+
+    // Deployed by .github/workflows/deploy-production.yml when a GitHub Release
+    // is published from the production branch. Never from a branch push.
+    //
+    // The route is present and production has not been launched. That is not a
+    // contradiction: publishing this Worker does not create the DNS record, and
+    // the launch process owns when that happens. What this block does is make
+    // the intended end state reviewable rather than improvised on the day.
+    "production": {
+      "name": "ludwise-web-production",
+      "vars": {
+        "ENVIRONMENT": "production",
+        "LOG_LEVEL": "info",
+        "ANALYTICS_ENABLED": "false",
+        "SITE_URL": "https://ludwise.com",
+        "BACKEND_TIMEOUT_MS": "5000",
+      },
+      "services": [
+        {
+          "binding": "BACKEND",
+          "service": "ludwise-production",
+        },
+      ],
+      "routes": [
+        {
+          "pattern": "ludwise.com",
+          "custom_domain": true,
+        },
+      ],
+    },
+  },
+}

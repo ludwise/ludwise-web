@@ -1,0 +1,27 @@
+/* LUDWISE motion. Motion explains cause and effect. It never entertains.
+   Nothing above 240ms is permitted on an interaction the user initiated. */
+:root{
+--motion-duration-instant:0ms; /* @kind other */
+--motion-duration-fast:120ms; /* @kind other */
+--motion-duration-normal:180ms; /* @kind other */
+--motion-duration-deliberate:240ms; /* @kind other */
+--motion-duration-ambient:600ms; /* @kind other */ /* skeleton shimmer, progress only */
+
+--motion-easing-standard:cubic-bezier(.2,0,.2,1); /* @kind other */
+--motion-easing-enter:cubic-bezier(0,0,.2,1); /* @kind other */
+--motion-easing-exit:cubic-bezier(.4,0,1,1); /* @kind other */
+--motion-easing-linear:linear; /* @kind other */
+
+--motion-transition-color:color var(--motion-duration-fast) var(--motion-easing-standard),background-color var(--motion-duration-fast) var(--motion-easing-standard),border-color var(--motion-duration-fast) var(--motion-easing-standard); /* @kind other */
+--motion-transition-transform:transform var(--motion-duration-fast) var(--motion-easing-standard); /* @kind other */
+--motion-transition-overlay:opacity var(--motion-duration-normal) var(--motion-easing-enter),transform var(--motion-duration-normal) var(--motion-easing-enter); /* @kind other */
+}
+@media (prefers-reduced-motion:reduce){
+:root{
+--motion-duration-fast:0ms; /* @kind other */
+--motion-duration-normal:0ms; /* @kind other */
+--motion-duration-deliberate:0ms; /* @kind other */
+--motion-duration-ambient:0ms; /* @kind other */
+}
+*,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important;scroll-behavior:auto !important}
+}

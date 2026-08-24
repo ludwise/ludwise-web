@@ -1,0 +1,38 @@
+node_modules/
+dist/
+.astro/
+.wrangler/
+coverage/
+pnpm-lock.yaml
+CHANGELOG.md
+worker-configuration.d.ts
+
+# Bruno owns its own file format; Prettier has no .bru parser.
+bruno/**/*.bru
+
+# Authored documents owned by their author, not code. Prettier rewrites every
+# markdown bullet from '*' to '-', which is 800+ lines of churn for no benefit.
+PRODUCT.md
+
+# Tooling scratch directory, not part of the project.
+.remember/
+
+# The external design-system handoff, vendored verbatim as the visual source of
+# truth. Its token CSS is minified by the design tooling and its markdown is
+# authored; reformatting either would make it stop matching what the designer
+# shipped, and diffing an updated bundle would become impossible.
+design/
+
+# The adopted copy of that token layer. It has to stay byte-identical to
+# design/system/tokens/, because that is what makes the parity test in
+# tests/integration/design/ mean anything: Prettier normalises `.06` to `0.06`
+# and re-spaces every shadow value, and once the two copies differ
+# cosmetically nobody can see whether they also differ substantively.
+src/styles/tokens/
+src/styles/global.css
+
+# Per-machine Claude Code state, written by the tool rather than authored here.
+# Ignored globally by git on the machine that produces it, which Prettier does
+# not read - so without this line `pnpm check` fails on a file that is not part
+# of the project.
+.claude/settings.local.json

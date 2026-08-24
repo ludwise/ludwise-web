@@ -1,0 +1,64 @@
+---
+import PageContainer from '../components/layout/PageContainer.astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+export const prerender = false;
+---
+
+<BaseLayout
+  title="LUDWISE"
+  description="Transparent PC game store comparison and discovery platform."
+  activeNavId="home"
+>
+  <PageContainer width="reading">
+    <h1 class="lw-text-heading-xl">LUDWISE</h1>
+    <p class="lw-text-body-lg">Transparent PC game store comparison and discovery platform.</p>
+
+    {
+      /* Not a placeholder any more, and it should not read like one. One store
+         is connected, a schedule keeps its catalogue filled, and /games can be
+         searched. What this page must not do is imply the comparison the
+         product describes is finished: one store cannot compare anything, and
+         how much of it is here depends on how far the schedule has walked. */
+    }
+    <p class="lw-text-body-md">
+      One store is connected so far, and its catalogue fills over days rather than at once. You can
+      search what is here; comparing prices across stores needs a second store, which is not
+      connected yet.
+    </p>
+    <p class="lw-text-body-md">
+      <a href="/games">Browse games</a>
+    </p>
+    {
+      /* The spaces after each link are explicit. Prettier wraps a long anchor
+         as `</a\n>`, which collapses the whitespace that followed it entirely -
+         rendering "READMEfor" and giving a screen reader an unpronounceable
+         token. A literal expression survives reformatting; a space in the
+         source does not.
+
+         These point at this repository rather than at the backend's own
+         documents. The interface is public and its README describes what a
+         reader is looking at; the catalogue logic is not, and linking to a
+         private repository from a public page produces a 404 for everyone
+         except the handful of people who can already read it. */
+    }
+    <p class="lw-text-body-md">
+      See <a href="https://github.com/ludwise/ludwise-web">the source</a>{' '}
+      for how this interface is built, and{' '}
+      <a href="https://github.com/ludwise/ludwise-web/blob/main/docs/architecture.md">
+        the architecture notes
+      </a>{' '}
+      for how it reaches the catalogue.
+    </p>
+  </PageContainer>
+</BaseLayout>
+
+<style>
+  h1 {
+    margin-block-end: var(--space-4);
+  }
+
+  p + p {
+    margin-block-start: var(--space-4);
+  }
+</style>

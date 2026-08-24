@@ -1,0 +1,48 @@
+{
+  "status": 200,
+  "body": {
+    "context": {
+      "marketCode": "US",
+      "marketName": "United States",
+      "currencyCode": "USD",
+      "currencyMinorUnit": 2,
+      "gameCount": 0
+    },
+    "games": [],
+    "resultCount": 0,
+    "contextCount": 0,
+    "page": 1,
+    "pageSize": 24,
+    "pageCount": 0,
+    "rangeStart": 0,
+    "rangeEnd": 0,
+    "sort": "discount",
+    "facets": {
+      "stores": [],
+      "contexts": [
+        {
+          "marketCode": "DE",
+          "marketName": "Germany",
+          "currencyCode": "EUR",
+          "currencyMinorUnit": 2,
+          "gameCount": 3
+        },
+        {
+          "marketCode": "EU",
+          "marketName": "European Union",
+          "currencyCode": "EUR",
+          "currencyMinorUnit": 2,
+          "gameCount": 1
+        },
+        {
+          "marketCode": "JP",
+          "marketName": "Japan",
+          "currencyCode": "JPY",
+          "currencyMinorUnit": 0,
+          "gameCount": 1
+        }
+      ]
+    },
+    "hasAnyOfferData": true
+  }
+}

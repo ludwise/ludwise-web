@@ -1,0 +1,18 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "types": ["astro/client", "vitest/globals"]
+  },
+  // `exclude` is inherited from tsconfig.json, which excludes `tests` so that
+  // `astro check` stays scoped to shipped code. Inherited `exclude` filters
+  // `include`, so without overriding it here this project would resolve to
+  // zero test files and pass while checking nothing at all.
+  "exclude": ["dist", "node_modules"],
+  "include": [
+    ".astro/types.d.ts",
+    "worker-configuration.d.ts",
+    "src/**/*",
+    "tests/**/*",
+    "vitest.config.ts"
+  ]
+}

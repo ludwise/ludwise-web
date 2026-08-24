@@ -1,0 +1,136 @@
+{
+  "status": 400,
+  "body": {
+    "status": "error",
+    "code": "ERR_APP_VALIDATION",
+    "request_id": "<request-id>",
+    "fields": ["currencyCode", "marketCode"],
+    "data": {
+      "context": {
+        "marketCode": "DE",
+        "marketName": "Germany",
+        "currencyCode": "EUR",
+        "currencyMinorUnit": 2,
+        "gameCount": 3
+      },
+      "resultCount": 3,
+      "contextCount": 3,
+      "page": 1,
+      "pageSize": 24,
+      "sort": "discount",
+      "facets": {
+        "stores": [
+          {
+            "slug": "aurora-market",
+            "name": "Aurora Market"
+          },
+          {
+            "slug": "vertex-store",
+            "name": "Vertex Store"
+          }
+        ],
+        "contexts": [
+          {
+            "marketCode": "DE",
+            "marketName": "Germany",
+            "currencyCode": "EUR",
+            "currencyMinorUnit": 2,
+            "gameCount": 3
+          },
+          {
+            "marketCode": "EU",
+            "marketName": "European Union",
+            "currencyCode": "EUR",
+            "currencyMinorUnit": 2,
+            "gameCount": 1
+          },
+          {
+            "marketCode": "JP",
+            "marketName": "Japan",
+            "currencyCode": "JPY",
+            "currencyMinorUnit": 0,
+            "gameCount": 1
+          }
+        ]
+      },
+      "hasAnyOfferData": true,
+      "games": [
+        {
+          "id": "00000000-0000-7000-8000-000000000115",
+          "slug": "steep-discount-demo",
+          "title": "Steep Discount Demo Game",
+          "releaseDate": null,
+          "offer": {
+            "storeSlug": "aurora-market",
+            "storeName": "Aurora Market",
+            "editionLabel": null,
+            "price": {
+              "amountMinor": 8000,
+              "currencyCode": "EUR",
+              "minorUnit": 2
+            },
+            "referencePrice": {
+              "amountMinor": 40000,
+              "currencyCode": "EUR",
+              "minorUnit": 2
+            },
+            "discountPercentage": 80,
+            "observedAtMs": 1750000000000
+          },
+          "storeCount": 1
+        },
+        {
+          "id": "00000000-0000-7000-8000-000000000111",
+          "slug": "two-store-demo",
+          "title": "Two Store Demo Game",
+          "releaseDate": null,
+          "offer": {
+            "storeSlug": "vertex-store",
+            "storeName": "Vertex Store",
+            "editionLabel": null,
+            "price": {
+              "amountMinor": 1999,
+              "currencyCode": "EUR",
+              "minorUnit": 2
+            },
+            "referencePrice": {
+              "amountMinor": 5999,
+              "currencyCode": "EUR",
+              "minorUnit": 2
+            },
+            "discountPercentage": 66,
+            "observedAtMs": 1750000000000
+          },
+          "storeCount": 2
+        },
+        {
+          "id": "00000000-0000-7000-8000-000000000110",
+          "slug": "half-off-demo",
+          "title": "Half Off Demo Game",
+          "releaseDate": "2024-03-01",
+          "offer": {
+            "storeSlug": "aurora-market",
+            "storeName": "Aurora Market",
+            "editionLabel": null,
+            "price": {
+              "amountMinor": 2999,
+              "currencyCode": "EUR",
+              "minorUnit": 2
+            },
+            "referencePrice": {
+              "amountMinor": 5999,
+              "currencyCode": "EUR",
+              "minorUnit": 2
+            },
+            "discountPercentage": 50,
+            "observedAtMs": 1750000000000
+          },
+          "storeCount": 1
+        }
+      ],
+      "pageCount": 1,
+      "rangeStart": 1,
+      "rangeEnd": 3
+    }
+  }
+}

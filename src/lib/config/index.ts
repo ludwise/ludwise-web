@@ -1,0 +1,145 @@
+/**
+ * What this Worker needs to know about itself, and the guardrails around it.
+ *
+ * Small deliberately. The backend's configuration module validates provider
+ * credentials, database bindings and email settings; this one has none of those
+ * to validate, because this Worker has none of them. That is the split working:
+ * if this file ever grows a secret, something has been put in the wrong
+ * repository.
+ *
+ * ## The one rule worth writing code for
+ *
+ * A frontend environment may only talk to its own backend environment. A
+ * staging site reading production data is not a configuration mistake with a
+ * cosmetic symptom - it publishes production prices on a hostname that is not
+ * meant to be public, and it makes staging's own data untrustworthy for the
+ * testing it exists to do. Locally it is worse: a developer's experiment reads
+ * real data over a binding nobody audited.
+ *
+ * Cloudflare's own model makes this mostly structural, and that is the primary
+ * defence: a service binding names a Worker script, and the staging site's
+ * binding names the staging backend. There is no URL to point at the wrong
+ * place. `assertEnvironmentsMatch` below is the check that catches the case the
+ * structure cannot - a binding edited to point at the wrong script - and it
+ * fails the request closed rather than serving whatever answered.
+ */
+
+/** The environments this site is deployed to. A closed set on purpose. */
+export const ENVIRONMENTS = ['development', 'staging', 'production'] as const;
+export type Environment = (typeof ENVIRONMENTS)[number];
+
+export class ConfigError extends Error {
+  readonly code = 'ERR_CONFIG_INVALID';
+  /**
+   * Which settings were wrong, for the logs.
+   *
+   * Names only, never values. A configuration value can be a hostname, a
+   * binding name or - in some future - something sensitive, and an error that
+   * echoes what it was given is how that reaches a response. The names alone
+   * are enough for an operator holding the deployment.
+   */
+  readonly fields: readonly string[];
+
+  constructor(fields: readonly string[]) {
+    super(`ERR_CONFIG_INVALID: ${fields.join(', ')}`);
+    this.name = 'ConfigError';
+    this.fields = fields;
+  }
+}
+
+export interface AppConfig {
+  readonly environment: Environment;
+  readonly siteUrl: string;
+  readonly logLevel: 'debug' | 'info' | 'warn' | 'error';
+  readonly analyticsEnabled: boolean;
+  /**
+   * How long the backend has to answer, in milliseconds.
+   *
+   * Configurable because the right value differs by environment rather than by
+   * opinion: a local backend running under `wrangler dev` with a cold isolate
+   * is legitimately slower than a deployed one, and a developer should not have
+   * to see timeout pages because of it.
+   */
+  readonly backendTimeoutMs: number;
+}
+
+const LOG_LEVELS = ['debug', 'info', 'warn', 'error'] as const;
+
+function isEnvironment(value: string): value is Environment {
+  return (ENVIRONMENTS as readonly string[]).includes(value);
+}
+
+/**
+ * Reads and validates configuration, collecting every problem before failing.
+ *
+ * Every problem rather than the first: an operator fixing a bad deployment
+ * should see the whole list once, not discover the next one after each redeploy.
+ *
+ * Nothing is defaulted where a wrong guess would be silent. `ENVIRONMENT` has
+ * no default at all - guessing `development` would disable protections, and
+ * guessing `production` would enable indexing on a deployment whose
+ * configuration is already known to be broken.
+ */
+export function loadConfig(source: Readonly<Record<string, string | undefined>>): AppConfig {
+  const fields: string[] = [];
+
+  const environmentRaw = source['ENVIRONMENT'] ?? '';
+  if (!isEnvironment(environmentRaw)) fields.push('ENVIRONMENT');
+
+  const siteUrl = source['SITE_URL'] ?? '';
+  if (siteUrl === '' || !isAbsoluteHttpUrl(siteUrl)) fields.push('SITE_URL');
+
+  const logLevelRaw = source['LOG_LEVEL'] ?? 'info';
+  if (!(LOG_LEVELS as readonly string[]).includes(logLevelRaw)) fields.push('LOG_LEVEL');
+
+  const timeoutRaw = source['BACKEND_TIMEOUT_MS'];
+  const backendTimeoutMs = timeoutRaw === undefined ? 5_000 : Number(timeoutRaw);
+  if (!Number.isSafeInteger(backendTimeoutMs) || backendTimeoutMs < 1) {
+    fields.push('BACKEND_TIMEOUT_MS');
+  }
+
+  if (fields.length > 0) throw new ConfigError(fields);
+
+  return {
+    environment: environmentRaw as Environment,
+    siteUrl,
+    logLevel: logLevelRaw as AppConfig['logLevel'],
+    // Anything other than the literal 'true' is off. An analytics switch that
+    // defaults on when misspelled is a privacy decision made by a typo.
+    analyticsEnabled: source['ANALYTICS_ENABLED'] === 'true',
+    backendTimeoutMs,
+  };
+}
+
+function isAbsoluteHttpUrl(value: string): boolean {
+  try {
+    const url = new URL(value);
+    return url.protocol === 'http:' || url.protocol === 'https:';
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Refuses to serve a page built from one environment's site and another's data.
+ *
+ * The backend reports its own environment on `/api/health`, and the site
+ * compares it to its own once per isolate. A mismatch is a deployment fault
+ * rather than a request fault, so it fails every request rather than the
+ * unlucky one that noticed - a site that half-works against the wrong backend
+ * is harder to diagnose than one that refuses.
+ *
+ * Development is exempt in one direction only, and the asymmetry is the point.
+ * A developer may deliberately point a local site at a *staging* backend to
+ * reproduce something, which is a real workflow and reads data that is already
+ * disposable. Nothing may point at production: not local, not staging. That is
+ * not a workflow, it is the accident this function exists to prevent.
+ */
+export function assertEnvironmentsMatch(site: Environment, backend: string): void {
+  if (site === backend) return;
+
+  const allowed = site === 'development' && backend === 'staging';
+  if (allowed) return;
+
+  throw new ConfigError(['BACKEND_ENVIRONMENT']);
+}
