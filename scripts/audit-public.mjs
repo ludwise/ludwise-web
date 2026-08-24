@@ -53,8 +53,23 @@ const PATTERNS = [
   ['IMPORTANT', 'an Access AUD tag', /ACCESS_AUD\s*[:=]\s*['"][0-9a-f]{16,}/iu],
 ];
 
-/** Files whose whole purpose is to name a forbidden thing in order to ban it. */
+/**
+ * Files whose whole purpose is to name a forbidden thing in order to ban it.
+ *
+ * This file is on the list, which reads like special pleading and is not. The
+ * audit's own pattern table contains the literal string STEAM_API_KEY, so on
+ * the first run after it was committed it reported itself - a finding that is
+ * true, useless, and would train a reader to skim past the output. The rule
+ * cannot be written without naming the thing it forbids.
+ *
+ * The same mistake in boundaries.test.ts was solved by stripping comments
+ * before matching, and that would not work here: these strings are in the code,
+ * not the prose. An allowlist of files that exist to describe the ban is the
+ * honest mechanism, and it stays short and explicit so that adding to it is a
+ * visible decision rather than a quiet exemption.
+ */
 const RULE_FILES = [
+  'scripts/audit-public.mjs',
   'tests/architecture/boundaries.test.ts',
   'scripts/check-bundle.mjs',
   'SECURITY.md',
