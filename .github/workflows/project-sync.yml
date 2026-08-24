@@ -1,0 +1,200 @@
+name: Sync issues to LUDWISE Development Project
+
+on:
+  issues:
+    types: [opened, reopened, closed, labeled, unlabeled, edited]
+  workflow_dispatch:
+  schedule:
+    - cron: '23 * * * *'
+
+concurrency:
+  group: project-sync-${{ github.repository }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  issues: read
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Add issues and update project metadata
+        uses: actions/github-script@v7
+        env:
+          PROJECT_OWNER: ludwise
+          PROJECT_NUMBER: '2'
+          PROJECT_TOKEN: ${{ secrets.LUDWISE_PROJECT_TOKEN }}
+        with:
+          github-token: ${{ secrets.LUDWISE_PROJECT_TOKEN }}
+          script: |
+            const owner = process.env.PROJECT_OWNER;
+            const projectNumber = Number(process.env.PROJECT_NUMBER);
+            const action = context.payload.action;
+
+            if (!process.env.PROJECT_TOKEN) {
+              core.setFailed(
+                'LUDWISE_PROJECT_TOKEN is not configured. Add a GitHub token with organization Project read/write access.'
+              );
+              return;
+            }
+
+            const projectQuery = `
+              query($owner: String!, $number: Int!, $after: String) {
+                organization(login: $owner) {
+                  projectV2(number: $number) {
+                    id
+                    fields(first: 100) {
+                      nodes {
+                        __typename
+                        ... on ProjectV2SingleSelectField {
+                          id
+                          name
+                          options { id name }
+                        }
+                      }
+                    }
+                    items(first: 100, after: $after) {
+                      nodes {
+                        id
+                        content {
+                          __typename
+                          ... on Issue {
+                            id
+                            number
+                            state
+                            repository { nameWithOwner }
+                            labels(first: 100) { nodes { name } }
+                          }
+                        }
+                      }
+                      pageInfo { hasNextPage endCursor }
+                    }
+                  }
+                }
+              }
+            `;
+
+            async function readProject() {
+              const items = [];
+              let after = null;
+              let project;
+              do {
+                const response = await github.graphql(projectQuery, {
+                  owner,
+                  number: projectNumber,
+                  after,
+                });
+                project = response.organization.projectV2;
+                if (!project) throw new Error(`Organization project ${owner}/${projectNumber} was not found`);
+                items.push(...project.items.nodes);
+                after = project.items.pageInfo.hasNextPage
+                  ? project.items.pageInfo.endCursor
+                  : null;
+              } while (after);
+              return { ...project, items };
+            }
+
+            async function addIssue(projectId, contentId) {
+              const response = await github.graphql(
+                `mutation($projectId: ID!, $contentId: ID!) {
+                  addProjectV2ItemById(input: { projectId: $projectId, contentId: $contentId }) {
+                    item { id }
+                  }
+                }`,
+                { projectId, contentId }
+              );
+              return response.addProjectV2ItemById.item.id;
+            }
+
+            async function setSingleSelect(projectId, itemId, fieldId, optionId) {
+              await github.graphql(
+                `mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) {
+                  updateProjectV2ItemFieldValue(input: {
+                    projectId: $projectId,
+                    itemId: $itemId,
+                    fieldId: $fieldId,
+                    value: { singleSelectOptionId: $optionId }
+                  }) {
+                    projectV2Item { id }
+                  }
+                }`,
+                { projectId, itemId, fieldId, optionId }
+              );
+            }
+
+            const repo = context.repo.repo;
+            const issueFromEvent = context.payload.issue;
+            const issues = issueFromEvent && action !== 'deleted'
+              ? [issueFromEvent]
+              : await github.paginate(github.rest.issues.listForRepo, {
+                  owner,
+                  repo,
+                  state: 'all',
+                  per_page: 100,
+                });
+
+            const project = await readProject();
+            const fieldByName = new Map(
+              project.fields.nodes.filter(Boolean).map((field) => [field.name, field])
+            );
+            const status = fieldByName.get('Status');
+            const area = fieldByName.get('Area');
+            const statusByName = new Map((status?.options ?? []).map((option) => [option.name, option.id]));
+            const areaByName = new Map((area?.options ?? []).map((option) => [option.name, option.id]));
+            const itemsByIssueId = new Map(
+              project.items
+                .filter((item) => item.content?.__typename === 'Issue')
+                .map((item) => [item.content.id, item])
+            );
+
+            function areaFor(issue) {
+              const labels = new Set((issue.labels ?? []).map((label) => label.name));
+              if (labels.has('frontend') || labels.has('area: frontend')) return 'Web';
+              if (labels.has('area: backend')) return 'Backend';
+              if (labels.has('area: database')) return 'Data';
+              if (
+                labels.has('infrastructure') ||
+                labels.has('area: infrastructure') ||
+                labels.has('area: ci') ||
+                labels.has('area: observability')
+              ) return 'Infra';
+              if (labels.has('area: ops') || labels.has('ops')) return 'Ops';
+              return null;
+            }
+
+            let added = 0;
+            let updated = 0;
+            for (const issue of issues.filter((candidate) => !candidate.pull_request)) {
+              let item = itemsByIssueId.get(issue.node_id);
+              if (!item) {
+                const itemId = await addIssue(project.id, issue.node_id);
+                item = { id: itemId, content: { id: issue.node_id } };
+                itemsByIssueId.set(issue.node_id, item);
+                added += 1;
+              }
+
+              const shouldSetStatus =
+                action === 'closed' ||
+                action === 'reopened' ||
+                (!issueFromEvent && issue.state === 'CLOSED');
+              if (shouldSetStatus && status) {
+                const statusName = issue.state === 'CLOSED' ? 'Done' : 'Backlog';
+                const optionId = statusByName.get(statusName);
+                if (optionId) {
+                  await setSingleSelect(project.id, item.id, status.id, optionId);
+                  updated += 1;
+                }
+              }
+
+              const areaName = areaFor(issue);
+              const areaOptionId = areaName && areaByName.get(areaName);
+              if (area && areaOptionId) {
+                await setSingleSelect(project.id, item.id, area.id, areaOptionId);
+                updated += 1;
+              }
+            }
+
+            core.info(
+              `Project sync complete for ${owner}/${repo}: ${issues.length} issue(s), ${added} added, ${updated} field update(s).`
+            );
