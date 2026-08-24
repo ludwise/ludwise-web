@@ -407,3 +407,73 @@ describe('the operations it will perform', () => {
     expect(Object.keys(client).sort()).toEqual(['browseSales', 'getGameDetail', 'searchGames']);
   });
 });
+
+/** The narrowest valid sales view, so tests assert on what they changed. */
+const SALES_VIEW = {
+  context: null,
+  games: [],
+  resultCount: 0,
+  contextCount: 0,
+  page: 1,
+  pageSize: 24,
+  pageCount: 0,
+  rangeStart: 0,
+  rangeEnd: 0,
+  sort: 'discount',
+  facets: { stores: [], contexts: [] },
+  hasAnyOfferData: false,
+};
+
+describe('browseSales', () => {
+  it('maps input field names onto /v1/sales query parameters, using whole major units', async () => {
+    const { calls, fetchImpl } = recording(json(SALES_VIEW));
+
+    await clientOver(fetchImpl).browseSales({
+      marketCode: 'DE',
+      currencyCode: 'EUR',
+      minDiscountPercentage: 25,
+      minPriceMajor: 5,
+      maxPriceMajor: 99,
+      releaseYearFrom: 2020,
+      releaseYearTo: 2024,
+      sort: 'price',
+      page: 2,
+      stores: ['orbit'],
+    });
+
+    const url = new URL(calls[0]!.url);
+    expect(url.pathname).toBe('/v1/sales');
+    // Unlike /v1/games, min/max here are whole major units - the same
+    // parameter name as games but a different unit, distinguished only by the
+    // field name at the call site.
+    expect(url.searchParams.get('min')).toBe('5');
+    expect(url.searchParams.get('max')).toBe('99');
+    expect(url.searchParams.get('minDiscount')).toBe('25');
+    expect(url.searchParams.get('sort')).toBe('price');
+    expect(url.searchParams.get('page')).toBe('2');
+    expect(url.searchParams.getAll('store')).toEqual(['orbit']);
+    // /v1/sales has no title search and no discounted toggle: the whole page
+    // is discounts.
+    expect(url.searchParams.has('q')).toBe(false);
+    expect(url.searchParams.has('discounted')).toBe(false);
+  });
+
+  it('omits every filter that was not supplied', async () => {
+    const { calls, fetchImpl } = recording(json(SALES_VIEW));
+    await clientOver(fetchImpl).browseSales({});
+    expect(new URL(calls[0]!.url).search).toBe('');
+  });
+
+  it('resolves with the view the backend answered', async () => {
+    const { fetchImpl } = recording(json(SALES_VIEW));
+    await expect(clientOver(fetchImpl).browseSales()).resolves.toEqual(SALES_VIEW);
+  });
+
+  it('a 404 on /v1/sales is a failure, not an empty result, because the route itself is gone', async () => {
+    const fetchImpl = (async () => json({}, 404)) as unknown as typeof fetch;
+    const error = await clientOver(fetchImpl)
+      .browseSales()
+      .catch((e: unknown) => e);
+    expect(isApiError(error)).toBe(true);
+  });
+});
