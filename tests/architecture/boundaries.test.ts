@@ -254,6 +254,7 @@ describe('no credential material is committed', () => {
     // Each pattern is checked against a synthetic positive, because a regex
     // that matches nothing would report a clean tree forever.
     const [, cloudflare] = CREDENTIAL_SHAPES[0]!;
+    // not-a-real-secret: a synthetic positive, so the regex cannot be silently dead.
     expect(cloudflare.test('token = "abcdefghij0123456789ABCDEFGHIJ0123456789";')).toBe(true);
     const [, steam] = CREDENTIAL_SHAPES[1]!;
     expect(steam.test('key = "0123456789ABCDEF0123456789ABCDEF";')).toBe(true);

@@ -185,6 +185,24 @@ contracts exist for a while.
 4. Make the backend satisfy it, and ship the backend **first** for an additive
    change.
 
+### The recorded corpus
+
+`tests/fixtures/corpus/` holds responses the backend really produced, written by
+its `tests/contract/corpus.test.ts` and copied here byte for byte. The fake
+backend replays them, which is what makes the end-to-end suites evidence about
+the real contract rather than about shapes invented to match the code under
+test.
+
+To change one: add or edit the case in the backend's `CASES`, run its
+`pnpm run contract:corpus` to re-record, then copy the files across unmodified.
+
+Do not edit these files here, and do not format them — `.prettierignore`
+excludes the directory, because collapsing one short array is enough to break
+the backend's byte comparison against a response it really does emit.
+`tests/integration/corpus-integrity.test.ts` re-serialises every file the way
+the recorder did and fails if the bytes have moved, which is the strongest
+check available from a repository that cannot see the backend.
+
 ## Environments
 
 |            | Site                     | Backend              | Hostname              |

@@ -136,8 +136,32 @@ jobs:
             echo "::group::wrangler dry-run ($target)"
             CLOUDFLARE_ENV="$target" pnpm run build
             pnpm exec wrangler deploy --dry-run
+
+            # The bindings the Worker actually ships with, checked per
+            # environment and only ever after a build. The adapter merges its
+            # own additions into dist/server/wrangler.json, so this is the first
+            # point at which the real deployment configuration exists - the
+            # `Test` step above runs before any build and the suite skips there
+            # by design.
+            #
+            # Inside the loop rather than after it because the file is
+            # overwritten on each pass: run once at the end and only production
+            # would ever be examined.
+            pnpm exec vitest run tests/architecture/deployment-bindings.test.ts
             echo "::endgroup::"
           done
+
+      # The audit that only matters because this repository is public: a commit
+      # that lands here cannot be unpublished. It scans everything git tracks -
+      # documentation, workflows, fixtures and configuration, not only src/ -
+      # because those are the files nobody thinks of as code, and therefore the
+      # ones a credential ends up in.
+      #
+      # Only BLOCKING findings fail. An IMPORTANT one is a judgement call, and a
+      # check that failed on every judgement call would be switched off within a
+      # week.
+      - name: Audit what this repository publishes
+        run: node scripts/audit-public.mjs
 
       # The public-repository check that no other step performs: that the built
       # client bundle carries nothing it should not. The architecture suite
