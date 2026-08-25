@@ -73,9 +73,15 @@
   // identity, so every SSR read arrived unsigned and got 403.
   //
   // So there is still no URL for a browser to call, and still no CORS, no API
-  // key, no rate limiting on `/v1` and no second Access application - but now
-  // because the surface is not routed, rather than because a route pattern
-  // looked like it lacked a path.
+  // key and no rate limiting on `/v1` - but now because the surface is not
+  // routed, rather than because a route pattern looked like it lacked a path.
+  //
+  // No Access application authenticates the VisitorRead capability itself, and
+  // none could: a service binding never reaches the edge. Staging does carry a
+  // narrowly scoped Service Auth application on the backend's `/v1` HTTP path.
+  // It exists only so the backend deploy probe can authenticate at the edge,
+  // reach the Worker's default entrypoint, and observe its 404. No request over
+  // the VisitorRead service binding ever traverses that Access application.
   //
   // `service` names a Worker script in the same account. Each environment below
   // names its own, which is what keeps a staging site from reading production
