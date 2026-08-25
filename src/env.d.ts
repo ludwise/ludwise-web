@@ -41,7 +41,7 @@ declare global {
        *
        * This is the only way a page may reach data. There is no database
        * handle, no provider client and no generic fetch here, and there must
-       * never be one - `tests/architecture/api-boundary.test.ts` enforces it.
+       * never be one - `tests/architecture/boundaries.test.ts` enforces it.
        */
       backend: () => LudwiseApi;
     }

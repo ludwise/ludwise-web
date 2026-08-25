@@ -22,6 +22,22 @@
 import { readFileSync } from 'node:fs';
 
 /** Which backend script each site environment is allowed to name. */
+/**
+ * The named entrypoint every environment must bind to.
+ *
+ * Not the default one. The backend's default entrypoint is what its operations
+ * custom domain serves, and it has no `/v1` at all - binding to it would answer
+ * 404 for every read. The read contract lives behind this named
+ * `WorkerEntrypoint`, which no hostname reaches (ADR 0028).
+ *
+ * Wrangler refuses to deploy a binding naming an entrypoint the target Worker
+ * does not export, so a missing one is a failed deploy rather than a broken
+ * site. This check moves that failure earlier, and catches the other direction
+ * too: a binding that quietly lost its `entrypoint` would deploy happily and
+ * 404 every page.
+ */
+const ENTRYPOINT = 'VisitorRead';
+
 const EXPECTED = {
   staging: 'ludwise-staging',
   production: 'ludwise-production',
@@ -133,16 +149,34 @@ if (backend.service !== EXPECTED[target]) {
   process.exit(1);
 }
 
+if (backend.entrypoint !== ENTRYPOINT) {
+  console.error(
+    `::error::The "${target}" BACKEND binding names entrypoint ` +
+      `"${String(backend.entrypoint ?? 'default')}", not "${ENTRYPOINT}".\n` +
+      "The backend's default entrypoint serves the operations dashboard and has no /v1,\n" +
+      'so every page would render its failure state. See ADR 0028.',
+  );
+  process.exit(1);
+}
+
 // The other environments too, so a change that swapped two blocks fails here
 // rather than on the next deploy of whichever one was not being checked.
 for (const [name, expected] of Object.entries(EXPECTED)) {
   const other = config.env?.[name]?.services?.find((service) => service.binding === 'BACKEND');
-  if (other !== undefined && other.service !== expected) {
+  if (other === undefined) continue;
+  if (other.service !== expected) {
     console.error(
       `::error::The "${name}" environment is bound to "${String(other.service)}", not "${expected}".`,
     );
     process.exit(1);
   }
+  if (other.entrypoint !== ENTRYPOINT) {
+    console.error(
+      `::error::The "${name}" BACKEND binding names entrypoint ` +
+        `"${String(other.entrypoint ?? 'default')}", not "${ENTRYPOINT}".`,
+    );
+    process.exit(1);
+  }
 }
 
-console.log(`${target} is bound to ${EXPECTED[target]}, as expected.`);
+console.log(`${target} is bound to ${EXPECTED[target]} via ${ENTRYPOINT}, as expected.`);

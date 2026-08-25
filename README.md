@@ -35,19 +35,20 @@ Browser
    │
    ▼
 ludwise-web Worker          ← this repository
-   │  Cloudflare service binding (no public hostname, no CORS)
+   │  Cloudflare service binding, entrypoint = "VisitorRead"
+   │  (no public hostname, no CORS)
    ▼
-ludwise-backend Worker      ← private
+VisitorRead entrypoint      ← private backend, not an HTTP route
    │
    ▼
 application / domain / D1 / providers
 ```
 
 Every read happens during server-side rendering. The browser never calls the
-API — there is no URL for it to call, because the backend serves `/v1` over a
-service binding and declares no public route for it. That single decision is
-why this repository contains no CORS configuration, no API key, and no
-client-side data fetching.
+API — there is no URL for it to call, because the reads answer on a named
+Worker entrypoint that no hostname reaches. That single decision is why this
+repository contains no CORS configuration, no API key, and no client-side data
+fetching.
 
 See [`docs/architecture.md`](docs/architecture.md) for the reasoning.
 
@@ -62,15 +63,24 @@ pnpm install
 pnpm dev            # http://localhost:4321
 ```
 
-To run the full stack, start the backend first (see its own README), then:
+Locally the site does not use the service binding at all. It reads over HTTP
+from whatever `BACKEND_DEV_URL` names, and only when `ENVIRONMENT` is
+`development` — see `.dev.vars.example`, which is the file to copy. Two values
+are useful:
 
 ```bash
-pnpm dev            # this repository, on 4321
+cp .dev.vars.example .dev.vars   # defaults to the fake backend on 8788
+pnpm dev                         # http://localhost:4321
 ```
 
-The service binding resolves to the local backend automatically via
-`wrangler.jsonc`. No Cloudflare credentials are needed for ordinary frontend
-work, and none are needed to run the tests.
+`http://localhost:8788` is the fake backend in `scripts/fake-backend.ts`, which
+replays the recorded corpus and needs neither the private repository nor any
+credentials. `http://localhost:4322` is a real local backend from that
+repository, started with its own `pnpm dev`. Leave the variable unset to develop
+against a backend that is not there, which renders the failure states.
+
+No Cloudflare credentials are needed for ordinary frontend work, and none are
+needed to run the tests.
 
 ## Checks
 

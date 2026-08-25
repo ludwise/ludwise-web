@@ -3,7 +3,7 @@
  *
  * Every read goes through `request` below. Nothing else in the repository calls
  * `fetch` at a LUDWISE backend, and that is enforced by
- * `tests/architecture/api-boundary.test.ts` rather than by convention. The
+ * `tests/architecture/boundaries.test.ts` rather than by convention. The
  * reason is not tidiness: a scattered `fetch` is a place where a timeout is
  * forgotten, where a correlation header is not forwarded, where a malformed
  * response is trusted, and where a backend error message ends up in a page.
@@ -11,11 +11,18 @@
  *
  * ## How it reaches the backend
  *
- * Over a Cloudflare **service binding** (ADR 0024), not a public hostname. The
- * backend declares no route serving `/v1` and keeps `workers_dev: false`, so
+ * Over a Cloudflare **service binding** to a named `WorkerEntrypoint`
+ * (ADR 0028), not a public hostname. `wrangler.jsonc` names `VisitorRead`, and
+ * a named entrypoint is not an HTTP routing target: no hostname reaches it, so
  * there is no URL for a browser to call and no public API surface to defend.
  * That is why this file has no CORS handling, no API key, and no rate limiter:
  * none of them defends a surface that is not routable.
+ *
+ * ADR 0024 bound the backend's *default* entrypoint instead and reasoned that
+ * `/v1` was unrouted because no route pattern named a path. A custom domain
+ * claims every path on its hostname, so `/v1` was reachable the whole time -
+ * and refused, along with every read this file made, by the backend's own
+ * Access guard. A binding carries no Access identity.
  *
  * `fetch` is injected rather than reached for. In production it is the
  * binding's own `fetch`, which dispatches straight to the backend script

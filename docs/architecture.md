@@ -64,8 +64,9 @@ statement of the answer, not because somebody compared them once.
 
 ## Why a service binding rather than a public API
 
-The backend answers `/v1` over a Cloudflare **service binding** named `BACKEND`.
-It declares no route serving `/v1` and keeps `workers_dev: false`.
+The backend answers `/v1` over a Cloudflare **service binding** named `BACKEND`,
+targeting a named `WorkerEntrypoint` called `VisitorRead`. `/v1` is not a route
+on the backend Worker at all, and it keeps `workers_dev: false`.
 
 If the backend answered on a public hostname, the read API would be a public
 attack surface whatever the documentation said about it. It would need CORS,
@@ -77,8 +78,35 @@ Search is also a linear scan over one persistence read by design, so a public
 `?page=1000000` would be a free full-table read per request.
 
 A binding removes all of that by removing the surface. There is no URL to call,
-so the browser never sees an API request, and "the backend API is private" is a
-fact about routing rather than a claim in a document.
+so the browser never sees an API request.
+
+### What that claim rests on, exactly
+
+This was got wrong once, and the wrong version is easy to repeat.
+
+The earlier design bound the backend's **default** entrypoint and reasoned that
+`/v1` was unreachable because the backend declared no route naming that path.
+The backend's own hostname is a Cloudflare **custom domain**, and a custom domain
+sends every path on the hostname to the default entrypoint. `/v1` was reachable
+from the internet the whole time. The only thing refusing it was the backend's
+site-wide Access guard — which was refusing this site's reads too, because a
+binding carries no Access identity, so every server-rendered page got 403.
+
+The backend Worker is still Internet-routed through its default entrypoint. What
+is not routed is `VisitorRead`: a custom domain invokes only the default
+entrypoint, and reaching a named one requires a Workers capability — this
+binding. So the guarantee is the conjunction of two facts, each checked by a
+test rather than asserted in a document:
+
+- `/v1` is absent from the backend's route tree;
+- this repository binds `entrypoint: "VisitorRead"` by name, which
+  `tests/architecture/deployment-bindings.test.ts` and
+  `scripts/check-environment.mjs` both require.
+
+It is an invocation boundary, not a sandbox: a named entrypoint shares its
+Worker's bindings, so this limits who may call rather than what the called code
+may reach. What keeps D1 away from this repository is that this Worker has no
+database binding, which the same test asserts.
 
 **A service binding bypasses Cloudflare Access.** Access is an edge control and
 a binding dispatches straight to the target script, so a request arriving over
@@ -95,7 +123,10 @@ with no other public surface.
   JavaScript, and nothing here is read by the browser.
 - Every read happens during SSR. There is no client-side data fetching.
 - Both Workers must live in the same Cloudflare account, and the backend must
-  exist before this Worker is deployed.
+  exist before this Worker is deployed. That is now stricter: Wrangler refuses a
+  binding naming an entrypoint the target Worker does not export, so a backend
+  that has not yet published `VisitorRead` fails this deploy rather than serving
+  a broken site. **Deploy the backend first.**
 - Binding changes are two-phase: add the binding in one release, use it in the
   next; remove one at least a release after the code stops reading it.
   Otherwise rolling back code lands on a Worker whose bindings no longer match.

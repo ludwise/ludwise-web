@@ -54,30 +54,51 @@
     "BACKEND_TIMEOUT_MS": "15000",
   },
 
-  // The whole architecture, in four lines (ADR 0024).
+  // The whole architecture, in five lines (ADR 0028, superseding ADR 0024's
+  // transport decision).
   //
-  // The site reaches the backend over a service binding rather than a public
-  // hostname. There is no URL for a browser to call, so there is no public API
-  // surface: no CORS, no API key, no rate limiting on `/v1`, and no second
-  // Cloudflare Access application - none of which defend a surface that is not
-  // routable. The backend declares no route serving `/v1` and keeps
-  // `workers_dev: false`, which is what makes that a fact about routing rather
-  // than a claim in a document.
+  // The site reaches the backend over a Cloudflare service binding rather than
+  // a public hostname, and `entrypoint` is the part that matters. It names
+  // `VisitorRead`, a named `WorkerEntrypoint` the backend exports for exactly
+  // this. A named entrypoint is not an HTTP routing target: no hostname reaches
+  // it, and invoking it requires a Workers capability - this binding.
+  //
+  // ADR 0024 aimed at the same property and missed. It bound the backend's
+  // *default* entrypoint and reasoned that `/v1` was routed from nowhere
+  // because no route pattern named a path - but the backend's own hostname is
+  // a Cloudflare custom domain, and a custom domain sends every path on its
+  // hostname to the default entrypoint. `/v1` was reachable from the internet,
+  // refused only by the backend's site-wide Access guard - and that same guard
+  // refused these reads too, because a binding never carries an Access
+  // identity, so every SSR read arrived unsigned and got 403.
+  //
+  // So there is still no URL for a browser to call, and still no CORS, no API
+  // key and no rate limiting on `/v1` - but now because the surface is not
+  // routed, rather than because a route pattern looked like it lacked a path.
+  //
+  // No Access application authenticates the VisitorRead capability itself, and
+  // none could: a service binding never reaches the edge. Staging does carry a
+  // narrowly scoped Service Auth application on the backend's `/v1` HTTP path.
+  // It exists only so the backend deploy probe can authenticate at the edge,
+  // reach the Worker's default entrypoint, and observe its 404. No request over
+  // the VisitorRead service binding ever traverses that Access application.
   //
   // `service` names a Worker script in the same account. Each environment below
   // names its own, which is what keeps a staging site from reading production
   // data structurally rather than by configuration discipline. There is no
   // value here a mistyped environment variable could redirect.
   //
-  // Note what a binding does NOT do: it bypasses Cloudflare Access entirely,
-  // because Access is an edge control and a binding dispatches straight to the
-  // target script. A request arriving at the backend this way has been
-  // authenticated by nothing, which is exactly why `/ops` authorization lives
-  // in the backend's own middleware and must never move to the edge.
+  // Note what a binding still does NOT do: it bypasses Cloudflare Access
+  // entirely, because Access is an edge control and a binding dispatches
+  // straight to the target script. A request arriving at the backend this way
+  // has been authenticated by nothing, which is exactly why `/ops`
+  // authorization lives in the backend's own middleware and must never move to
+  // the edge.
   "services": [
     {
       "binding": "BACKEND",
       "service": "ludwise",
+      "entrypoint": "VisitorRead",
     },
   ],
 
@@ -99,6 +120,7 @@
         {
           "binding": "BACKEND",
           "service": "ludwise-staging",
+          "entrypoint": "VisitorRead",
         },
       ],
       // custom_domain lets Cloudflare own the DNS record and the certificate.
@@ -136,6 +158,7 @@
         {
           "binding": "BACKEND",
           "service": "ludwise-production",
+          "entrypoint": "VisitorRead",
         },
       ],
       "routes": [
