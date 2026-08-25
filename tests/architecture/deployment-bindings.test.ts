@@ -50,13 +50,22 @@ interface Route {
   readonly custom_domain?: boolean;
 }
 
+interface ServiceBinding {
+  readonly binding: string;
+  readonly service: string;
+  /** Absent means the target Worker's default entrypoint. See ADR 0028. */
+  readonly entrypoint?: string;
+}
+
 interface AuthoredEnvironment {
   readonly routes?: readonly Route[];
   readonly workers_dev?: boolean;
+  readonly services?: readonly ServiceBinding[];
 }
 
 interface AuthoredConfig {
   readonly workers_dev?: boolean;
+  readonly services?: readonly ServiceBinding[];
   readonly env?: Readonly<Record<string, AuthoredEnvironment>>;
 }
 
@@ -120,7 +129,7 @@ const authored = readJsonc(AUTHORED);
  *
  * - `ASSETS`   serves the built client files. Astro's adapter requires it.
  * - `BACKEND`  the service binding to ludwise-backend. The entire data path,
- *              and deliberately a service binding rather than a URL (ADR 0026).
+ *              and deliberately a service binding rather than a URL (ADR 0024, ADR 0028).
  */
 const ALLOWED_BINDINGS = new Set(['ASSETS', 'BACKEND']);
 
@@ -150,7 +159,7 @@ const MUST_BE_EMPTY = [
 
 interface GeneratedConfig {
   readonly name?: string;
-  readonly services?: readonly { readonly binding: string; readonly service: string }[];
+  readonly services?: readonly ServiceBinding[];
   readonly assets?: { readonly binding?: string };
   readonly vars?: Readonly<Record<string, string>>;
   readonly [key: string]: unknown;
@@ -251,6 +260,16 @@ describe('the generated deployment configuration', () => {
     }
   });
 
+  it.runIf(config)('reaches the backend through the named visitor-read entrypoint', () => {
+    // The whole security property of ADR 0028, from this side. The backend's
+    // default entrypoint is what its operations custom domain serves and has no
+    // `/v1` at all, so a binding without this field would 404 every page - and,
+    // worse, would mean the read contract was expected to be routed.
+    const backend = (config?.services ?? []).find((s) => s.binding === 'BACKEND');
+
+    expect(backend?.entrypoint).toBe('VisitorRead');
+  });
+
   it.runIf(config)('names a backend that matches its own environment', () => {
     // The cross-environment guard, asserted against what shipped rather than
     // what was authored. scripts/check-environment.mjs reads wrangler.jsonc
@@ -282,6 +301,24 @@ describe('the authored deployment routing', () => {
       pattern: hostname,
       custom_domain: true,
     });
+  });
+
+  it('binds every environment to the named entrypoint, local included', () => {
+    // The generated artifact above covers whichever environment was built.
+    // This covers all three at once, and the local block in particular:
+    // scripts/check-environment.mjs only inspects the deployed environments, so
+    // a top-level binding that lost its entrypoint would reach neither check.
+    const blocks = [
+      ['local', authored],
+      ...(['staging', 'production'] as const).map((name) => [name, authored.env?.[name]] as const),
+    ] as const;
+
+    for (const [name, block] of blocks) {
+      const backend = (block?.services ?? []).find((entry) => entry.binding === 'BACKEND');
+
+      expect(backend, `${name} declares no BACKEND binding`).toBeDefined();
+      expect(backend?.entrypoint, `${name} binds the wrong entrypoint`).toBe('VisitorRead');
+    }
   });
 
   it.each(['staging', 'production'] as const)(
