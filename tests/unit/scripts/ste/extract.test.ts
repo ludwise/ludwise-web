@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   commentCoverage,
+  declaredProseKind,
   extractComments,
   extractMarkdown,
 } from '../../../../scripts/ste/extract.mjs';
@@ -155,5 +156,70 @@ describe('extractMarkdown, on a fence inside a list item', () => {
       '- Run this:\n\n  ```sql\n  SELECT one FROM two WHERE three;\n  ```\n',
     );
     expect(units.map((one) => one.text.trim())).toEqual(['Run this:']);
+  });
+});
+
+/**
+ * A document says which kind of prose it holds.
+ *
+ * Markdown numbering is a layout choice, so it cannot decide which sentence
+ * limit applies. A document states its own kind in front matter, and a heading
+ * states it for the section that follows.
+ */
+describe('declaredProseKind', () => {
+  it('reads the kind from front matter', () => {
+    expect(declaredProseKind('---\nste-prose: procedural\n---\n\nOpen it.\n')).toBe('procedural');
+    expect(declaredProseKind('---\nste-prose: descriptive\n---\n\nIt is open.\n')).toBe(
+      'descriptive',
+    );
+  });
+
+  it('returns null when the document declares nothing', () => {
+    expect(declaredProseKind('# A title\n\nBody.\n')).toBeNull();
+    expect(declaredProseKind('---\nname: thing\n---\n\nBody.\n')).toBeNull();
+  });
+
+  it('ignores a value that is not one of the two kinds', () => {
+    expect(declaredProseKind('---\nste-prose: whatever\n---\n\nBody.\n')).toBeNull();
+  });
+
+  it('reads the key only from real front matter', () => {
+    expect(declaredProseKind('Body.\n\nste-prose: procedural\n')).toBeNull();
+  });
+});
+
+describe('extractMarkdown, on a section that declares its own kind', () => {
+  it('carries a section declaration to every unit under it', () => {
+    const units = extractMarkdown(
+      '## Reference <!-- ste-prose: descriptive -->\n\n1. The first field is the identifier.\n\n## Setup\n\n1. Open the file.\n',
+    );
+    const reference = units.filter((one) => one.text.includes('first field'));
+    const setup = units.filter((one) => one.text.includes('Open the file'));
+    expect(reference[0]?.declaredProse).toBe('descriptive');
+    expect(setup[0]?.declaredProse).toBeNull();
+  });
+
+  it('keeps the list-shape estimate separate from the declaration', () => {
+    const units = extractMarkdown(
+      '## Reference <!-- ste-prose: descriptive -->\n\n1. The first field is the identifier.\n',
+    );
+    const item = units.filter((one) => one.kind === 'list-item');
+    expect(item[0]?.prose).toBe('procedural');
+    expect(item[0]?.declaredProse).toBe('descriptive');
+  });
+
+  it('keeps the declaration out of the measured text', () => {
+    const units = extractMarkdown('## Setup <!-- ste-prose: procedural -->\n\nOpen it.\n');
+    expect(units[0]?.text.trim()).toBe('Setup');
+  });
+
+  it('ends a section declaration at the next heading of the same depth or higher', () => {
+    const units = extractMarkdown(
+      '## Reference <!-- ste-prose: descriptive -->\n\n### Detail\n\nA field.\n\n## After\n\nOpen it.\n',
+    );
+    const detail = units.filter((one) => one.text.includes('A field'));
+    const after = units.filter((one) => one.text.includes('Open it'));
+    expect(detail[0]?.declaredProse).toBe('descriptive');
+    expect(after[0]?.declaredProse).toBeNull();
   });
 });

@@ -88,11 +88,13 @@ const caveat = (summary) => {
 
 export const formatText = (result, summary) => {
   const lines = [];
+
   for (const one of result.diagnostics) {
     lines.push(
       `${one.file}:${one.line}:${one.column}  ${one.rule}  ${one.message}  [${one.correction}]`,
     );
   }
+
   if (lines.length > 0) lines.push('');
   lines.push(
     `Standard: ${summary.standard}. Profile version ${summary.profileVersion}. Rollout mode: ${summary.rolloutMode}.`,
@@ -100,15 +102,20 @@ export const formatText = (result, summary) => {
   lines.push(
     `Files read: ${summary.filesChecked}. Prose units: ${summary.unitsChecked}. Units without extraction support: ${summary.unsupportedUnits}.`,
   );
+
   if (summary.violations > 0) {
-    lines.push('', 'Violations by rule:');
+    lines.push('');
+    lines.push('Violations by rule:');
     for (const [rule, count] of Object.entries(summary.byRule)) lines.push(`  ${count}\t${rule}`);
   }
-  lines.push('', claim(summary));
+
+  lines.push('');
+  lines.push(claim(summary));
   lines.push(
     `Enforcement controls: ${summary.coverage.implemented} implemented, ${summary.coverage.notImplemented} not implemented, ${summary.coverage.processOnly} carried by a process.`,
   );
   lines.push(...caveat(summary).map((one) => `  ${one}`));
+
   return lines.join('\n');
 };
 
@@ -125,11 +132,13 @@ export const formatMarkdown = (summary) => {
     '',
     ...caveat(summary).map((one) => `- ${one}`),
   ];
+
   if (summary.violations > 0) {
     lines.push('', '| Count | Rule |', '| ---: | --- |');
     for (const [rule, count] of Object.entries(summary.byRule))
       lines.push(`| ${count} | \`${rule}\` |`);
   }
+
   return lines.join('\n');
 };
 
@@ -144,6 +153,7 @@ export const formatMatrix = (documents) => {
     '',
     'Standard rule map:',
   ];
+
   for (const row of documents.conformance.standardRuleMap ?? []) {
     lines.push(
       `  ${row.ruleNumber}  section ${row.section}  ${row.enforcement}  support: ${row.checkerSupport}`,
@@ -151,6 +161,7 @@ export const formatMatrix = (documents) => {
     lines.push(`    ${row.title}`);
     if (row.limitation) lines.push(`    limitation: ${row.limitation}`);
   }
+
   lines.push('', 'Enforcement controls:');
   for (const row of documents.conformance.rules ?? []) {
     const source =
@@ -164,5 +175,6 @@ export const formatMatrix = (documents) => {
     lines.push(`  ${row.title}`);
     if (row.limitations) lines.push(`  limitation: ${row.limitations}`);
   }
+
   return lines.join('\n');
 };

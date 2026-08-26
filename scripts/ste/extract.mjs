@@ -18,6 +18,38 @@ const LIST_ITEM = /^(\s*)([-*+]|\d+[.)])\s+/;
 const TABLE_DELIMITER = /^\s*\|?[\s:|-]+\|[\s:|-]*$/;
 const BLOCKQUOTE = /^\s{0,3}>\s?/;
 
+const PROSE_KINDS = ['procedural', 'descriptive'];
+const FRONT_MATTER_PROSE = /^\s*ste-prose\s*:\s*["']?([a-z]+)["']?\s*$/;
+const SECTION_PROSE = /<!--\s*ste-prose\s*:\s*([a-z]+)\s*-->/;
+
+const asProseKind = (value) => (PROSE_KINDS.includes(value) ? value : null);
+
+const frontMatterRange = (lines) => {
+  if (lines[0]?.trim() !== '---') return null;
+  let close = 1;
+  while (close < lines.length && lines[close].trim() !== '---') close += 1;
+  return close < lines.length ? { open: 1, close } : null;
+};
+
+/**
+ * The prose kind that a Markdown document declares for itself.
+ *
+ * Issue 9 separates a procedure from a description by function, not by layout,
+ * so a numbered list cannot decide which sentence limit applies. The author
+ * declares the kind instead, and enforcement fails closed without one.
+ */
+export const declaredProseKind = (source) => {
+  const lines = source.split('\n');
+  const range = frontMatterRange(lines);
+  if (range === null) return null;
+
+  for (let index = range.open; index < range.close; index += 1) {
+    const found = FRONT_MATTER_PROSE.exec(lines[index]);
+    if (found !== null) return asProseKind(found[1]);
+  }
+  return null;
+};
+
 const contiguous = (source, start, end) => ({
   text: source.slice(start, end),
   map: Array.from({ length: end - start }, (_, index) => start + index),
@@ -47,7 +79,14 @@ const lineStarts = (source) => {
   return starts;
 };
 
-const unit = (kind, prose, body, start) => ({ kind, prose, text: body.text, map: body.map, start });
+const unit = (kind, prose, body, start, declaredProse = null) => ({
+  kind,
+  prose,
+  declaredProse,
+  text: body.text,
+  map: body.map,
+  start,
+});
 
 const tableCells = (line, offset) => {
   const cells = [];
@@ -80,6 +119,8 @@ export const extractMarkdown = (source) => {
   const lines = source.split('\n');
   const units = [];
   let index = 0;
+  let sectionProse = null;
+  let sectionDepth = 0;
 
   if (lines[0]?.trim() === '---') {
     let close = 1;
@@ -115,9 +156,26 @@ export const extractMarkdown = (source) => {
 
     const heading = HEADING.exec(line);
     if (heading !== null) {
+      const depth = heading[1].length;
+      const declared = SECTION_PROSE.exec(line);
+      if (declared !== null) {
+        sectionProse = asProseKind(declared[1]);
+        sectionDepth = depth;
+      } else if (sectionProse !== null && depth <= sectionDepth) {
+        sectionProse = null;
+        sectionDepth = 0;
+      }
+
       const from = offset + heading[0].length;
+      const end = declared === null ? offset + line.length : offset + declared.index;
       units.push(
-        unit('heading', 'descriptive', contiguous(source, from, offset + line.length), from),
+        unit(
+          'heading',
+          'descriptive',
+          contiguous(source, from, Math.max(from, end)),
+          from,
+          sectionProse,
+        ),
       );
       index += 1;
       continue;
@@ -134,6 +192,7 @@ export const extractMarkdown = (source) => {
                 'descriptive',
                 contiguous(source, from, from + cell.text.length),
                 from,
+                sectionProse,
               ),
             );
           }
@@ -150,7 +209,7 @@ export const extractMarkdown = (source) => {
         pieces.push({ text: lines[index].slice(strip), start: starts[index] + strip });
         index += 1;
       }
-      units.push(unit('blockquote', 'descriptive', joined(pieces), pieces[0].start));
+      units.push(unit('blockquote', 'descriptive', joined(pieces), pieces[0].start, sectionProse));
       continue;
     }
 
@@ -183,7 +242,13 @@ export const extractMarkdown = (source) => {
       }
 
       units.push(
-        unit('list-item', ordered ? 'procedural' : 'descriptive', joined(pieces), pieces[0].start),
+        unit(
+          'list-item',
+          ordered ? 'procedural' : 'descriptive',
+          joined(pieces),
+          pieces[0].start,
+          sectionProse,
+        ),
       );
       continue;
     }
@@ -202,7 +267,7 @@ export const extractMarkdown = (source) => {
       last += 1;
     }
     const to = starts[last] + lines[last].length;
-    units.push(unit('paragraph', null, contiguous(source, from, to), from));
+    units.push(unit('paragraph', null, contiguous(source, from, to), from, sectionProse));
     index = last + 1;
   }
 

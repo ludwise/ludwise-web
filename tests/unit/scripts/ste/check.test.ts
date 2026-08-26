@@ -159,6 +159,62 @@ describe('checkFiles', () => {
   });
 });
 
+describe('checkFiles, on the prose kind that enforcement requires', () => {
+  const root = mkdtempSync(join(tmpdir(), 'ste-kind-'));
+
+  const enforcing = (extra: Record<string, unknown> = {}) => ({
+    ...documents,
+    policy: {
+      ...documents.policy,
+      rollout: { ...documents.policy.rollout, mode: 'enforce' },
+      classification: [
+        { id: 'probe', paths: ['*.md'], unit: 'prose', class: 'STE-STRICT', reason: 'Probe.' },
+        {
+          id: 'unclassified',
+          paths: ['**'],
+          unit: 'prose',
+          class: 'STE-EXEMPT',
+          catchAll: true,
+          reason: 'x',
+        },
+      ],
+      ...extra,
+    },
+  });
+
+  const rulesIn = (name: string, body: string): string[] => {
+    writeFileSync(join(root, name), body);
+    return checkFiles({ rootDir: root, files: [name], documents: enforcing() }).diagnostics.map(
+      (one) => one.rule,
+    );
+  };
+
+  it('fails closed when a document declares no prose kind', () => {
+    expect(rulesIn('undeclared.md', 'The value is stable.\n')).toContain(
+      'LW-STE-PROSE-KIND-UNRESOLVED',
+    );
+  });
+
+  it('accepts a document that declares its kind in front matter', () => {
+    expect(
+      rulesIn('declared.md', '---\nste-prose: descriptive\n---\n\nThe value is stable.\n'),
+    ).toEqual([]);
+  });
+
+  it('applies the 20-word limit to a document that declares a procedure', () => {
+    const long = `${Array.from({ length: 22 }, () => 'word').join(' ')}.`;
+    expect(rulesIn('steps.md', `---\nste-prose: procedural\n---\n\n${long}\n`)).toEqual([
+      'LW-STE-SENTENCE-LENGTH-PROCEDURAL',
+    ]);
+  });
+
+  it('lets a section declaration override the document kind', () => {
+    const long = `${Array.from({ length: 22 }, () => 'word').join(' ')}.`;
+    const source = `---\nste-prose: procedural\n---\n\n## Reference <!-- ste-prose: descriptive -->\n\n${long}\n`;
+    expect(rulesIn('mixed.md', source)).toEqual([]);
+  });
+});
+
 describe('enforcedFiles', () => {
   const files = ['docs/language/checker.md', 'README.md', 'scripts/ste/cli.mjs'];
 

@@ -11,7 +11,12 @@ import { lstatSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { classificationCoverage, classify } from './classify.mjs';
-import { commentCoverage, extractComments, extractMarkdown } from './extract.mjs';
+import {
+  commentCoverage,
+  declaredProseKind,
+  extractComments,
+  extractMarkdown,
+} from './extract.mjs';
 import { matchesAnyGlob } from './glob.mjs';
 import { IMPLEMENTED_RULE_IDS, PROSE_RULE_IDS, runRules } from './rules.mjs';
 
@@ -49,7 +54,12 @@ export const enforcedFiles = (files, policy) => {
 const unitsFor = (assignment, source, file) => {
   if (assignment.unit === 'prose') {
     return file.endsWith('.md')
-      ? { units: extractMarkdown(source), supported: true, unread: 0 }
+      ? {
+          units: extractMarkdown(source),
+          supported: true,
+          unread: 0,
+          prose: declaredProseKind(source),
+        }
       : { units: [], supported: false, unread: 1 };
   }
   if (assignment.unit === 'comments') {
@@ -122,7 +132,7 @@ export const checkFiles = ({ rootDir, files, documents, allFiles = files }) => {
         continue;
       }
 
-      const { units, supported, unread } = extracted;
+      const { units, supported, unread, prose } = extracted;
       unsupportedUnits += unread;
       if (!supported) continue;
 
@@ -132,7 +142,7 @@ export const checkFiles = ({ rootDir, files, documents, allFiles = files }) => {
       const found = runRules(units, {
         policy,
         terminology,
-        defaultProse: assignment.prose ?? 'mixed',
+        defaultProse: prose ?? assignment.prose ?? 'mixed',
         allowedRules: rulesForClass(conformance, assignment.contentClass),
       });
 
