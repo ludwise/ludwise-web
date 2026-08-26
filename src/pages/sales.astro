@@ -51,7 +51,7 @@ try {
     // rebuilt it alongside the rejection, reusing the pair enumeration the
     // failed read had already done - the most expensive query the product
     // issues, on a path anyone can reach by editing the address bar (ADR 0025).
-    // Before the split this page paid for that enumeration twice.
+    // Reusing it is what keeps that path from paying for the enumeration twice.
     view = (error.data as BrowseSalesView | undefined) ?? null;
 
     if (view === null) {

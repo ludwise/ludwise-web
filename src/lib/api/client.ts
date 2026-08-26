@@ -346,25 +346,24 @@ async function request<T>(
  * A read whose only "no answer" is a failure.
  *
  * Two entry points rather than one returning `T | null` that every call site
- * then casts away. The cast was the tell: it appeared three times, twice to
- * assert something the caller already knew and once where the null was
- * genuinely possible, and a reader could not tell which was which. Here the
- * difference is in the type - this cannot return null, and `getGameDetail`
- * calls `request` directly because it can.
+ * casts away, because a cast cannot distinguish "the caller already knows this
+ * is not null" from "the null is real". Here the type carries the difference:
+ * this cannot return null, and `getGameDetail` calls `request` directly
+ * because it can.
  */
 async function requireOne<T>(
   options: ClientOptions,
   spec: RequestSpec,
   signal: AbortSignal | undefined,
 ): Promise<T> {
-  const value = await request<T>(options, { ...spec, notFoundIsNull: false }, signal);
-  if (value === null) {
+  const answer = await request<T>(options, { ...spec, notFoundIsNull: false }, signal);
+  if (answer === null) {
     // Unreachable while `notFoundIsNull` is false, and asserted rather than
     // cast away so that a future change which sets it cannot silently hand a
     // page a null it does not expect.
     throw new LudwiseApiError('malformed', spec.operation);
   }
-  return value;
+  return answer;
 }
 
 /** The reads this site makes. Nothing else may be requested of the backend. */

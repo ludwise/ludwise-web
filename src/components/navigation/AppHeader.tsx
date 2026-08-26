@@ -246,6 +246,81 @@ export function useIsCompactHeader(breakpoint: number = DEFAULT_COMPACT_BREAKPOI
   return compact;
 }
 
+/**
+ * Open/closed state for the compact menu panel, and the Escape and resize
+ * behaviour that closes it.
+ *
+ * A non-modal disclosure, not a modal dialog: opening it never moves focus
+ * into the panel, so there is no focus trap and nothing to restore — only a
+ * place for focus to land when Escape closes it, which
+ * accessibility.md § Focus and keyboard requires. Escape is listened for on
+ * the document rather than the panel because focus may be on the trigger,
+ * inside the panel, or (having tabbed past it) beyond both.
+ */
+function useMenuPanel(onMenu: ((open: boolean) => void) | undefined) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
+  const viewportIsCompact = useIsCompactHeader();
+
+  // The panel's own state, not the layout. CSS already hides the panel at
+  // desktop width, but React state should not disagree with what is on screen
+  // once a real resize has passed the breakpoint.
+  useEffect(() => {
+    if (!viewportIsCompact) setMenuOpen(false);
+  }, [viewportIsCompact]);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
+      setMenuOpen(false);
+      onMenu?.(false);
+      menuButtonRef.current?.focus();
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [menuOpen, onMenu]);
+
+  const toggleMenu = () => {
+    const next = !menuOpen;
+    setMenuOpen(next);
+    onMenu?.(next);
+  };
+
+  return { menuOpen, menuButtonRef, toggleMenu, closeMenu: () => setMenuOpen(false) };
+}
+
+/**
+ * The theme the toggle shows and switches to.
+ *
+ * Resolved here rather than round-tripped through the host, so the glyph
+ * changes on click rather than on the next render the host happens to cause.
+ *
+ * `initial` is the cookie value the server resolved (src/lib/http/theme.ts),
+ * which is all the server can know. A first-time visitor has no cookie, so
+ * what is actually on `<html>` was decided before paint by the head script
+ * from prefers-color-scheme — the effect below adopts that, or the toggle
+ * would offer to switch to the theme already showing.
+ */
+function useHeaderTheme(initial: Theme, onThemeToggle: (() => void) | undefined) {
+  const [currentTheme, setCurrentTheme] = useState<Theme>(initial);
+
+  useEffect(() => {
+    const rendered = document.documentElement.dataset.theme;
+    if (rendered === 'light' || rendered === 'dark') setCurrentTheme(rendered);
+  }, []);
+
+  const toggleTheme = () => {
+    const next: Theme = currentTheme === 'dark' ? 'light' : 'dark';
+    setCurrentTheme(next);
+    document.documentElement.dataset.theme = next;
+    document.cookie = serializeThemeCookie(next, { secure: location.protocol === 'https:' });
+    onThemeToggle?.();
+  };
+
+  return { currentTheme, toggleTheme };
+}
+
 export function AppHeader({
   items,
   activeId,
@@ -261,95 +336,25 @@ export function AppHeader({
   authed,
   compact,
 }: AppHeaderProps) {
-  // `autoCompact` tracks the real viewport and is used only for *behaviour*
-  // now (closing the menu panel on resize, below) — never for what gets
-  // rendered. The layout itself is CSS's job: useIsCompactHeader() resolves
-  // in a useEffect, so on the server and for the whole pre-hydration window
-  // it can only ever answer `false`, which used to make the header render
-  // its desktop DOM (full nav + inline search, no menu button) at every
-  // width until React mounted. Below ~430px that overflowed the viewport —
-  // server-rendered HTML is a product requirement (PRODUCT.md §83, §89), so
-  // a layout that is only correct after hydration is a defect, not a detail.
+  const { menuOpen, menuButtonRef, toggleMenu, closeMenu } = useMenuPanel(onMenu);
+  const { currentTheme, toggleTheme } = useHeaderTheme(theme, onThemeToggle);
+
+  // Which layout renders is CSS's job, never this component's: useIsCompactHeader
+  // resolves in an effect, so it answers `false` on the server and for the whole
+  // pre-hydration window, and a layout only correct after hydration would break
+  // the server-rendered HTML PRODUCT.md §83 and §89 require.
   //
-  // `compactOverride` is the escape hatch the prop contract documents
-  // ("Forces the layout... Supply it only in tests and specimens."): when a
-  // caller supplies `compact`, it is written onto the root as `data-compact`
-  // and the stylesheet gives that attribute higher specificity than the
-  // media query, so it wins regardless of the real viewport. When `compact`
-  // is omitted (product code), no attribute is written and the media query
-  // alone decides — see AppHeader.css.
-  const autoCompact = useIsCompactHeader();
+  // `compact` is the escape hatch the prop contract documents. Supplied, it is
+  // written onto the root as `data-compact`, which AppHeader.css gives higher
+  // specificity than the media query; omitted, no attribute is written and the
+  // media query alone decides.
   const compactOverride = compact === undefined ? undefined : compact ? 'true' : 'false';
-  const [menuOpen, setMenuOpen] = useState(false);
-  // Escape returns focus here — not into the panel, because opening the menu
-  // never moves focus there in the first place. This is a non-modal
-  // disclosure (accessibility.md § Focus and keyboard requires Escape to
-  // close it, same as Popover/Modal), not a modal dialog: no focus trap, and
-  // no focus relocation on open, only a place for focus to land back on close.
-  const menuButtonRef = useRef<HTMLButtonElement>(null);
-
-  // Behaviour, not layout: if the menu panel is open and the viewport grows
-  // past the breakpoint (a real resize, not the forced `compact` prop), close
-  // it. CSS already hides the panel at desktop width on its own (belt and
-  // braces), but the open/closed state itself is React state and should not
-  // silently disagree with what is on screen.
-  useEffect(() => {
-    if (!autoCompact) setMenuOpen(false);
-  }, [autoCompact]);
-
-  // Escape closes the panel from anywhere in the document, not only while
-  // focus is inside it — there is no focus trap, so focus could be on the
-  // trigger, in the panel, or (having tabbed past it) beyond it.
-  useEffect(() => {
-    if (!menuOpen) return;
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key !== 'Escape') return;
-      setMenuOpen(false);
-      onMenu?.(false);
-      menuButtonRef.current?.focus();
-    };
-    document.addEventListener('keydown', onKeyDown);
-    return () => document.removeEventListener('keydown', onKeyDown);
-  }, [menuOpen, onMenu]);
-
-  // The header resolves and displays its own theme rather than only firing
-  // onThemeToggle and waiting for the host to pass a new `theme` prop back
-  // down — the toggle needs to be usable (and show the right glyph) the
-  // instant it is clicked. `theme` still seeds the initial value: the actual
-  // theme for first paint comes from the cookie, resolved server-side before
-  // this island ever hydrates (src/lib/http/theme.ts), and that resolved
-  // value is what a host page passes in here.
-  const [currentTheme, setCurrentTheme] = useState<Theme>(theme);
-
-  // The server can only pass a theme it knew about. A first-time visitor has
-  // no cookie, so the value actually on <html> was decided before paint by the
-  // script in the document head, from prefers-color-scheme. This island has to
-  // agree with the document rather than with its own default, or the toggle
-  // offers to switch to the theme already showing.
-  useEffect(() => {
-    const rendered = document.documentElement.dataset.theme;
-    if (rendered === 'light' || rendered === 'dark') setCurrentTheme(rendered);
-  }, []);
-
-  const handleThemeToggle = () => {
-    const next: Theme = currentTheme === 'dark' ? 'light' : 'dark';
-    setCurrentTheme(next);
-    document.documentElement.dataset.theme = next;
-    document.cookie = serializeThemeCookie(next, { secure: location.protocol === 'https:' });
-    onThemeToggle?.();
-  };
-
-  const handleMenuToggle = () => {
-    const next = !menuOpen;
-    setMenuOpen(next);
-    onMenu?.(next);
-  };
 
   const handleNavClick = (id: string) => (event: MouseEvent<HTMLAnchorElement>) => {
     if (!onNavigate) return;
     event.preventDefault();
     onNavigate(id);
-    setMenuOpen(false);
+    closeMenu();
   };
 
   // Two DOM instances of the nav, not one instance whose styling depends on
@@ -431,16 +436,14 @@ export function AppHeader({
           <div className="lw-header__utilities">
             {renderMarketButton('lw-header__market-desktop')}
 
-            {/* A mode switch, not a pressed toggle — see the handoff task's
-                note on keeping aria-pressed off this control and naming the
-                action instead. Sized 40/44 by CSS (AppHeader.css), not by
-                a JS-computed viewport check, for the same reason the nav
-                and search visibility is CSS now. */}
+            {/* A mode switch, not a pressed toggle: the label names the action
+                and aria-pressed stays off. Sized 40/44 by AppHeader.css rather
+                than by a JS viewport check, like every other size here. */}
             <button
               type="button"
               aria-label={themeToggleLabel}
               title={themeToggleLabel}
-              onClick={handleThemeToggle}
+              onClick={toggleTheme}
               className="lw-header__icon-button"
             >
               <IconGlyph name={currentTheme === 'dark' ? 'sun' : 'moon'} size={16} />
@@ -467,23 +470,15 @@ export function AppHeader({
                 </button>
               ))}
 
-            {/* Rendered unconditionally — CSS shows it only at compact widths
-                (or when `compact` forces that layout). Before this fix it
-                was behind `{isCompact && ...}`, which is `false` for the
-                entire pre-hydration window, so the control a mobile visitor
-                needs to reach the nav was simply absent from the server
-                HTML.
+            {/* Rendered unconditionally, because CSS decides whether it shows:
+                gating it on a hydration-resolved value would leave it out of the
+                server HTML, where a mobile visitor's only route to the nav is.
 
-                aria-expanded, not aria-pressed: this is a disclosure button
-                (it reveals `#lw-header-menu`), not a toggle button with a
-                pressed state, and the label stays the constant "Menu" rather
-                than swapping to "Close menu" — aria-expanded already carries
-                the open/closed state, and saying it twice in two vocabularies
-                (a changing name AND a changing ARIA state) is the bug
-                aria-pressed produced here. The icon glyph (X vs hamburger)
-                still carries the state visually; `data-pressed` still drives
-                that visual, independent of the ARIA role it no longer
-                implies. */}
+                aria-expanded, not aria-pressed: this discloses `#lw-header-menu`
+                rather than toggling a pressed state. The name stays "Menu" —
+                aria-expanded already carries open/closed, and a changing name
+                alongside it states the same thing twice. The glyph carries it
+                visually through `data-pressed`, which implies no ARIA role. */}
             <button
               ref={menuButtonRef}
               type="button"
@@ -491,7 +486,7 @@ export function AppHeader({
               title="Menu"
               aria-expanded={menuOpen}
               aria-controls="lw-header-menu"
-              onClick={handleMenuToggle}
+              onClick={toggleMenu}
               className="lw-header__icon-button lw-header__menu-button"
               data-pressed={menuOpen || undefined}
             >
@@ -501,20 +496,14 @@ export function AppHeader({
         </div>
       </div>
 
-      {/* Rendered unconditionally (same reason as the menu button above) only
-          when search is gated in at all; CSS is what decides whether this or
-          the inline `.lw-header__search-slot` copy is the one actually
-          shown. */}
+      {/* Unconditional for the same reason as the menu button; CSS decides
+          whether this or the inline `.lw-header__search-slot` copy shows. */}
       {hasSearch && <div className="lw-header__mobile-search">{renderSearch('md')}</div>}
 
-      {/* The one piece of the header that stays genuinely JS-controlled: a
-          disclosure panel has to track open/closed state somewhere, and
-          `menuOpen` starts `false` identically on the server and the client,
-          so there is no server/client mismatch here the way there was for
-          the layout switch itself. CSS still hides this at desktop width as
-          a backstop (see AppHeader.css) in case `menuOpen` is ever true while
-          the viewport is wide. `id` matches the menu button's
-          aria-controls. */}
+      {/* The one genuinely JS-controlled piece: a disclosure panel has to hold
+          open/closed somewhere. `menuOpen` starts `false` on both server and
+          client, so this gate cannot mismatch on hydration. AppHeader.css hides
+          it at desktop width as a backstop. */}
       {menuOpen && (
         <div id="lw-header-menu" className="lw-header__mobile-panel">
           {renderNav('panel')}

@@ -8,16 +8,12 @@
  * rather than about shapes somebody invented to match the code they were
  * testing.
  *
- * That property is entirely a matter of the bytes matching, and nothing in this
- * repository could previously notice when they stopped. They did stop: Prettier
- * formatted four of these files on a routine `pnpm run format`, collapsing
- * `"fields": [\n "currencyCode",\n "marketCode"\n ]` onto one line. Nothing was
- * wrong with the JSON and every test still passed - the fake backend parses
- * these files, so it could not care less about whitespace - but the backend's
- * own byte comparison would have failed against a response it really does emit,
- * and the "identical corpus" claim in the architecture docs had quietly become
- * false. `.prettierignore` now excludes the directory, and this suite is the
- * check that would have caught it either way.
+ * That property is entirely a matter of the bytes matching, and nothing else
+ * here would notice if they stopped. A reformat is enough to break it and
+ * nothing else: the fake backend parses these files, so no test fails, but the
+ * backend's own byte comparison would - which is how the "identical corpus"
+ * claim goes quietly false. `.prettierignore` excludes the directory, and this
+ * suite is the check that catches it either way.
  *
  * ## Why a format check rather than a diff against the backend
  *

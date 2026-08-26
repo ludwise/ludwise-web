@@ -5,14 +5,14 @@ interface Props {
 }
 
 const { percentage, size = 'md' } = Astro.props;
-const value = percentage === null || percentage === undefined ? null : Math.round(percentage);
+const rounded = percentage == null ? null : Math.round(percentage);
 ---
 
 {
-  value !== null && value > 0 && (
-    <span class="lw-discount-badge" data-size={size} aria-label={`${value} percent off`}>
+  rounded !== null && rounded > 0 && (
+    <span class="lw-discount-badge" data-size={size} aria-label={`${rounded} percent off`}>
       {'−'}
-      {value}%
+      {rounded}%
     </span>
   )
 }

@@ -84,6 +84,21 @@ export function redactString(value: string, maxLength: number): string {
 }
 
 /**
+ * The constructor name of a value `JSON.stringify` cannot be trusted with, or
+ * `null` when it can.
+ *
+ * Platform objects have getters that throw or return streams, so stringifying
+ * one is a guaranteed failure inside the log path. A `toJSON` method is the
+ * owner's own statement that the value is serialisable, and is respected.
+ */
+function unserializableConstructorName(value: object): string | null {
+  const name = value.constructor?.name;
+  if (name === undefined || name === 'Object') return null;
+  if (typeof (value as { toJSON?: unknown }).toJSON === 'function') return null;
+  return isPlainRecord(value) ? null : name;
+}
+
+/**
  * Returns a JSON-safe copy with sensitive values removed.
  *
  * Guarantees, all of which are covered by tests: never throws, never recurses
@@ -119,20 +134,19 @@ export function redact(value: unknown, options: RedactOptions = {}): unknown {
 
     if (depth > maxDepth) return MAX_DEPTH_MARKER;
 
-    const obj = input;
-    if (seen.has(obj)) return CIRCULAR_MARKER;
-    seen.add(obj);
+    if (seen.has(input)) return CIRCULAR_MARKER;
+    seen.add(input);
 
     if (input instanceof Date) return input.toISOString();
 
     if (input instanceof Error) {
-      const result: Record<string, unknown> = {
+      const asRecord: Record<string, unknown> = {
         name: input.name,
         message: redactString(input.message, maxStringLength),
       };
-      if (typeof input.stack === 'string') result['stack'] = input.stack;
-      if (input.cause !== undefined) result['cause'] = walk(input.cause, depth + 1);
-      return result;
+      if (typeof input.stack === 'string') asRecord['stack'] = input.stack;
+      if (input.cause !== undefined) asRecord['cause'] = walk(input.cause, depth + 1);
+      return asRecord;
     }
 
     // Contents are never emitted: collections are exactly where personal data
@@ -146,27 +160,17 @@ export function redact(value: unknown, options: RedactOptions = {}): unknown {
       return items;
     }
 
-    // Platform objects have getters that throw or return streams; stringifying
-    // one is a guaranteed failure inside the log path.
-    const constructorName = obj.constructor?.name;
-    if (
-      constructorName !== undefined &&
-      constructorName !== 'Object' &&
-      typeof (obj as { toJSON?: unknown }).toJSON !== 'function' &&
-      Object.getPrototypeOf(obj) !== null &&
-      !isPlainRecord(obj)
-    ) {
-      return `[unserializable:${constructorName}]`;
-    }
+    const unserializable = unserializableConstructorName(input);
+    if (unserializable !== null) return `[unserializable:${unserializable}]`;
 
     const output: Record<string, unknown> = {};
-    const keys = Object.keys(obj);
+    const keys = Object.keys(input);
     for (const key of keys.slice(0, maxKeys)) {
       if (isDeniedKey(key, denylist)) {
         output[key] = REDACTED;
         continue;
       }
-      const walked = walk((obj as Record<string, unknown>)[key], depth + 1);
+      const walked = walk((input as Record<string, unknown>)[key], depth + 1);
       // Dropping undefined keeps the record aligned with what JSON emits.
       if (walked !== undefined) output[key] = walked;
     }

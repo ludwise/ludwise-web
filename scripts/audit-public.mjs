@@ -168,12 +168,10 @@ const NAME_RULE = 'a provider credential name';
  * credential: the synthetic positives that prove a scanner can still fire, and
  * the example strings in this file's own comments.
  *
- * Scoping the old exemption to one rule was correct and immediately surfaced
- * three such values - `boundaries.test.ts` plants a fake Cloudflare token so
- * its own regex is not silently dead, and that assertion is worth keeping.
- * Marking the line is better than re-widening the exemption, because the
- * marker sits at the value, has to be typed on purpose, and shows up in review
- * as an admission rather than hiding in a list at the top of a file.
+ * Marked at the value rather than exempted in a list at the top of a file: the
+ * marker has to be typed on purpose and reads in review as an admission. Some
+ * of these are load-bearing - `boundaries.test.ts` plants a fake Cloudflare
+ * token so its own regex cannot be silently dead.
  */
 const SYNTHETIC = /\bnot-a-real-secret\b/u;
 

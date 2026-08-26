@@ -1,6 +1,20 @@
 import type { AnalyticsEvent, AnalyticsProvider } from './types.js';
 
 /**
+ * The interface says `void`, but a JavaScript implementation can still return a
+ * promise. On Workers an unhandled rejection is raised against the request
+ * context and can fail a response that had already succeeded, so a thenable is
+ * given a no-op handler rather than left loose.
+ */
+function isThenable(value: unknown): value is PromiseLike<unknown> {
+  return (
+    value !== null &&
+    typeof value === 'object' &&
+    typeof (value as PromiseLike<unknown>).then === 'function'
+  );
+}
+
+/**
  * Wraps a provider so that analytics failure can never become request failure.
  *
  * PRODUCT.md treats analytics as strictly optional: an outage in a measurement
@@ -15,18 +29,9 @@ export function createSafeAnalytics(
 
     track(event: AnalyticsEvent): void {
       try {
-        const result: unknown = inner.track(event);
-
-        // The interface says void, but a JavaScript implementation can still
-        // return a promise. On Workers an unhandled rejection is raised against
-        // the request context and can fail a response that had already
-        // succeeded, so it is attached to a no-op handler here.
-        if (
-          result !== null &&
-          typeof result === 'object' &&
-          typeof (result as PromiseLike<unknown>).then === 'function'
-        ) {
-          void (result as Promise<unknown>).catch(() => {
+        const tracked: unknown = inner.track(event);
+        if (isThenable(tracked)) {
+          void (tracked as Promise<unknown>).catch(() => {
             // Deliberately ignored.
           });
         }
