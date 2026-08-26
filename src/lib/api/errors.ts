@@ -1,27 +1,17 @@
 /**
- * What can go wrong when this site asks the backend for something, and how
- * each one is meant to be rendered.
+ * What can go wrong when this site asks the backend for something, and how each
+ * one is meant to be rendered.
  *
- * The distinction this module exists to enforce is between *unavailable* and
- * *empty*. They arrive at a page as similar-looking absences and mean opposite
- * things: one is "we could not find out", the other is "we found out, and there
- * is nothing". Rendering the first as the second tells a visitor that no game
- * is on sale when the truth is that we failed to ask - which is a false claim
- * about the market, not a cosmetic slip.
+ * The distinction this module enforces is *unavailable* versus *empty*. They
+ * reach a page as similar absences and mean opposite things, and rendering the
+ * first as the second tells a visitor no game is on sale when the truth is that
+ * we failed to ask - a false claim about the market. So a failed read throws
+ * rather than returning an empty view.
  *
- * So a failed read throws rather than returning an empty view, and every page
- * catches it and renders a state that says so.
- *
- * ## Nothing from the backend reaches a visitor unaltered
- *
- * A `LudwiseApiError` carries a `code` from a closed set and a `requestId`, and
- * nothing else that came off the wire. There is no message on the wire to pass
- * on, and if a future one appears it must not be rendered: the response could
- * have come from something in front of the backend rather than the backend
- * itself, and text of unknown origin has no business in a page.
- *
- * `cause` exists for logs, and this module's `toLogContext` is the only sanctioned
- * way to get anything out of it.
+ * A `LudwiseApiError` carries a closed-set `code` and a `requestId`, and
+ * nothing else off the wire. Should a message ever appear there it must not be
+ * rendered: the response may have come from something in front of the backend.
+ * `cause` exists for logs, and `toLogContext` is the only sanctioned way out.
  */
 
 import type { ApiErrorBody } from './contract.js';
@@ -71,10 +61,9 @@ export class LudwiseApiError extends Error {
   readonly data: unknown;
 
   constructor(kind: ApiFailureKind, operation: string, options: LudwiseApiErrorOptions = {}) {
-    // Built from the kind and the operation only. Neither is caller data or
-    // backend data, so this message is safe wherever it ends up - which is what
-    // lets the rest of the codebase stop asking whether a given error is safe
-    // to print.
+    // Kind and operation only, neither of them caller or backend data, so this
+    // message is safe wherever it ends up - which is what lets the rest of the
+    // codebase stop asking whether an error is safe to print.
     super(`${kind}: ${operation}`, { cause: options.cause });
     this.name = 'LudwiseApiError';
     this.kind = kind;

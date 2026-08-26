@@ -24,17 +24,14 @@ const NAV_ITEMS = [
 const { title, description, activeNavId } = Astro.props;
 const canonical = new URL(Astro.url.pathname, Astro.site ?? Astro.url.origin);
 
-// Resolved server-side so the first response already carries the right theme.
-// null means the visitor has expressed no preference, which is a different
-// answer from "light" - it is what hands the decision to the pre-paint script
-// below rather than asserting a preference nobody made.
+// Resolved server-side so the first response carries the right theme. `null` is
+// "no preference expressed", which differs from "light": it hands the decision
+// to the pre-paint script rather than asserting a preference nobody made.
 const theme = readThemeCookie(Astro.request.headers.get('cookie'));
 
-// Belt to the X-Robots-Tag header's braces. The header is what a crawler
-// honours and what src/lib/http/security-headers.ts sets on every response;
-// this covers the case where a page is saved, proxied or re-served somewhere
-// the header did not survive. Neither is a security control - Cloudflare
-// Access is - and production must never receive either.
+// Belt to the X-Robots-Tag header's braces, for a page saved, proxied or
+// re-served where the header did not survive. Neither is a security control -
+// Cloudflare Access is - and production must never receive either.
 const indexable = Astro.locals.config.environment === 'production';
 ---
 

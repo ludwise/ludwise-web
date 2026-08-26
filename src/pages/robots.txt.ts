@@ -1,15 +1,13 @@
 import type { APIRoute } from 'astro';
 
-// A route rather than a file in public/, because the answer differs by
-// environment and a static file cannot. public/ is served by Workers Assets
-// without invoking the Worker at all, so a robots.txt placed there would be
-// identical on staging and production - which is the one thing it must not be.
+// A route, not a file in public/: the answer differs by environment. Workers
+// Assets serves public/ without invoking the Worker, so a robots.txt there would
+// be identical on staging and production - the one thing it must not be.
 export const prerender = false;
 
-// Written out rather than assembled from parts. robots.txt has no formal
-// grammar, crawlers disagree about the edges of it, and the whole file is four
-// lines: seeing both versions side by side is worth more than not repeating
-// `User-agent: *`.
+// Written out rather than assembled: robots.txt has no formal grammar, crawlers
+// disagree about its edges, and the whole file is four lines. Seeing both
+// versions side by side beats not repeating `User-agent: *`.
 const DISALLOW_EVERYTHING = 'User-agent: *\nDisallow: /\n';
 const ALLOW_EVERYTHING = 'User-agent: *\nAllow: /\n';
 

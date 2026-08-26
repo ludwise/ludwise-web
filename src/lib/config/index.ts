@@ -1,27 +1,15 @@
 /**
  * What this Worker needs to know about itself, and the guardrails around it.
  *
- * Small deliberately. The backend's configuration module validates provider
- * credentials, database bindings and email settings; this one has none of those
- * to validate, because this Worker has none of them. That is the split working:
- * if this file ever grows a secret, something has been put in the wrong
- * repository.
+ * Small deliberately: the backend validates provider credentials, database
+ * bindings and email settings, and this Worker has none. If this file grows a
+ * secret, something is in the wrong repository.
  *
- * ## The one rule worth writing code for
- *
- * A frontend environment may only talk to its own backend environment. A
- * staging site reading production data is not a configuration mistake with a
- * cosmetic symptom - it publishes production prices on a hostname that is not
- * meant to be public, and it makes staging's own data untrustworthy for the
- * testing it exists to do. Locally it is worse: a developer's experiment reads
- * real data over a binding nobody audited.
- *
- * Cloudflare's own model makes this mostly structural, and that is the primary
- * defence: a service binding names a Worker script, and the staging site's
- * binding names the staging backend. There is no URL to point at the wrong
- * place. `assertEnvironmentsMatch` below is the check that catches the case the
- * structure cannot - a binding edited to point at the wrong script - and it
- * fails the request closed rather than serving whatever answered.
+ * The one rule worth code: a frontend environment may only talk to its own
+ * backend environment. Staging reading production publishes production prices
+ * on a hostname not meant to be public. Cloudflare's model makes that mostly
+ * structural - a binding names a script - and `assertEnvironmentsMatch` catches
+ * what it cannot, a binding naming the wrong script, failing closed.
  */
 
 /** The environments this site is deployed to. A closed set on purpose. */

@@ -2,6 +2,7 @@ import js from '@eslint/js';
 import globals from 'globals';
 import astro from 'eslint-plugin-astro';
 import tseslint from 'typescript-eslint';
+import ludwise from './eslint-rules/max-comment-block-lines.js';
 
 // --- Layering ---------------------------------------------------------------
 //
@@ -58,6 +59,14 @@ export default tseslint.config(
   },
 
   js.configs.recommended,
+
+  // Comment length is a readability finding, not a style preference: see
+  // AGENTS.md.
+  {
+    files: ['src/**/*.{ts,tsx,astro}', 'tests/**/*.{ts,tsx}', 'scripts/**/*.{mjs,js,ts}'],
+    plugins: { ludwise },
+    rules: { 'ludwise/max-comment-block-lines': ['error', { max: 3, maxBlock: 15 }] },
+  },
 
   // Type-aware linting is scoped to src/ rather than applied globally and then
   // switched off again. Root config files and scripts sit outside the tsconfig

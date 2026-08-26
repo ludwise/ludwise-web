@@ -33,24 +33,16 @@ export interface PageViewInput {
 /**
  * A page was rendered, or `null` when it cannot be described safely.
  *
- * `route` must be a route template - `/games/[slug]`, never the URL the
- * visitor actually requested. That distinction is the whole reason this event
- * is safe to collect: docs/analytics/privacy-principles.md forbids full URLs
- * and arbitrary paths, both of which routinely carry values a visitor did not
- * choose to send.
+ * `route` must be a route template, never the URL requested: full URLs and
+ * arbitrary paths carry values a visitor did not choose to send, which
+ * docs/analytics/privacy-principles.md forbids.
  *
- * So the guarantee is enforced here rather than promised. `routeTemplate`
- * falls back to `sanitizePathname`, which collapses only digits, UUIDs, long
- * hex and over-long segments - `/invite/team-alpha` and
- * `/u/name@example.test` both survive it intact. That fallback is right for an
- * operational log, where the extra detail is diagnostic and retention is
- * short, and wrong for analytics. A sanitised route therefore produces no
- * event at all: losing a count is recoverable, collecting a path is not.
+ * Enforced, not promised. `routeTemplate` falls back to `sanitizePathname`,
+ * which collapses only digits, UUIDs and long hex - right for an operational
+ * log, wrong for analytics - so a sanitised route produces no event at all.
+ * Losing a count is recoverable; collecting a path is not.
  *
- * There is no referrer, no user agent, no viewport, no session identifier and
- * no visitor identifier. Each would need its own justification, and none is
- * needed to answer "is this page used at all", which is the only question
- * this event exists to answer.
+ * No referrer, user agent, viewport, session or visitor identifier.
  */
 export function pageViewEvent(input: PageViewInput): AnalyticsEvent | null {
   if (input.source !== 'pattern') return null;

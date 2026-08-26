@@ -6,10 +6,9 @@ const read = (query: string) => toBrowseSalesInput(new URLSearchParams(query));
 
 describe('toBrowseSalesInput', () => {
   it('reads a filled-in form as the filters it names', () => {
-    // min/max are whole units of whatever currency the resolved context
-    // uses - 500 here means 500 whole euros, not 500 cents. This boundary
-    // does not know the currency yet and does not convert; browseSales does,
-    // once it does.
+    // min/max are whole units of whatever currency the resolved context uses:
+    // 500 here is 500 euros, not 500 cents. This boundary does not know the
+    // currency and does not convert; browseSales does, once it does.
     expect(
       read(
         'market=DE&currency=EUR&store=orbit&store=copper&minDiscount=40&min=500&max=6000&fromYear=2015&toYear=2026&sort=price&page=2',

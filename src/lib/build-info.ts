@@ -24,12 +24,9 @@ export interface BuildInfo {
 const UNKNOWN_COMMIT = 'unknown';
 const LOCAL_BUILD_ID = 'local';
 
-// These identifiers are replaced textually by Vite `define` (see
-// astro.config.mjs). The `typeof` guard is not defensive style, it is required:
-// Vitest does not load astro.config.mjs, so an unguarded reference is an
-// undeclared identifier and throws ReferenceError at module load - taking down
-// every test that transitively imports this file. Vite substitutes inside the
-// typeof too, so the guard constant-folds away in a real build.
+// Replaced textually by Vite `define` (astro.config.mjs). The `typeof` guard is
+// required, not defensive: Vitest loads no astro config, so an unguarded
+// reference throws ReferenceError at module load. Vite folds the guard away.
 const version = typeof __BUILD_VERSION__ !== 'undefined' ? __BUILD_VERSION__ : '0.0.0-dev';
 const gitCommit =
   typeof __BUILD_GIT_COMMIT__ !== 'undefined' ? __BUILD_GIT_COMMIT__ : UNKNOWN_COMMIT;

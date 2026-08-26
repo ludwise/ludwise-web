@@ -4,19 +4,14 @@ import { expect, test, type Page } from '@playwright/test';
 /**
  * What the site says when LUDWISE has ingested nothing at all.
  *
- * Its own suite, and its own backend mode, because this state is a property of
- * the whole catalogue rather than of one request - and because the sentences it
- * has to produce are the ones most easily got subtly wrong.
+ * Its own suite and its own backend mode, because this state is a property of
+ * the whole catalogue rather than of one request.
  *
- * "No games are on sale right now" is a claim about the market. It is true only
- * once LUDWISE has observed prices and found none of them discounted. Before
- * that it is a fabrication, and the correct sentence is that nothing has been
- * collected yet. The backend distinguishes the two with `hasAnyOfferData`; this
- * suite is what proves the interface acts on it.
- *
- * These two tests came from the backend's own shell suite, which ran against an
- * empty local database. The database is gone; the state it produced is not, and
- * neither is the assertion.
+ * "No games are on sale right now" is a claim about the market, true only once
+ * LUDWISE has observed prices and found none of them discounted. Before that it
+ * is a fabrication, and the correct sentence is that nothing has been collected
+ * yet. The backend distinguishes the two with `hasAnyOfferData`; this suite is
+ * what proves the interface acts on it.
  */
 
 const LOGOTYPE = '.lw-header__wordmark-accent';

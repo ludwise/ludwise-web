@@ -34,13 +34,9 @@ describe('pageViewEvent', () => {
       ['a path carrying something personal', '/u/john.smith@example.test'],
       ['a path carrying a token', '/reset/abc-def-token'],
     ])('%s', (_label, route) => {
-      // sanitizePathname collapses digits, UUIDs, long hex and long segments,
-      // and passes everything else through verbatim. That is right for an
-      // operational log, where the extra detail is diagnostic and retention is
-      // short. It is wrong for analytics: privacy-principles.md rules out full
-      // URLs and arbitrary paths precisely because they carry values a visitor
-      // did not choose to send, and this event's catalogue entry promises "a
-      // route template, never the URL the visitor requested".
+      // sanitizePathname is right for an operational log, where the extra
+      // detail is diagnostic and retention short. privacy-principles.md rules
+      // out full URLs and arbitrary paths for analytics.
       expect(pageViewEvent({ route, source: 'sanitized' })).toBeNull();
     });
 

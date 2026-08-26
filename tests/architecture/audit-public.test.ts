@@ -5,31 +5,17 @@ import { readFileSync, writeFileSync } from 'node:fs';
 /**
  * The secret scanner, checked against secrets.
  *
- * `audit-public.mjs` printing "No findings" is indistinguishable from
- * `audit-public.mjs` being broken, and the difference matters more here than in
- * most places: this repository is public, and the audit is the last thing
- * standing between a pasted credential and the internet. So every rule is
- * exercised by planting a synthetic secret in a real tracked file and checking
- * the audit fails.
+ * `audit-public.mjs` printing "No findings" is indistinguishable from it being
+ * broken, and this repository is public. So every rule is exercised by planting
+ * a synthetic secret in a real tracked file and checking the audit fails.
  *
- * This is not hypothetical rigour. Written against an audit that reported a
- * clean tree, it immediately found two ways it was blind:
+ * Written against an audit that reported a clean tree, this found two ways it
+ * was blind - `RULE_FILES` skipping whole files rather than the one rule they
+ * needed skipped, and lockfile integrity hashes suppressed by line rather than
+ * by span. These tests exist so neither can come back quietly.
  *
- *   - `RULE_FILES` skipped five files entirely rather than skipping the one
- *     rule they needed skipped, so a GitHub token, an AWS key, a private key
- *     block and a basic-auth URL could all sit in `docs/architecture.md`
- *     unreported.
- *   - Suppressing lockfile integrity hashes by *line* also suppressed a
- *     credential-bearing tarball URL on that line, which is a real way for a
- *     secret to enter a lockfile.
- *
- * Both were fixed. These tests exist so neither can come back quietly.
- *
- * The payloads below carry a `not-a-real-secret` marker, because this file is
- * itself tracked and the audit reads it. That is the audit working: a file full
- * of credential-shaped strings is exactly what it should object to. The marker
- * has to be typed deliberately at the value, so it reads as an admission in
- * review rather than a file quietly added to an exemption list.
+ * The payloads carry a `not-a-real-secret` marker, typed deliberately at each
+ * value, because this file is tracked and the audit reads it too.
  */
 
 const audit = (): { failed: boolean; output: string } => {

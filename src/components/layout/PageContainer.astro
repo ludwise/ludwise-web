@@ -1,14 +1,16 @@
 ---
-// NOT part of the design handoff. design/system/guidelines/layout.md
-// documents three max-width archetypes and the gutter scale — "Two page
-// archetypes" and the breakpoint table — but the bundle ships no component
-// for the wrapper itself. This implements that written rule so pages do not
-// each reimplement the max-width/gutter math by hand.
-//
-// Gutter breakpoints (768/1024) are not spelt out in layout.md for this
-// specific rule; they are chosen to match the existing `md`/`lg` breakpoint
-// tokens already defined in tokens/layout.css, so this component tracks the
-// same scale as everything else rather than inventing its own.
+/**
+ * Not part of the design handoff.
+ *
+ * design/system/guidelines/layout.md documents the max-width archetypes and the
+ * gutter scale, but the bundle ships no component for the wrapper itself. This
+ * implements that written rule so pages do not each redo the max-width and
+ * gutter arithmetic by hand.
+ *
+ * The gutter breakpoints (768/1024) are not spelt out there for this rule; they
+ * match the `md`/`lg` tokens already in tokens/layout.css, so this tracks the
+ * same scale rather than inventing its own.
+ */
 interface Props {
   /** wide = visual discovery, 1440 (sales, browse, search-as-grid) ·
    *  standard = data comparison, 1200, default (game detail, offers,

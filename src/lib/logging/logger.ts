@@ -51,11 +51,9 @@ function toLogError(
     if (includeStack && typeof raw.stack === 'string') error.stack = raw.stack;
     const code: unknown = (raw as { code?: unknown }).code;
     if (typeof code === 'string') error.code = code;
-    // Through the redactor rather than copied: a cause chain is
-    // attacker-influenced in principle - a provider client wraps whatever it
-    // was handed - so it needs the same depth, breadth, length and cycle
-    // bounds as any other untrusted structure. redact() already walks nested
-    // Error causes, so this is one call rather than a second traversal.
+    // Redacted rather than copied: a cause chain is attacker-influenced in
+    // principle, so it needs the same depth, breadth, length and cycle bounds as
+    // any other untrusted structure. redact() already walks nested causes.
     if (raw.cause !== undefined) error.cause = redact(raw.cause, redactOptions);
     return error;
   }

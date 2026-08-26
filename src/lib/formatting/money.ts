@@ -1,29 +1,16 @@
 /**
  * Rendering an amount, and the one function this repository copies from the
- * backend on purpose.
+ * backend on purpose (ADR 0023).
  *
- * ADR 0023 names this cost explicitly rather than pretending it away.
- * `formatAmountMinor` is presentation - it turns a stored integer into the
- * digits a person reads - but it lives in the backend's domain layer because
- * that is where the rules about money are, and the domain layer is not
- * publishable. A public repository cannot import it, and a package shared
- * between the two would be a registry, a release train and a second version
- * series for one function.
+ * `formatAmountMinor` is presentation, but it lives in the backend's domain
+ * layer because that is where the rules about money are, and that layer is not
+ * publishable. A shared package would be a registry and a release train for one
+ * function.
  *
  * So there are two implementations, and the mitigation is not "they look the
- * same". It is `tests/unit/formatting/money-vectors.test.ts`, which drives this
- * copy over a checked-in vector file that the backend drives its own copy over.
- * Two implementations agreeing because both were tested against one table of
- * expected output is a different guarantee from two implementations agreeing
- * because somebody compared them once.
- *
- * ## Why the arithmetic is done by hand
- *
- * Because dividing by `10 ** minorUnit` is wrong, and quietly. `1999 / 100` is
- * fine; `amountMinor / 10 ** 3` for a three-decimal currency is a binary
- * float that does not represent the value exactly, and the error shows up as a
- * price ending in the wrong digit on a page whose entire purpose is comparing
- * prices. Splitting the digit string is exact by construction.
+ * same": `tests/unit/formatting/money-vectors.test.ts` drives this copy over a
+ * vector file the backend drives its own copy over. The arithmetic is by hand
+ * because `amountMinor / 10 ** minorUnit` is an inexact binary float.
  */
 
 const MIN_MINOR_UNIT = 0;
@@ -32,19 +19,13 @@ const MAX_MINOR_UNIT = 4;
 /**
  * The stored integer as a decimal string, without dividing anything.
  *
- * The sign is split off before padding rather than left inside the digit
- * string. Padding a signed string lets `padStart` count the minus as one of
- * the padded characters and separate it from the number it belongs to: `-5` at
- * two decimals becomes `0.-5`, which is a corrupt string rather than a
- * misformatted one. Negative amounts are reachable - the backend retains
- * anomalous provider reports as evidence rather than discarding them - so this
- * is a case to handle, not one to assume away.
+ * The sign is split off before padding, or `padStart` counts it as one of the
+ * padded characters. Negative amounts are reachable: the backend retains
+ * anomalous provider reports as evidence rather than discarding them.
  *
- * Throws rather than guessing on an input outside the range any real currency
- * has. Every one of these was a real corruption before it was a guard: a
- * non-integer splits across the decimal point, `NaN` renders as `N.aN`,
- * `Infinity` as `Infini.ty`, and anything past `Number.MAX_SAFE_INTEGER`
- * switches to exponential notation and becomes `1e+.21`.
+ * @throws {RangeError} if `amountMinor` is not a safe integer, or `minorUnit`
+ * is not an integer in 0-4. Both guards are load-bearing rather than
+ * defensive; tests/unit/formatting pins the corruption each one prevents.
  */
 export function formatAmountMinor(amountMinor: number, minorUnit: number): string {
   if (!Number.isSafeInteger(amountMinor)) {
@@ -60,10 +41,8 @@ export function formatAmountMinor(amountMinor: number, minorUnit: number): strin
 
   if (minorUnit === 0) return `${sign}${unsignedDigits}`;
 
-  // Pad so there is always at least one integer digit, even when the amount is
-  // smaller than one major unit: 5 minor units at two decimals is "0.05", not
-  // ".05". Padding the unsigned digits only, so the sign can never be split
-  // away from the number.
+  // At least one integer digit, so 5 minor units at two decimals is '0.05' rather
+  // than '.05'. Unsigned digits only: the sign must never be split off.
   const padded = unsignedDigits.padStart(minorUnit + 1, '0');
   const splitIndex = padded.length - minorUnit;
   return `${sign}${padded.slice(0, splitIndex)}.${padded.slice(splitIndex)}`;

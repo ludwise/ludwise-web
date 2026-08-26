@@ -1,34 +1,17 @@
 /**
- * A stand-in for the backend, serving the backend's own recorded responses.
+ * A stand-in for the backend, replaying its recorded responses from
+ * `tests/fixtures/corpus/`. The site cannot render `/games` or `/sales` without
+ * something answering `/v1`, and the real backend is a private repository this
+ * one is built not to need.
  *
- * The site cannot render `/games` or `/sales` without something answering
- * `/v1`, and the real backend is a private repository this one is built not to
- * need. So the responses are replayed from `tests/fixtures/corpus/` instead,
- * and the arrangement is better than a live dependency rather than a
- * compromise:
+ * The recordings are real - the backend's own `tests/contract/corpus.test.ts`
+ * fails if its routes stop producing exactly those bytes (ADR 0025) - and they
+ * are deterministic, they reproduce the unavailable and malformed cases a
+ * working service cannot produce on demand, and they need no credentials in CI.
  *
- * - **The fixtures are real.** Every file there was generated from the
- *   backend's actual routes against its actual fixtures, and the backend's
- *   `tests/contract/corpus.test.ts` fails if its routes stop producing exactly
- *   those bytes (ADR 0025). So a suite that renders them is evidence about the
- *   real contract, not about shapes somebody invented here.
- * - **It is deterministic.** A real backend's catalogue changes as ingestion
- *   runs, so an assertion about what is on the page would be an assertion about
- *   what Steam was selling that morning.
- * - **The failure states are reachable.** "The backend is unavailable" and "the
- *   backend answered with something that is not a view" are two of the most
- *   important things this site does, and neither can be produced on demand from
- *   a service that is working correctly.
- * - **It runs in CI with no credentials and no private access**, which is what
- *   lets this repository's CI prove something on its own.
- *
- * ## What it is not
- *
- * Not a second implementation of the backend. It matches a request to a
- * recording and replays it; it does not filter, rank or paginate. A request
- * with no recording answers 501 rather than guessing, because a fake that
- * improvised would let a suite pass against behaviour the real backend does not
- * have - which is the one failure mode a fixture-based fake exists to avoid.
+ * Not a second implementation: it matches a request to a recording and replays
+ * it, and answers 501 where there is none. A fake that improvised would let a
+ * suite pass against behaviour the real backend does not have.
  */
 
 import { createServer } from 'node:http';
@@ -249,11 +232,9 @@ function withRequestId(body: unknown, requestId: string | undefined): unknown {
 const server = createServer((request, response) => {
   const url = new URL(request.url ?? '/', `http://localhost:${String(PORT)}`);
 
-  // Answered in every mode, including the ones that refuse everything else.
-  // This is how a test runner learns the process is listening, which is a
-  // different question from whether the backend is healthy - and the only
-  // question worth asking when the point of the mode is that it is not. Under
-  // `/__` so it can never collide with a `/v1` path.
+  // Answered in every mode, including the ones that refuse everything else: a
+  // runner asking whether the process is listening, not whether the backend is
+  // healthy. Under `/__` so it can never collide with a `/v1` path.
   if (url.pathname === '/__ready') {
     response.writeHead(200, { 'content-type': 'application/json' });
     response.end(JSON.stringify({ mode: MODE }));
@@ -280,10 +261,9 @@ const server = createServer((request, response) => {
     const recorded = answer(url);
 
     if (recorded === undefined) {
-      // 501 rather than 404, and rather than a guess. A 404 would be a claim
-      // about the catalogue; this is a claim about the fixture set, and the fix
-      // is to add a case to the backend's corpus rather than to make this
-      // server cleverer.
+      // 501 rather than 404: a 404 would be a claim about the catalogue, and
+      // this is a claim about the fixture set. The fix is a case added to the
+      // backend's corpus, not a cleverer server.
       const request_ = `${url.pathname}${url.search}`;
       response.writeHead(501, { 'content-type': 'application/json; charset=utf-8' });
       response.end(
@@ -294,11 +274,9 @@ const server = createServer((request, response) => {
         }),
       );
 
-      // Appended to a file as well as written to stderr. Under Playwright the
-      // fake's stderr is interleaved with two other processes' output and is
-      // effectively unreadable; a file is what makes "which requests does the
-      // corpus not cover" answerable in one look, which is the whole question
-      // a missing recording raises.
+      // Appended to a file as well: under Playwright the fake's stderr is
+      // interleaved with two other processes, and "which requests does the
+      // corpus not cover" has to be answerable in one look.
       process.stderr.write(`no recording for ${request_}\n`);
       appendFileSync(MISSES, `${request_}\n`);
       return;
