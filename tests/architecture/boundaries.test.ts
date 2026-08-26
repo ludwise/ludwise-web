@@ -30,18 +30,16 @@ const sourceFiles = listSourceFiles('src');
 /**
  * A file's code, with its prose removed.
  *
- * Every content rule below reads through this rather than the raw file, and
- * the reason is that both of the first two rules written here failed on their
- * own documentation. `client.ts` explains *why* it must never request `/ops`,
- * and the rule that forbids requesting `/ops` matched that sentence.
- * `contract.ts` uses the phrase "optional-because-sometimes-uninteresting",
- * which is forty URL-safe characters and therefore indistinguishable from a
- * Cloudflare API token to a regex.
+ * Every content rule below reads through this rather than the raw file, because
+ * both of the first two rules written here failed on their own documentation.
+ * `client.ts` explains why it must never request `/ops`, and the rule forbidding
+ * `/ops` matched that sentence. `contract.ts` uses the phrase
+ * "optional-because-sometimes-uninteresting", forty URL-safe characters and so
+ * indistinguishable from a Cloudflare API token to a regex.
  *
- * Both were the test being wrong rather than the code, and the tempting fix -
- * reword the comment - is the wrong one twice over: it makes the comment worse
- * to protect the test, and it leaves the next accurate comment about a
- * forbidden thing failing the build. A rule about code should read code.
+ * Rewording the comments is the wrong fix twice over: it makes them worse to
+ * protect the test, and leaves the next accurate comment about a forbidden
+ * thing failing the build. A rule about code should read code.
  */
 const codeOf = (file: string): string => stripComments(readFileSync(file, 'utf8'));
 

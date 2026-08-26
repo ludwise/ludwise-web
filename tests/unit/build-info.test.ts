@@ -3,10 +3,12 @@ import { describe, expect, it } from 'vitest';
 import { BUILD_INFO } from '../../src/lib/build-info.js';
 
 describe('BUILD_INFO', () => {
-  // If the define wiring in vitest.config.ts or astro.config.mjs breaks, these
-  // values silently become the fallbacks and every log record loses its build
-  // identity. Asserting the sentinels distinguishes "injection works" from
-  // "the fallback works".
+  /**
+   * If the define wiring in vitest.config.ts or astro.config.mjs breaks, these
+   * values silently become the fallbacks and every log record loses its build
+   * identity. Asserting the sentinels distinguishes "injection works" from
+   * "the fallback works".
+   */
   it('reads the values injected at build time', () => {
     expect(BUILD_INFO.version).toBe('0.0.0-test');
     expect(BUILD_INFO.buildId).toBe('test-run');

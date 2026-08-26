@@ -52,10 +52,10 @@ for (const [name, what] of FORBIDDEN_FILES) {
 }
 
 // --- Content patterns ------------------------------------------------------
-//
-// Vendor-prefixed shapes are worth more than generic entropy rules: `ghp_` and
-// `AKIA` are unambiguous, so they can be BLOCKING without producing the noise
-// that would get this check switched off.
+
+// Vendor-prefixed shapes beat generic entropy rules: `ghp_` and `AKIA` are
+// unambiguous, so they can be BLOCKING without the noise that gets a check
+// switched off.
 const PATTERNS = [
   ['BLOCKING', 'a private key block', /-----BEGIN [A-Z ]*PRIVATE KEY-----/u],
   // Case-insensitive: a Steam key is conventionally uppercase, but nothing
@@ -101,10 +101,8 @@ const NOT_A_SECRET = [
   /^(.)\1+$/u,
   // Sequential hex, the conventional shape of a fixture: 0123456789ABCDEF...
   /^(?:0123456789abcdef)+$/iu,
-  // A git object id: 40 hex characters. Every pinned action SHA in the
-  // workflows is one, and pinning actions by SHA is a security practice we
-  // want, so the Cloudflare-token rule must not punish it. A real token is
-  // URL-safe base64 and in practice contains characters outside [0-9a-f].
+  // A git object id: 40 hex characters. Every workflow pins its actions by SHA,
+  // and a real token is URL-safe base64 that in practice leaves [0-9a-f].
   /^[0-9a-f]{40}$/iu,
   // Hyphen-separated words: `optional-because-sometimes-uninteresting`, in a
   // comment. Random base64 does produce hyphens, but not three of them
@@ -130,26 +128,15 @@ const NOT_A_SECRET = [
 const INTEGRITY_HASH = /\bsha(?:256|384|512)-[A-Za-z0-9+/=_-]+/gu;
 
 /**
- * Files whose whole purpose is to name a forbidden thing in order to ban it.
+ * Files that exist to name a forbidden thing in order to ban it. Without this,
+ * the audit's own pattern table reports itself for containing STEAM_API_KEY.
  *
- * This file is on the list, which reads like special pleading and is not. The
- * audit's own pattern table contains the literal string STEAM_API_KEY, so on
- * the first run after it was committed it reported itself - a finding that is
- * true, useless, and would train a reader to skim past the output. The rule
- * cannot be written without naming the thing it forbids.
+ * The exemption is scoped to the *name* rule alone, never to the whole file: an
+ * earlier version skipped these files outright, leaving all nine rules off for
+ * five of the most security-relevant documents in the repository. The mutation
+ * test in tests/architecture/audit-public.test.ts pins that scoping.
  *
- * The same mistake in boundaries.test.ts was solved by stripping comments
- * before matching, and that would not work here: these strings are in the code,
- * not the prose. An allowlist of files that exist to describe the ban is the
- * honest mechanism, and it stays short and explicit so that adding to it is a
- * visible decision rather than a quiet exemption.
- *
- * The exemption is scoped to the one rule that needs it - the *name* rule,
- * which fires on strings like STEAM_API_KEY - and not to the file. It used to
- * skip these files entirely, so all nine rules were off for five of the most
- * security-relevant documents in the repository. A mutation test planted a
- * GitHub PAT, an AWS key id, a private key block and a basic-auth URL in
- * `docs/architecture.md` and the audit reported none of them.
+ * Kept short and explicit, so that adding to it is a visible decision.
  */
 const RULE_FILES = [
   'scripts/audit-public.mjs',
@@ -194,11 +181,8 @@ for (const file of tracked) {
 
   for (const [severity, label, pattern] of PATTERNS) {
     if (describesTheBan && label === NAME_RULE) continue;
-    // Every match, not just the first. `exec` returned one hit per file, so a
-    // suppressed or benign match would hide a real credential further down the
-    // same file - which is not hypothetical: the all-zero trace id on line 68
-    // of correlation.test.ts was masking a second hex match on line 76, and
-    // fixing only the reported one would have left the build red.
+    // Every match, not just the first: one hit per file means a suppressed or
+    // benign match hides a real credential further down the same file.
     const all = new RegExp(pattern.source, `${pattern.flags.replace('g', '')}g`);
     for (const match of source.matchAll(all)) {
       if (NOT_A_SECRET.some((benign) => benign.test(match[0]))) continue;
@@ -240,15 +224,13 @@ for (const file of tracked) {
 }
 
 // --- Third-party network origins -------------------------------------------
-//
-// The check that matters for a privacy-first product: nothing here should ask
-// a third party for anything. Fonts are self-hosted, there is no analytics
-// vendor, and no script comes from a CDN.
-//
-// XML namespaces are excluded rather than allowlisted. `xmlns=` is an
-// identifier, not an address - nothing fetches it, and `http://www.w3.org/2000/svg`
-// appearing in every inline SVG would otherwise report a third-party request on
-// every icon in the repository.
+
+// Nothing here should ask a third party for anything: fonts are self-hosted,
+// there is no analytics vendor, no script comes from a CDN.
+
+// `xmlns=` is excluded rather than allowlisted - it is an identifier, not an
+// address, and nothing fetches it. Allowlisting it would report a third-party
+// request on every inline SVG in the repository.
 const ORIGIN =
   /(?<!xmlns(?::\w+)?=")https?:\/\/(?!localhost|127\.0\.0\.1|backend\.invalid)([a-z0-9.-]+)/giu;
 const ALLOWED_ORIGINS = new Set([
@@ -290,11 +272,9 @@ for (const { severity, file, message } of findings) {
   console.log(`[${severity}] ${file}\n    ${message}`);
 }
 
-// Only BLOCKING fails the build. An IMPORTANT finding is a judgement call - a
-// database id in a configuration file is not a secret, but it is worth being
-// told about - and a check that failed on every one of those would be turned
-// off within a week. That is the failure mode this severity split exists to
-// avoid: a security check nobody runs proves less than one that is narrow.
+// Only BLOCKING fails the build. An IMPORTANT finding is a judgement call, and
+// a check that failed on every one of them would be switched off within a week
+// - which proves less than a narrow check that still runs.
 const blocking = findings.filter((finding) => finding.severity === 'BLOCKING');
 if (blocking.length > 0) {
   console.error(`\n${String(blocking.length)} blocking finding(s). This repository is public.`);

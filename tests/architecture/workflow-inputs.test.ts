@@ -8,26 +8,15 @@ import { describe, expect, it } from 'vitest';
  * logs: a **required action input fed from an optional secret**.
  *
  * `actions/github-script` requires `github-token`. When the secret behind it is
- * unset, the expression resolves to the empty string, and the action fails with
- * "Input required and not supplied: github-token" - before it reads the script.
- * `project-sync.yml` had a deliberate no-op guard at the top of its script for
- * exactly the case where the token is missing, and that guard was unreachable.
+ * unset the expression resolves to the empty string and the action fails with
+ * "Input required and not supplied: github-token" - before it reads the script,
+ * so a no-op guard written inside that script is unreachable.
  *
- * This repository inherited the workflow, and the defect with it, in the split.
- * It was never observed here only because no issue has yet been filed to
- * trigger a run - a latent red build waiting for the first one, which is a
- * poor way to greet the first contributor to a public repository.
- *
- * A step-level `if:` cannot fix this. `steps.if` is not given the `secrets`
+ * A step-level `if:` cannot fix this: `steps.if` is not given the `secrets`
  * context, so the condition cannot ask whether a secret exists. The fallback
- * operator can, which is what the workflows now use.
- *
- * The rule is written over required inputs of known actions rather than over
- * every input, because an optional input receiving an empty string is fine.
- *
- * Scanned line by line rather than through a YAML parser: no YAML library is a
- * dependency here, and one added for a single test would be a supply-chain cost
- * for a file that only needs to find `uses:` and the input lines under it.
+ * operator can, and is what the workflows now use. The rule covers required
+ * inputs of known actions only - an optional input receiving an empty string is
+ * fine - and scans line by line, no YAML library being a dependency here.
  */
 
 const WORKFLOW_DIR = '.github/workflows';

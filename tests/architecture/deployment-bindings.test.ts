@@ -1,40 +1,17 @@
 /**
  * What the deployed Worker is actually allowed to hold.
  *
- * `boundaries.test.ts` next door proves the *source* reaches nothing private.
- * This proves the same about the *deployment*: a binding is capability, and a
- * binding that appears in the generated configuration is one the Worker can use
- * at runtime whether or not any source file mentions it. The two are separate
- * questions and only one of them is answered by reading src/.
+ * `boundaries.test.ts` proves the *source* reaches nothing private. This proves
+ * the same of the *deployment*: a binding is capability, and one that appears in
+ * the generated configuration is usable at runtime whether or not any source
+ * file mentions it. The file read is `dist/server/wrangler.json`, which
+ * @astrojs/cloudflare produces by merging `wrangler.jsonc` with its own
+ * additions - what ships is not what was authored.
  *
- * The file read here is `dist/server/wrangler.json`, which @astrojs/cloudflare
- * generates by merging `wrangler.jsonc` with its own additions and which
- * `wrangler deploy` then uses in place of the hand-written config. That merge
- * step is the reason this suite exists: what ships is not what was authored.
- *
- * ## The regression this was written for
- *
- * A dry run showed `env.SESSION  KV Namespace` on a site that has no sessions,
- * no accounts and no per-visitor state. Nothing in `wrangler.jsonc` asked for
- * it. @astrojs/cloudflare turns on KV-backed sessions unless `session` is
- * literally `false`, and emits `kv_namespaces: [{ binding: "SESSION" }]` into
- * the generated config. The only trace was one info line in a build log.
- *
- * It would not have failed a deploy - Wrangler provisions the namespace
- * automatically - which is precisely why it is worth a test. It would have
- * created a stateful KV namespace per environment, silently and permanently,
- * for a feature this site does not have.
- *
- * That is now switched off in `astro.config.mjs`, and this is the check that
- * keeps it off: the fix is a default overridden in a config file, which is
- * exactly the kind of thing an adapter upgrade re-enables silently.
- *
- * ## Why an allowlist rather than a list of forbidden bindings
- *
- * A denylist only catches the storage products someone thought to name. The
- * risk here is a binding arriving that nobody chose - so the rule is that every
- * binding must be one of a small named set, and anything else fails and has to
- * be justified by a human.
+ * The rule is an allowlist rather than a list of forbidden bindings, because
+ * the risk is a binding arriving that nobody chose. @astrojs/cloudflare turns
+ * on KV-backed sessions and emits a `SESSION` namespace unless `session` is
+ * literally `false`, which `astro.config.mjs` sets and this suite keeps set.
  */
 
 import { existsSync, readFileSync } from 'node:fs';
@@ -166,20 +143,14 @@ interface GeneratedConfig {
 }
 
 /**
- * Set by the CI step that runs this suite after the build. Absent means "the
- * build output may legitimately not exist yet"; present means "it must, and a
- * missing file is a failure".
+ * Set by the CI step that runs this suite after the build. Absent means the
+ * build output may legitimately not exist yet; present means it must, and a
+ * missing file is a failure.
  *
- * This exists because the original design here was wrong in a way that could
- * not be seen from the outside. The comment this replaces said the skip was
- * safe because "CI builds, so it is asserted there" - but `test` runs *before*
- * `build`, in `pnpm run check` and in `verify.yml` alike, so the skip fired on
- * every run including CI. Hiding the generated config and rerunning gave
- * `5 passed | 4 skipped`, all of it about a file that was never opened.
- *
- * The ordering is now fixed in the workflow and this flag makes that fix
- * self-enforcing: reorder the steps or drop the post-build run and the suite
- * fails rather than quietly going hollow again.
+ * `test` runs before `build` in `pnpm run check` and in `verify.yml` alike, so
+ * skip-if-absent on its own fires on every run, CI included. This flag makes
+ * the post-build run self-enforcing: reorder the workflow steps or drop it and
+ * the suite fails rather than quietly going hollow.
  */
 const REQUIRE_BUILD_OUTPUT = process.env['LUDWISE_REQUIRE_BUILD_OUTPUT'] === '1';
 
@@ -233,8 +204,7 @@ describe('the generated deployment configuration', () => {
 
       // Absent, an empty array, or an object whose every array is empty - the
       // shapes wrangler uses for "none of these". `durable_objects` is
-      // `{ bindings: [] }` and `queues` is `{ producers: [], consumers: [] }`,
-      // so a plain array check would pass them both by accident.
+      // `{ bindings: [] }`, so a plain array check would pass it by accident.
       const empty =
         value === undefined ||
         value === null ||
@@ -261,20 +231,18 @@ describe('the generated deployment configuration', () => {
   });
 
   it.runIf(config)('reaches the backend through the named visitor-read entrypoint', () => {
-    // The whole security property of ADR 0028, from this side. The backend's
-    // default entrypoint is what its operations custom domain serves and has no
-    // `/v1` at all, so a binding without this field would 404 every page - and,
-    // worse, would mean the read contract was expected to be routed.
+    // The security property of ADR 0028 from this side. The backend's default
+    // entrypoint has no `/v1` at all, so a binding without this field would 404
+    // every page - and would mean the read contract was expected to be routed.
     const backend = (config?.services ?? []).find((s) => s.binding === 'BACKEND');
 
     expect(backend?.entrypoint).toBe('VisitorRead');
   });
 
   it.runIf(config)('names a backend that matches its own environment', () => {
-    // The cross-environment guard, asserted against what shipped rather than
-    // what was authored. scripts/check-environment.mjs reads wrangler.jsonc
-    // before the build; this reads the merged output after it, which is the
-    // artifact wrangler actually deploys.
+    // Asserted against what shipped rather than what was authored:
+    // scripts/check-environment.mjs reads wrangler.jsonc before the build, this
+    // reads the merged output wrangler actually deploys.
     const name = config?.name ?? '';
     const backend = (config?.services ?? []).find((s) => s.binding === 'BACKEND')?.service ?? '';
 
@@ -304,10 +272,9 @@ describe('the authored deployment routing', () => {
   });
 
   it('binds every environment to the named entrypoint, local included', () => {
-    // The generated artifact above covers whichever environment was built.
-    // This covers all three at once, and the local block in particular:
-    // scripts/check-environment.mjs only inspects the deployed environments, so
-    // a top-level binding that lost its entrypoint would reach neither check.
+    // All three environments at once, the local block in particular:
+    // check-environment.mjs inspects only the deployed ones, so a top-level
+    // binding that lost its entrypoint would reach neither check.
     const blocks = [
       ['local', authored],
       ...(['staging', 'production'] as const).map((name) => [name, authored.env?.[name]] as const),
