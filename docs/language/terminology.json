@@ -1,0 +1,621 @@
+{
+  "$schemaVersion": 1,
+  "profile": {
+    "name": "LUDWISE ASD-STE100 profile",
+    "version": 1
+  },
+  "owner": "LUDWISE architecture",
+  "terms": [
+    {
+      "conceptId": "game",
+      "preferredTerm": "game",
+      "partOfSpeech": "noun",
+      "technicalCategory": "technical-noun",
+      "meaning": "The canonical LUDWISE identity for one video game. No provider identifier defines it.",
+      "allowedContext": ["product", "architecture", "code", "user-facing"],
+      "prohibitedSynonyms": [
+        {
+          "term": "title",
+          "unless": ["game title", "page title", "job title"]
+        }
+      ],
+      "approvedAbbreviation": null,
+      "officialExternalName": false,
+      "notes": "The domain type is Game. A provider application identifier is never the identity.",
+      "source": "README.md, docs/architecture.md",
+      "status": "approved",
+      "deprecation": null
+    },
+    {
+      "conceptId": "store",
+      "preferredTerm": "store",
+      "partOfSpeech": "noun",
+      "technicalCategory": "technical-noun",
+      "meaning": "A commerce platform that sells games, for example Steam.",
+      "allowedContext": ["product", "architecture", "code", "user-facing"],
+      "prohibitedSynonyms": [
+        {
+          "term": "shop",
+          "unless": []
+        }
+      ],
+      "approvedAbbreviation": null,
+      "officialExternalName": false,
+      "notes": "The reference data arrives from the backend. This repository renders it and never defines it.",
+      "source": "docs/architecture.md, src/components/game/StoreIdentity.astro",
+      "status": "approved",
+      "deprecation": null
+    },
+    {
+      "conceptId": "store-offer",
+      "preferredTerm": "store offer",
+      "partOfSpeech": "noun",
+      "technicalCategory": "technical-noun",
+      "meaning": "One separately priced item under a store listing.",
+      "allowedContext": ["product", "architecture", "code"],
+      "prohibitedSynonyms": [],
+      "approvedAbbreviation": null,
+      "officialExternalName": false,
+      "notes": "The read contract carries the offers already ordered. ludwise-backend owns the store listing that an offer sits under, and this repository never names that concept.",
+      "source": "src/components/game/OfferTable.astro",
+      "status": "approved",
+      "deprecation": null
+    },
+    {
+      "conceptId": "market",
+      "preferredTerm": "market",
+      "partOfSpeech": "noun",
+      "technicalCategory": "technical-noun",
+      "meaning": "A country and currency pair that a price belongs to.",
+      "allowedContext": ["product", "architecture", "code", "user-facing"],
+      "prohibitedSynonyms": [
+        {
+          "term": "territory",
+          "unless": []
+        }
+      ],
+      "approvedAbbreviation": null,
+      "officialExternalName": false,
+      "notes": "A market is not a locale. A locale controls formatting only, and the two are separate inputs here.",
+      "source": "docs/architecture.md, src/lib/api/contract.ts",
+      "status": "approved",
+      "deprecation": null
+    },
+    {
+      "conceptId": "catalog",
+      "preferredTerm": "catalog",
+      "partOfSpeech": "noun",
+      "technicalCategory": "technical-noun",
+      "meaning": "The set of canonical games that LUDWISE owns, and the module that writes it.",
+      "allowedContext": ["product", "architecture", "code", "operations", "user-facing"],
+      "prohibitedSynonyms": [
+        {
+          "term": "catalogue",
+          "unless": []
+        }
+      ],
+      "approvedAbbreviation": null,
+      "officialExternalName": false,
+      "notes": "The backend names the module Catalog. The prose and the route names in this repository still use the other spelling, which phase 2 corrects.",
+      "source": "README.md, docs/architecture.md",
+      "status": "approved",
+      "deprecation": null
+    },
+    {
+      "conceptId": "visitor",
+      "preferredTerm": "visitor",
+      "partOfSpeech": "noun",
+      "technicalCategory": "technical-noun",
+      "meaning": "The anonymous person that the public read contract serves.",
+      "allowedContext": ["product", "architecture", "code", "user-facing"],
+      "prohibitedSynonyms": [
+        {
+          "term": "end user",
+          "unless": []
+        },
+        {
+          "term": "end-user",
+          "unless": []
+        },
+        {
+          "term": "user",
+          "unless": ["user agent", "user interface", "user story", "user account"]
+        }
+      ],
+      "approvedAbbreviation": null,
+      "officialExternalName": false,
+      "notes": "This repository has no accounts, so a visitor is never a signed-in person today.",
+      "source": "README.md, docs/architecture.md, design/system/guidelines/content-style.md",
+      "status": "approved",
+      "deprecation": null
+    },
+    {
+      "conceptId": "environment",
+      "preferredTerm": "environment",
+      "partOfSpeech": "noun",
+      "technicalCategory": "technical-noun",
+      "meaning": "One named deployment target: local, staging or production.",
+      "allowedContext": ["architecture", "operations", "code"],
+      "prohibitedSynonyms": [
+        {
+          "term": "stage",
+          "unless": ["stage of the pipeline"]
+        }
+      ],
+      "approvedAbbreviation": null,
+      "officialExternalName": false,
+      "notes": "The environment name is a machine value and stays exact.",
+      "source": "docs/architecture.md, scripts/check-environment.mjs",
+      "status": "approved",
+      "deprecation": null
+    },
+    {
+      "conceptId": "page",
+      "preferredTerm": "page",
+      "partOfSpeech": "noun",
+      "technicalCategory": "technical-noun",
+      "meaning": "One route of the website, and the document that it returns.",
+      "allowedContext": ["architecture", "code", "user-facing"],
+      "prohibitedSynonyms": [
+        {
+          "term": "webpage",
+          "unless": []
+        },
+        {
+          "term": "screen",
+          "unless": []
+        }
+      ],
+      "approvedAbbreviation": null,
+      "officialExternalName": false,
+      "notes": "A page is also the unit of pagination in a list view. The context separates the two senses.",
+      "source": "src/pages/",
+      "status": "approved",
+      "deprecation": null
+    },
+    {
+      "conceptId": "component",
+      "preferredTerm": "component",
+      "partOfSpeech": "noun",
+      "technicalCategory": "technical-noun",
+      "meaning": "One reusable piece of the interface, under src/components/.",
+      "allowedContext": ["architecture", "code"],
+      "prohibitedSynonyms": [
+        {
+          "term": "widget",
+          "unless": []
+        }
+      ],
+      "approvedAbbreviation": null,
+      "officialExternalName": false,
+      "notes": "The design handoff under design/system/components/ names the same units.",
+      "source": "docs/design-system.md",
+      "status": "approved",
+      "deprecation": null
+    },
+    {
+      "conceptId": "design-token",
+      "preferredTerm": "design token",
+      "partOfSpeech": "noun",
+      "technicalCategory": "technical-noun",
+      "meaning": "One named custom property that carries a design value.",
+      "allowedContext": ["architecture", "code"],
+      "prohibitedSynonyms": [
+        {
+          "term": "design variable",
+          "unless": []
+        }
+      ],
+      "approvedAbbreviation": null,
+      "officialExternalName": false,
+      "notes": "Never write a literal value where a token exists.",
+      "source": "docs/design-system.md, src/styles/tokens/",
+      "status": "approved",
+      "deprecation": null
+    },
+    {
+      "conceptId": "backend",
+      "preferredTerm": "backend",
+      "partOfSpeech": "noun",
+      "technicalCategory": "technical-noun",
+      "meaning": "The private Worker that answers a read over a service binding.",
+      "allowedContext": ["architecture", "code", "operations"],
+      "prohibitedSynonyms": [
+        {
+          "term": "the server",
+          "unless": []
+        },
+        {
+          "term": "the API server",
+          "unless": []
+        }
+      ],
+      "approvedAbbreviation": null,
+      "officialExternalName": false,
+      "notes": "The repository name ludwise-backend is an identifier, and it stays exact.",
+      "source": "README.md, docs/architecture.md",
+      "status": "approved",
+      "deprecation": null
+    }
+  ],
+  "prohibited": [
+    {
+      "expression": "wire up",
+      "suggestion": "connect, or configure",
+      "reason": "A phrasal verb with no predictable meaning."
+    },
+    {
+      "expression": "hook up",
+      "suggestion": "connect",
+      "reason": "A phrasal verb with no predictable meaning."
+    },
+    {
+      "expression": "spin up",
+      "suggestion": "start, or create",
+      "reason": "A phrasal verb with no predictable meaning."
+    },
+    {
+      "expression": "spin down",
+      "suggestion": "stop",
+      "reason": "A phrasal verb with no predictable meaning."
+    },
+    {
+      "expression": "kick off",
+      "suggestion": "start",
+      "reason": "A phrasal verb with no predictable meaning."
+    },
+    {
+      "expression": "nuke",
+      "suggestion": "delete, or remove",
+      "reason": "Slang, and it hides how much is removed."
+    },
+    {
+      "expression": "hydrate",
+      "suggestion": "fill, or read into",
+      "reason": "Slang when it means to fill an object."
+    },
+    {
+      "expression": "hydrated",
+      "suggestion": "filled",
+      "reason": "Slang when it means to fill an object."
+    },
+    {
+      "expression": "hydrates",
+      "suggestion": "fills",
+      "reason": "Slang when it means to fill an object."
+    },
+    {
+      "expression": "plumb",
+      "suggestion": "pass, or connect",
+      "reason": "Slang."
+    },
+    {
+      "expression": "bump",
+      "suggestion": "increase, or update",
+      "reason": "Slang, and it hides what changed."
+    },
+    {
+      "expression": "ship",
+      "suggestion": "release, or deploy",
+      "reason": "Slang, and it hides which step happened."
+    },
+    {
+      "expression": "under the hood",
+      "suggestion": "internally",
+      "reason": "An idiom that a translation system mishandles."
+    },
+    {
+      "expression": "leverage",
+      "suggestion": "use",
+      "reason": "A longer word for a simple action."
+    },
+    {
+      "expression": "utilize",
+      "suggestion": "use",
+      "reason": "A longer word for a simple action."
+    },
+    {
+      "expression": "in order to",
+      "suggestion": "to",
+      "reason": "Padding."
+    },
+    {
+      "expression": "at this point in time",
+      "suggestion": "now",
+      "reason": "Padding."
+    },
+    {
+      "expression": "e.g.",
+      "suggestion": "for example",
+      "reason": "A Latin abbreviation that a reader can misread."
+    },
+    {
+      "expression": "i.e.",
+      "suggestion": "that is",
+      "reason": "A Latin abbreviation that a reader can misread."
+    },
+    {
+      "expression": "etc.",
+      "suggestion": "name the remaining items",
+      "reason": "The reader cannot know what the list holds."
+    }
+  ],
+  "abbreviations": [
+    {
+      "abbreviation": "API",
+      "expansion": "application programming interface",
+      "scope": "global",
+      "expandOnFirstUse": false,
+      "notes": "Also an official protocol word in many external names."
+    },
+    {
+      "abbreviation": "HTTP",
+      "expansion": "hypertext transfer protocol",
+      "scope": "global",
+      "expandOnFirstUse": false,
+      "notes": "A protocol name."
+    },
+    {
+      "abbreviation": "HTTPS",
+      "expansion": "hypertext transfer protocol secure",
+      "scope": "global",
+      "expandOnFirstUse": false,
+      "notes": "A protocol name."
+    },
+    {
+      "abbreviation": "URL",
+      "expansion": "uniform resource locator",
+      "scope": "global",
+      "expandOnFirstUse": false,
+      "notes": "Expansion would be less clear than the abbreviation."
+    },
+    {
+      "abbreviation": "URI",
+      "expansion": "uniform resource identifier",
+      "scope": "global",
+      "expandOnFirstUse": false,
+      "notes": "Expansion would be less clear than the abbreviation."
+    },
+    {
+      "abbreviation": "JSON",
+      "expansion": "JavaScript object notation",
+      "scope": "global",
+      "expandOnFirstUse": false,
+      "notes": "A format name."
+    },
+    {
+      "abbreviation": "YAML",
+      "expansion": "a data serialization format",
+      "scope": "global",
+      "expandOnFirstUse": false,
+      "notes": "A recursive name with no useful expansion, so the abbreviation is always written."
+    },
+    {
+      "abbreviation": "SQL",
+      "expansion": "structured query language",
+      "scope": "global",
+      "expandOnFirstUse": false,
+      "notes": "A language name."
+    },
+    {
+      "abbreviation": "HTML",
+      "expansion": "hypertext markup language",
+      "scope": "global",
+      "expandOnFirstUse": false,
+      "notes": "A language name."
+    },
+    {
+      "abbreviation": "CSS",
+      "expansion": "cascading style sheets",
+      "scope": "global",
+      "expandOnFirstUse": false,
+      "notes": "A language name."
+    },
+    {
+      "abbreviation": "UI",
+      "expansion": "user interface",
+      "scope": "global",
+      "expandOnFirstUse": false,
+      "notes": "Widely understood."
+    },
+    {
+      "abbreviation": "ID",
+      "expansion": "identifier",
+      "scope": "global",
+      "expandOnFirstUse": false,
+      "notes": "Widely understood."
+    },
+    {
+      "abbreviation": "CI",
+      "expansion": "continuous integration",
+      "scope": "global",
+      "expandOnFirstUse": false,
+      "notes": "Widely understood by every contributor."
+    },
+    {
+      "abbreviation": "PR",
+      "expansion": "pull request",
+      "scope": "global",
+      "expandOnFirstUse": false,
+      "notes": "Widely understood by every contributor."
+    },
+    {
+      "abbreviation": "UTC",
+      "expansion": "coordinated universal time",
+      "scope": "global",
+      "expandOnFirstUse": false,
+      "notes": "A standard time scale."
+    },
+    {
+      "abbreviation": "ADR",
+      "expansion": "architecture decision record",
+      "scope": "domain",
+      "expandOnFirstUse": true,
+      "notes": "Write the full term once in each document."
+    },
+    {
+      "abbreviation": "STE",
+      "expansion": "Simplified Technical English",
+      "scope": "domain",
+      "expandOnFirstUse": true,
+      "notes": "Write the full term once in each document."
+    },
+    {
+      "abbreviation": "TDD",
+      "expansion": "test-driven development",
+      "scope": "domain",
+      "expandOnFirstUse": true,
+      "notes": "Write the full term once in each document."
+    },
+    {
+      "abbreviation": "DDL",
+      "expansion": "data definition language",
+      "scope": "domain",
+      "expandOnFirstUse": true,
+      "notes": "Write the full term once in each document."
+    }
+  ],
+  "prohibitedAbbreviations": [
+    {
+      "abbreviation": "a11y",
+      "expansion": "accessibility",
+      "reason": "A numeronym that a reader cannot decode."
+    },
+    {
+      "abbreviation": "i18n",
+      "expansion": "internationalization",
+      "reason": "A numeronym that a reader cannot decode."
+    },
+    {
+      "abbreviation": "l10n",
+      "expansion": "localization",
+      "reason": "A numeronym that a reader cannot decode."
+    },
+    {
+      "abbreviation": "e2e",
+      "expansion": "end-to-end",
+      "reason": "A numeronym that a reader cannot decode."
+    },
+    {
+      "abbreviation": "repo",
+      "expansion": "repository",
+      "reason": "A clipped word, not an approved abbreviation."
+    },
+    {
+      "abbreviation": "config",
+      "expansion": "configuration",
+      "reason": "A clipped word, not an approved abbreviation."
+    },
+    {
+      "abbreviation": "env",
+      "expansion": "environment",
+      "reason": "A clipped word, not an approved abbreviation."
+    },
+    {
+      "abbreviation": "auth",
+      "expansion": "authentication, or authorization",
+      "reason": "Ambiguous: it can mean either of two different things."
+    },
+    {
+      "abbreviation": "db",
+      "expansion": "database",
+      "reason": "A clipped word, not an approved abbreviation."
+    },
+    {
+      "abbreviation": "prod",
+      "expansion": "production",
+      "reason": "A clipped word, not an approved abbreviation."
+    },
+    {
+      "abbreviation": "dev",
+      "expansion": "development",
+      "reason": "A clipped word, not an approved abbreviation."
+    },
+    {
+      "abbreviation": "spec",
+      "expansion": "specification",
+      "reason": "A clipped word, not an approved abbreviation."
+    },
+    {
+      "abbreviation": "param",
+      "expansion": "parameter",
+      "reason": "A clipped word, not an approved abbreviation."
+    },
+    {
+      "abbreviation": "impl",
+      "expansion": "implementation",
+      "reason": "A clipped word, not an approved abbreviation."
+    }
+  ],
+  "officialNames": [
+    "LUDWISE",
+    "ASD",
+    "ASD-STE100",
+    "STEMG",
+    "Simplified Technical English",
+    "Steam",
+    "Cloudflare",
+    "Workers",
+    "Wrangler",
+    "GitHub",
+    "Astro",
+    "React",
+    "Node.js",
+    "TypeScript",
+    "JavaScript",
+    "Prettier",
+    "ESLint",
+    "Vitest",
+    "Playwright",
+    "pnpm",
+    "Husky",
+    "Dependabot",
+    "Apache",
+    "Lucide",
+    "Geist",
+    "Vercel"
+  ],
+  "conflicts": [
+    {
+      "id": "catalog-spelling",
+      "status": "resolved",
+      "concept": "The set of canonical games.",
+      "candidates": ["catalog", "catalogue"],
+      "resolution": "catalog",
+      "evidence": [
+        "The backend names the module Catalog in its architecture document.",
+        "README.md and src/pages/games.astro write the other spelling.",
+        "The two repositories must not disagree about one concept."
+      ],
+      "phase2": "Correct the prose in both repositories. A route rename is a product decision and is out of scope for the language work."
+    },
+    {
+      "id": "provider-overload",
+      "status": "open",
+      "concept": "Two different things share one noun in this repository.",
+      "candidates": [
+        "provider (a store or price source such as Steam)",
+        "provider (an analytics transport)"
+      ],
+      "resolution": null,
+      "evidence": [
+        "docs/architecture.md uses provider for a data source that the backend reads.",
+        "tests/unit/analytics/providers.test.ts uses provider for a transport implementation, and src/lib/analytics/ carries the same sense."
+      ],
+      "phase2": "Rename one of the two. The analytics sense is local to this repository, so it is the cheaper one to change."
+    },
+    {
+      "id": "surface-or-region",
+      "status": "open",
+      "concept": "A named area of the interface.",
+      "candidates": ["surface", "region"],
+      "resolution": null,
+      "evidence": [
+        "docs/design-system.md writes surface for a distinct place in the interface.",
+        "The vendored layout guideline writes region for an area of a page.",
+        "The vendored text is exempt, so only the LUDWISE prose is in scope."
+      ],
+      "phase2": "Choose one noun for the LUDWISE prose, and leave the vendored handoff alone."
+    }
+  ]
+}

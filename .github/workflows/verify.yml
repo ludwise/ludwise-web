@@ -185,3 +185,48 @@ jobs:
       # actually receives.
       - name: Check the built bundle for leakage
         run: node scripts/check-bundle.mjs
+
+  # A separate job so the check has a stable name that branch protection can
+  # require after phase 2. It needs no browser and no build, so it answers in
+  # about a minute while the suite above is still running.
+  language:
+    name: Language
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+
+      - name: Install Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # The checker's own tests, the policy files and the terminology schema.
+      # These run before the prose check so a broken policy fails as a broken
+      # policy rather than as a mass of prose violations.
+      - name: Test the language checker
+        run: pnpm exec vitest run tests/unit/scripts/ste
+
+      # Phase 1 gates only the paths that docs/language/policy.json declares.
+      # Setting rollout.mode to "enforce" widens this to every classified file.
+      - name: Check the governed prose
+        run: pnpm run check:ste
+
+      # The repository-wide audit is the input for phase 2. It reports and does
+      # not gate, so a legacy violation cannot block this pull request.
+      - name: Audit the repository
+        if: always()
+        run: node scripts/ste/cli.mjs audit --format markdown >> "$GITHUB_STEP_SUMMARY"
