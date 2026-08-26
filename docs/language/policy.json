@@ -152,8 +152,8 @@
       "paths": ["src/**/*.{ts,tsx,mts,cts,jsx,astro}"],
       "unit": "comments",
       "class": "STE-STRICT",
-      "prose": "mixed",
-      "reason": "A code comment states a contract, so it must be unambiguous."
+      "prose": "descriptive",
+      "reason": "A code comment states a contract or a rationale, so it is descriptive prose. A step that a person performs belongs in a runbook, not beside the code."
     },
     {
       "id": "visitor-strings",
@@ -173,24 +173,24 @@
       "paths": ["scripts/**/*.{mjs,cjs,js,ts,mts,cts}", "eslint-rules/**/*.{js,mjs,cjs}"],
       "unit": "comments",
       "class": "STE-STRICT",
-      "prose": "mixed",
-      "reason": "Tooling comments explain rationale that the code cannot state."
+      "prose": "descriptive",
+      "reason": "A tooling comment explains a rationale that the code cannot state. It gives information rather than an instruction."
     },
     {
       "id": "test-comments",
       "paths": ["tests/**/*.{ts,tsx,mts,cts}"],
       "unit": "comments",
       "class": "STE-STRICT",
-      "prose": "mixed",
-      "reason": "A test comment records why the assertion is correct."
+      "prose": "descriptive",
+      "reason": "A test comment records why the assertion is correct. It gives information rather than an instruction."
     },
     {
       "id": "root-config-comments",
       "paths": ["*.{js,mjs,cjs,ts,mts,cts}"],
       "unit": "comments",
       "class": "STE-STRICT",
-      "prose": "mixed",
-      "reason": "Configuration comments explain a decision that the value cannot show."
+      "prose": "descriptive",
+      "reason": "A configuration comment explains a decision that the value cannot show. It gives information rather than an instruction."
     },
     {
       "id": "other-markdown",
