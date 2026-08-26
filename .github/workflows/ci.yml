@@ -24,7 +24,7 @@ concurrency:
 
 env:
   # Actions pins are commit SHAs with the tag in a trailing comment, and the set
-  # that may run at all is an organisation-wide allowlist. This repository is
+  # that may run at all is an organization-wide allowlist. This repository is
   # public, so CodeQL is available and worth adding; until it is, pinning is the
   # supply-chain control that is actually in place.
   FORCE_COLOR: '1'

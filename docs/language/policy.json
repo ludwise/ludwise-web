@@ -1,0 +1,558 @@
+{
+  "$schemaVersion": 1,
+  "profile": {
+    "name": "LUDWISE ASD-STE100 profile",
+    "version": 1,
+    "repository": "ludwise-web"
+  },
+  "standard": {
+    "name": "ASD-STE100 Simplified Technical English",
+    "subtitle": "Standard for Technical Documentation",
+    "issue": "9",
+    "issueDate": "2025-01-15",
+    "publisher": "ASD, Brussels, Belgium",
+    "maintainer": "ASD Simplified Technical English Maintenance Group",
+    "pinned": true,
+    "upgradePolicy": "explicit-decision-required",
+    "upgradeRequirements": [
+      "An architecture decision record that accepts the new issue.",
+      "A compatibility audit against the previous issue.",
+      "A terminology audit of every controlled term.",
+      "Checker updates for every changed rule.",
+      "A controlled migration of the governed prose."
+    ]
+  },
+  "rollout": {
+    "mode": "audit",
+    "modes": ["audit", "enforce"],
+    "enforcedPaths": ["docs/language/**", "scripts/ste/**", "tests/unit/scripts/ste/**"],
+    "enforcementCheckName": "Language"
+  },
+  "contentClasses": {
+    "STE-STRICT": {
+      "title": "Strict profile conformance",
+      "summary": "The final text must obey the LUDWISE ASD-STE100 profile."
+    },
+    "STE-DERIVED": {
+      "title": "Derived from a Simplified Technical English baseline",
+      "summary": "The text starts as a controlled baseline and then passes the user-facing pipeline."
+    },
+    "STE-EXEMPT": {
+      "title": "Exempt",
+      "summary": "The content is machine syntax, an external value, or text that LUDWISE does not control."
+    }
+  },
+  "units": {
+    "prose": {
+      "summary": "The whole file is controlled prose.",
+      "checkerSupport": "full"
+    },
+    "comments": {
+      "summary": "Only the code comments and doc comments in the file are controlled prose.",
+      "checkerSupport": "full"
+    },
+    "strings": {
+      "summary": "Only the human-readable string literals in the file are controlled prose.",
+      "checkerSupport": "none",
+      "checkerSupportReason": "String extraction is not implemented. See docs/language/checker.md."
+    }
+  },
+  "proseBearingExtensions": [
+    ".md",
+    ".markdown",
+    ".mdx",
+    ".txt",
+    ".rst",
+    ".adoc",
+    ".ts",
+    ".tsx",
+    ".mts",
+    ".cts",
+    ".js",
+    ".jsx",
+    ".mjs",
+    ".cjs",
+    ".astro"
+  ],
+  "limits": {
+    "proceduralSentenceWords": 20,
+    "descriptiveSentenceWords": 25,
+    "paragraphSentences": 6
+  },
+  "classification": [
+    {
+      "id": "vendored-design-system",
+      "paths": ["design/**"],
+      "unit": "prose",
+      "class": "STE-EXEMPT",
+      "reason": "The design handoff is vendored reference material that LUDWISE did not author."
+    },
+    {
+      "id": "third-party-notices",
+      "paths": ["NOTICE", "LICENSE"],
+      "unit": "prose",
+      "class": "STE-EXEMPT",
+      "reason": "License text that somebody else wrote. Neither file carries a prose-bearing extension, so the rule states the intent rather than changing a result."
+    },
+    {
+      "id": "root-documents",
+      "paths": ["*.md"],
+      "unit": "prose",
+      "class": "STE-STRICT",
+      "prose": "mixed",
+      "reason": "README, security and contribution documents are internal technical prose."
+    },
+    {
+      "id": "repository-documentation",
+      "paths": ["docs/**/*.md"],
+      "unit": "prose",
+      "class": "STE-STRICT",
+      "prose": "mixed",
+      "reason": "Every document under docs/ is developer or operational prose."
+    },
+    {
+      "id": "agent-instructions",
+      "paths": [".claude/**/*.md"],
+      "unit": "prose",
+      "class": "STE-STRICT",
+      "prose": "mixed",
+      "reason": "Agent instructions and agent prompts must be unambiguous."
+    },
+    {
+      "id": "github-prose",
+      "paths": [".github/**/*.md"],
+      "unit": "prose",
+      "class": "STE-STRICT",
+      "prose": "mixed",
+      "reason": "Pull request and issue templates are prose that LUDWISE controls."
+    },
+    {
+      "id": "github-machine-config",
+      "paths": [".github/**/*.yml", ".github/**/*.yaml"],
+      "unit": "prose",
+      "class": "STE-EXEMPT",
+      "reason": "Workflow and template files are machine configuration. Phase 2 governs the prose values inside them."
+    },
+    {
+      "id": "recorded-fixtures",
+      "paths": ["tests/fixtures/**"],
+      "unit": "prose",
+      "class": "STE-EXEMPT",
+      "reason": "Recorded transcripts and fixtures are data, not authored prose."
+    },
+    {
+      "id": "recorded-fixture-comments",
+      "paths": ["tests/fixtures/**"],
+      "unit": "comments",
+      "class": "STE-EXEMPT",
+      "reason": "A fixture holds a deliberate violation, so its comments are data rather than authored prose."
+    },
+    {
+      "id": "source-comments",
+      "paths": ["src/**/*.{ts,tsx,mts,cts,jsx,astro}"],
+      "unit": "comments",
+      "class": "STE-STRICT",
+      "prose": "mixed",
+      "reason": "A code comment states a contract, so it must be unambiguous."
+    },
+    {
+      "id": "visitor-strings",
+      "paths": [
+        "src/pages/**/*.astro",
+        "src/components/**/*.astro",
+        "src/layouts/**/*.astro",
+        "src/**/*.{tsx,jsx}",
+        "src/lib/http/filter-advice.ts"
+      ],
+      "unit": "strings",
+      "class": "STE-DERIVED",
+      "reason": "Most visitor-visible strings are written in a template. src/lib/http/filter-advice.ts is the one module that holds visitor sentences instead."
+    },
+    {
+      "id": "script-comments",
+      "paths": ["scripts/**/*.{mjs,cjs,js,ts,mts,cts}", "eslint-rules/**/*.{js,mjs,cjs}"],
+      "unit": "comments",
+      "class": "STE-STRICT",
+      "prose": "mixed",
+      "reason": "Tooling comments explain rationale that the code cannot state."
+    },
+    {
+      "id": "test-comments",
+      "paths": ["tests/**/*.{ts,tsx,mts,cts}"],
+      "unit": "comments",
+      "class": "STE-STRICT",
+      "prose": "mixed",
+      "reason": "A test comment records why the assertion is correct."
+    },
+    {
+      "id": "root-config-comments",
+      "paths": ["*.{js,mjs,cjs,ts,mts,cts}"],
+      "unit": "comments",
+      "class": "STE-STRICT",
+      "prose": "mixed",
+      "reason": "Configuration comments explain a decision that the value cannot show."
+    },
+    {
+      "id": "other-markdown",
+      "paths": ["**/*.md"],
+      "unit": "prose",
+      "class": "STE-STRICT",
+      "prose": "mixed",
+      "reason": "Any other Markdown file in the repository is prose that LUDWISE authored."
+    },
+    {
+      "id": "unclassified",
+      "paths": ["**"],
+      "unit": "prose",
+      "class": "STE-EXEMPT",
+      "catchAll": true,
+      "reason": "The file holds no prose that LUDWISE authored."
+    }
+  ],
+  "exemptions": {
+    "blocks": [
+      {
+        "id": "front-matter",
+        "title": "YAML front matter",
+        "reason": "Front matter is machine-readable metadata, not prose."
+      },
+      {
+        "id": "code-fence",
+        "title": "Fenced code block",
+        "reason": "A code example is programming-language syntax, not prose."
+      },
+      {
+        "id": "html-comment",
+        "title": "HTML comment in Markdown",
+        "reason": "An HTML comment carries tooling directives, not reader-visible prose."
+      }
+    ],
+    "spans": [
+      {
+        "id": "inline-code",
+        "title": "Inline code span",
+        "reason": "Backticks mark an identifier, a command, or a protocol value."
+      },
+      {
+        "id": "link-destination",
+        "title": "Markdown link destination",
+        "reason": "A link target is a path or a URL. The link text stays under control."
+      },
+      {
+        "id": "url",
+        "title": "URL, URI and mail address",
+        "reason": "An address is an external value that a rewrite would break."
+      },
+      {
+        "id": "path-like",
+        "title": "File path and file name",
+        "reason": "A path names a file on disk and must stay exact."
+      },
+      {
+        "id": "identifier",
+        "title": "Programming identifier",
+        "reason": "Function, type, constant, column and environment-variable names must stay exact."
+      },
+      {
+        "id": "official-name",
+        "title": "Official product and company name",
+        "reason": "An official name is fixed by its owner."
+      },
+      {
+        "id": "jsdoc-tag",
+        "title": "Documentation-comment tag",
+        "reason": "A tag such as the parameter tag is tooling syntax."
+      },
+      {
+        "id": "conventional-commit-prefix",
+        "title": "Conventional Commit type and scope",
+        "reason": "The prefix is machine-structured release metadata."
+      }
+    ]
+  },
+  "sentenceBoundary": {
+    "abbreviations": [
+      "e.g",
+      "i.e",
+      "etc",
+      "vs",
+      "cf",
+      "approx",
+      "Fig",
+      "No",
+      "Mr",
+      "Ms",
+      "Dr",
+      "St"
+    ]
+  },
+  "contractions": {
+    "words": [
+      "it's",
+      "let's",
+      "that's",
+      "there's",
+      "here's",
+      "what's",
+      "who's",
+      "he's",
+      "she's",
+      "where's",
+      "how's"
+    ],
+    "suffixes": ["n't", "'ll", "'re", "'ve", "'m", "'d"],
+    "note": "The possessive is never reported. A word such as one's is left out of this list, because the possessive and the contraction cannot be told apart without part-of-speech data."
+  },
+  "spelling": {
+    "reason": "ASD-STE100 uses one spelling for one word. LUDWISE writes American English.",
+    "variants": [
+      {
+        "variant": "behaviour",
+        "preferred": "behavior"
+      },
+      {
+        "variant": "behaviours",
+        "preferred": "behaviors"
+      },
+      {
+        "variant": "colour",
+        "preferred": "color"
+      },
+      {
+        "variant": "colours",
+        "preferred": "colors"
+      },
+      {
+        "variant": "favourite",
+        "preferred": "favorite"
+      },
+      {
+        "variant": "honour",
+        "preferred": "honor"
+      },
+      {
+        "variant": "labour",
+        "preferred": "labor"
+      },
+      {
+        "variant": "artefact",
+        "preferred": "artifact"
+      },
+      {
+        "variant": "artefacts",
+        "preferred": "artifacts"
+      },
+      {
+        "variant": "centre",
+        "preferred": "center"
+      },
+      {
+        "variant": "defence",
+        "preferred": "defense"
+      },
+      {
+        "variant": "programme",
+        "preferred": "program"
+      },
+      {
+        "variant": "grey",
+        "preferred": "gray"
+      },
+      {
+        "variant": "analyse",
+        "preferred": "analyze"
+      },
+      {
+        "variant": "analysed",
+        "preferred": "analyzed"
+      },
+      {
+        "variant": "analyses",
+        "preferred": "analyzes"
+      },
+      {
+        "variant": "cancelled",
+        "preferred": "canceled"
+      },
+      {
+        "variant": "cancelling",
+        "preferred": "canceling"
+      },
+      {
+        "variant": "labelled",
+        "preferred": "labeled"
+      },
+      {
+        "variant": "labelling",
+        "preferred": "labeling"
+      },
+      {
+        "variant": "modelled",
+        "preferred": "modeled"
+      },
+      {
+        "variant": "modelling",
+        "preferred": "modeling"
+      },
+      {
+        "variant": "travelled",
+        "preferred": "traveled"
+      },
+      {
+        "variant": "fulfil",
+        "preferred": "fulfill"
+      },
+      {
+        "variant": "initialise",
+        "preferred": "initialize"
+      },
+      {
+        "variant": "initialised",
+        "preferred": "initialized"
+      },
+      {
+        "variant": "initialisation",
+        "preferred": "initialization"
+      },
+      {
+        "variant": "normalise",
+        "preferred": "normalize"
+      },
+      {
+        "variant": "normalised",
+        "preferred": "normalized"
+      },
+      {
+        "variant": "normalisation",
+        "preferred": "normalization"
+      },
+      {
+        "variant": "organisation",
+        "preferred": "organization"
+      },
+      {
+        "variant": "organise",
+        "preferred": "organize"
+      },
+      {
+        "variant": "organised",
+        "preferred": "organized"
+      },
+      {
+        "variant": "optimise",
+        "preferred": "optimize"
+      },
+      {
+        "variant": "optimised",
+        "preferred": "optimized"
+      },
+      {
+        "variant": "optimisation",
+        "preferred": "optimization"
+      },
+      {
+        "variant": "prioritise",
+        "preferred": "prioritize"
+      },
+      {
+        "variant": "recognise",
+        "preferred": "recognize"
+      },
+      {
+        "variant": "recognised",
+        "preferred": "recognized"
+      },
+      {
+        "variant": "serialise",
+        "preferred": "serialize"
+      },
+      {
+        "variant": "serialised",
+        "preferred": "serialized"
+      },
+      {
+        "variant": "specialise",
+        "preferred": "specialize"
+      },
+      {
+        "variant": "standardise",
+        "preferred": "standardize"
+      },
+      {
+        "variant": "summarise",
+        "preferred": "summarize"
+      },
+      {
+        "variant": "synchronise",
+        "preferred": "synchronize"
+      },
+      {
+        "variant": "synchronised",
+        "preferred": "synchronized"
+      },
+      {
+        "variant": "synchronisation",
+        "preferred": "synchronization"
+      },
+      {
+        "variant": "utilise",
+        "preferred": "use"
+      },
+      {
+        "variant": "visualise",
+        "preferred": "visualize"
+      },
+      {
+        "variant": "customise",
+        "preferred": "customize"
+      },
+      {
+        "variant": "minimise",
+        "preferred": "minimize"
+      },
+      {
+        "variant": "maximise",
+        "preferred": "maximize"
+      },
+      {
+        "variant": "authorise",
+        "preferred": "authorize"
+      },
+      {
+        "variant": "authorised",
+        "preferred": "authorized"
+      },
+      {
+        "variant": "authorisation",
+        "preferred": "authorization"
+      }
+    ]
+  },
+  "punctuation": {
+    "reason": "A slash between two words hides which alternative applies. A path and a date also use a slash, so the checker reports a closed list rather than every slash.",
+    "alternativeSlash": [
+      "and/or",
+      "read/write",
+      "input/output",
+      "on/off",
+      "yes/no",
+      "true/false",
+      "he/she",
+      "his/her",
+      "start/stop",
+      "enable/disable",
+      "success/failure",
+      "either/or",
+      "pass/fail",
+      "open/close",
+      "add/remove",
+      "import/export"
+    ]
+  },
+  "lexicon": {
+    "source": null,
+    "reason": "LUDWISE holds no permission to a machine-readable copy of the controlled dictionary, and will not scrape one. Until a licensed source exists, LW-STE-WORD-APPROVED and LW-STE-WORD-PART-OF-SPEECH are not run.",
+    "contract": ["approves(word)", "partsOfSpeech(word)"],
+    "attachment": "scripts/ste/lexicon.mjs, through registerLexiconAdapter"
+  }
+}

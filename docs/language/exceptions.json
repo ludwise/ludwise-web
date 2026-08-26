@@ -1,0 +1,7 @@
+{
+  "$schemaVersion": 1,
+  "profile": { "name": "LUDWISE ASD-STE100 profile", "version": 1 },
+  "policy": "An exception is central and auditable. There is no inline suppression comment, and the checker never reads one.",
+  "requiredFields": ["id", "scope", "rules", "reason", "owner"],
+  "exceptions": []
+}

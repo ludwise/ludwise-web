@@ -1,0 +1,1062 @@
+{
+  "$schemaVersion": 2,
+  "profile": { "name": "LUDWISE ASD-STE100 profile", "version": 1 },
+  "standard": {
+    "name": "ASD-STE100 Simplified Technical English",
+    "issue": "9",
+    "issueDate": "2025-01-15"
+  },
+  "normativeSourceAccess": {
+    "state": "verified",
+    "source": "ASD-STE100 Simplified Technical English, Issue 9, dated 2025-01-15, supplied to the project for review.",
+    "verifiedScope": [
+      "All 53 writing-rule identifiers and section titles in Part 1.",
+      "The rule summaries and explanations needed to map the LUDWISE profile.",
+      "The word-count rules 8.4 through 8.7.",
+      "The distinction between writing rules and the general recommendations in section 9."
+    ],
+    "dictionaryUse": "Part 2 was reviewed as the normative controlled dictionary. The repository does not copy or vendor the dictionary, and the local checker does not claim full lexical validation.",
+    "consequence": "Phase 1 has a complete verified map of all 53 writing rules. Phase 2 must apply them to existing prose and make semantic review a blocking workflow requirement."
+  },
+  "sections": [
+    { "number": 1, "name": "Words", "sourceVerification": "verified" },
+    { "number": 2, "name": "Multi-word nouns", "sourceVerification": "verified" },
+    { "number": 3, "name": "Verbs", "sourceVerification": "verified" },
+    { "number": 4, "name": "Sentences", "sourceVerification": "verified" },
+    { "number": 5, "name": "Procedural writing", "sourceVerification": "verified" },
+    { "number": 6, "name": "Descriptive writing", "sourceVerification": "verified" },
+    { "number": 7, "name": "Safety instructions", "sourceVerification": "verified" },
+    { "number": 8, "name": "Punctuation and word count", "sourceVerification": "verified" },
+    { "number": 9, "name": "Writing practices", "sourceVerification": "verified" }
+  ],
+  "enforcementTypes": {
+    "deterministic": "A machine can decide the configured check from text and structure without semantic judgment.",
+    "heuristic": "A machine can identify a probable issue, but a person must confirm it.",
+    "semantic": "Correctness depends on meaning, grammar, domain terminology, or reader intent.",
+    "process": "A required review or workflow step carries the rule.",
+    "not-applicable": "The rule does not apply to the governed LUDWISE content."
+  },
+  "standardRuleMap": [
+    {
+      "ruleNumber": "1.1",
+      "section": 1,
+      "sectionName": "Words",
+      "title": "Use approved dictionary words, technical nouns, or technical verbs.",
+      "sourceVerification": "verified",
+      "enforcement": "semantic",
+      "checkerSupport": "none",
+      "humanReview": "required",
+      "limitation": "The local checker has no complete controlled-dictionary source."
+    },
+    {
+      "ruleNumber": "1.2",
+      "section": 1,
+      "sectionName": "Words",
+      "title": "Use an approved word only as its approved part of speech.",
+      "sourceVerification": "verified",
+      "enforcement": "semantic",
+      "checkerSupport": "none",
+      "humanReview": "required",
+      "limitation": "Dictionary and grammatical review are required."
+    },
+    {
+      "ruleNumber": "1.3",
+      "section": 1,
+      "sectionName": "Words",
+      "title": "Use an approved word only with its approved meaning.",
+      "sourceVerification": "verified",
+      "enforcement": "semantic",
+      "checkerSupport": "none",
+      "humanReview": "required",
+      "limitation": "Dictionary and semantic review are required."
+    },
+    {
+      "ruleNumber": "1.4",
+      "section": 1,
+      "sectionName": "Words",
+      "title": "Use only approved verb and adjective forms.",
+      "sourceVerification": "verified",
+      "enforcement": "semantic",
+      "checkerSupport": "none",
+      "humanReview": "required",
+      "limitation": "Dictionary and grammatical review are required."
+    },
+    {
+      "ruleNumber": "1.5",
+      "section": 1,
+      "sectionName": "Words",
+      "title": "Use technical nouns only from permitted technical-noun categories.",
+      "sourceVerification": "verified",
+      "enforcement": "semantic",
+      "checkerSupport": "none",
+      "humanReview": "required",
+      "limitation": "Domain terminology review is required."
+    },
+    {
+      "ruleNumber": "1.6",
+      "section": 1,
+      "sectionName": "Words",
+      "title": "Use a non-approved word only when it is a technical noun or part of one.",
+      "sourceVerification": "verified",
+      "enforcement": "semantic",
+      "checkerSupport": "none",
+      "humanReview": "required",
+      "limitation": "Dictionary and domain review are required."
+    },
+    {
+      "ruleNumber": "1.7",
+      "section": 1,
+      "sectionName": "Words",
+      "title": "Do not use a technical noun as a verb.",
+      "sourceVerification": "verified",
+      "enforcement": "semantic",
+      "checkerSupport": "none",
+      "humanReview": "required",
+      "limitation": "Part-of-speech and domain review are required."
+    },
+    {
+      "ruleNumber": "1.8",
+      "section": 1,
+      "sectionName": "Words",
+      "title": "Use technical nouns approved for the applicable domain.",
+      "sourceVerification": "verified",
+      "enforcement": "semantic",
+      "checkerSupport": "none",
+      "humanReview": "required",
+      "limitation": "Domain terminology review is required."
+    },
+    {
+      "ruleNumber": "1.9",
+      "section": 1,
+      "sectionName": "Words",
+      "title": "Prefer short and clear technical nouns.",
+      "sourceVerification": "verified",
+      "enforcement": "semantic",
+      "checkerSupport": "none",
+      "humanReview": "required",
+      "limitation": "Clarity requires human review."
+    },
+    {
+      "ruleNumber": "1.10",
+      "section": 1,
+      "sectionName": "Words",
+      "title": "Do not use regional, slang, or jargon words as technical nouns.",
+      "sourceVerification": "verified",
+      "enforcement": "semantic",
+      "checkerSupport": "partial",
+      "humanReview": "required",
+      "limitation": "Configured prohibited expressions catch known cases only."
+    },
+    {
+      "ruleNumber": "1.11",
+      "section": 1,
+      "sectionName": "Words",
+      "title": "Use one technical noun consistently for the same item.",
+      "sourceVerification": "verified",
+      "enforcement": "semantic",
+      "checkerSupport": "partial",
+      "humanReview": "required",
+      "limitation": "Recorded synonyms are checked; referential identity still needs review."
+    },
+    {
+      "ruleNumber": "1.12",
+      "section": 1,
+      "sectionName": "Words",
+      "title": "Use technical verbs only from permitted technical-verb categories.",
+      "sourceVerification": "verified",
+      "enforcement": "semantic",
+      "checkerSupport": "none",
+      "humanReview": "required",
+      "limitation": "Domain terminology review is required."
+    },
+    {
+      "ruleNumber": "1.13",
+      "section": 1,
+      "sectionName": "Words",
+      "title": "Do not use a technical verb as a noun.",
+      "sourceVerification": "verified",
+      "enforcement": "semantic",
+      "checkerSupport": "none",
+      "humanReview": "required",
+      "limitation": "Part-of-speech and domain review are required."
+    },
+    {
+      "ruleNumber": "1.14",
+      "section": 1,
+      "sectionName": "Words",
+      "title": "Use American English spelling unless an official directive requires another spelling.",
+      "sourceVerification": "verified",
+      "enforcement": "deterministic",
+      "checkerSupport": "partial",
+      "humanReview": "required-for-unlisted-spellings",
+      "limitation": "Only configured spelling variants are checked."
+    },
+    {
+      "ruleNumber": "2.1",
+      "section": 2,
+      "sectionName": "Multi-word nouns",
+      "title": "Keep a multi-word noun to three words or fewer.",
+      "sourceVerification": "verified",
+      "enforcement": "semantic",
+      "checkerSupport": "none",
+      "humanReview": "required",
+      "limitation": "Reliable noun-phrase recognition requires grammar and domain context."
+    },
+    {
+      "ruleNumber": "2.2",
+      "section": 2,
+      "sectionName": "Multi-word nouns",
+      "title": "Handle a longer technical noun with the approved clarification method.",
+      "sourceVerification": "verified",
+      "enforcement": "semantic",
+      "checkerSupport": "none",
+      "humanReview": "required",
+      "limitation": "Domain terminology and prior-use context are required."
+    },
+    {
+      "ruleNumber": "3.1",
+      "section": 3,
+      "sectionName": "Verbs",
+      "title": "Use only dictionary-listed verb forms.",
+      "sourceVerification": "verified",
+      "enforcement": "semantic",
+      "checkerSupport": "none",
+      "humanReview": "required",
+      "limitation": "Dictionary validation is required."
+    },
+    {
+      "ruleNumber": "3.2",
+      "section": 3,
+      "sectionName": "Verbs",
+      "title": "Use only permitted verb forms and tenses.",
+      "sourceVerification": "verified",
+      "enforcement": "semantic",
+      "checkerSupport": "none",
+      "humanReview": "required",
+      "limitation": "Grammatical analysis is required."
+    },
+    {
+      "ruleNumber": "3.3",
+      "section": 3,
+      "sectionName": "Verbs",
+      "title": "Use past participles as adjectives only in the permitted form.",
+      "sourceVerification": "verified",
+      "enforcement": "semantic",
+      "checkerSupport": "none",
+      "humanReview": "required",
+      "limitation": "Grammatical analysis is required."
+    },
+    {
+      "ruleNumber": "3.4",
+      "section": 3,
+      "sectionName": "Verbs",
+      "title": "Do not create prohibited complex verb constructions with auxiliaries.",
+      "sourceVerification": "verified",
+      "enforcement": "semantic",
+      "checkerSupport": "none",
+      "humanReview": "required",
+      "limitation": "Grammatical analysis is required."
+    },
+    {
+      "ruleNumber": "3.5",
+      "section": 3,
+      "sectionName": "Verbs",
+      "title": "Use an -ing verb form only in permitted technical-noun roles.",
+      "sourceVerification": "verified",
+      "enforcement": "semantic",
+      "checkerSupport": "none",
+      "humanReview": "required",
+      "limitation": "Grammar and domain terminology are required."
+    },
+    {
+      "ruleNumber": "3.6",
+      "section": 3,
+      "sectionName": "Verbs",
+      "title": "Use active voice; descriptive passive voice is allowed only when the agent is unknown.",
+      "sourceVerification": "verified",
+      "enforcement": "semantic",
+      "checkerSupport": "none",
+      "humanReview": "required",
+      "limitation": "The passive exception depends on meaning."
+    },
+    {
+      "ruleNumber": "3.7",
+      "section": 3,
+      "sectionName": "Verbs",
+      "title": "Describe an action with an approved verb.",
+      "sourceVerification": "verified",
+      "enforcement": "semantic",
+      "checkerSupport": "none",
+      "humanReview": "required",
+      "limitation": "Dictionary and semantic review are required."
+    },
+    {
+      "ruleNumber": "4.1",
+      "section": 4,
+      "sectionName": "Sentences",
+      "title": "Write short, clear, accurate sentences with one topic.",
+      "sourceVerification": "verified",
+      "enforcement": "semantic",
+      "checkerSupport": "partial",
+      "humanReview": "required",
+      "limitation": "Length is measurable; clarity, accuracy, and topic count are semantic."
+    },
+    {
+      "ruleNumber": "4.2",
+      "section": 4,
+      "sectionName": "Sentences",
+      "title": "Do not omit necessary words or use contractions to shorten a sentence.",
+      "sourceVerification": "verified",
+      "enforcement": "semantic",
+      "checkerSupport": "partial",
+      "humanReview": "required",
+      "limitation": "Contractions are checked; omitted necessary words require review."
+    },
+    {
+      "ruleNumber": "4.3",
+      "section": 4,
+      "sectionName": "Sentences",
+      "title": "Use a vertical list when complex text is clearer as a list.",
+      "sourceVerification": "verified",
+      "enforcement": "semantic",
+      "checkerSupport": "none",
+      "humanReview": "required",
+      "limitation": "Need for a list depends on meaning and structure."
+    },
+    {
+      "ruleNumber": "4.4",
+      "section": 4,
+      "sectionName": "Sentences",
+      "title": "Connect related sentences with suitable connecting words or phrases.",
+      "sourceVerification": "verified",
+      "enforcement": "semantic",
+      "checkerSupport": "none",
+      "humanReview": "required",
+      "limitation": "Logical relation is semantic."
+    },
+    {
+      "ruleNumber": "4.5",
+      "section": 4,
+      "sectionName": "Sentences",
+      "title": "Use an article or demonstrative adjective before a noun when applicable.",
+      "sourceVerification": "verified",
+      "enforcement": "semantic",
+      "checkerSupport": "none",
+      "humanReview": "required",
+      "limitation": "Applicability depends on grammar and context."
+    },
+    {
+      "ruleNumber": "5.1",
+      "section": 5,
+      "sectionName": "Procedural writing",
+      "title": "Limit each procedural sentence to 20 words.",
+      "sourceVerification": "verified",
+      "enforcement": "deterministic",
+      "checkerSupport": "partial",
+      "humanReview": "required-for-special-word-count-cases",
+      "limitation": "Core word-count rules are implemented; some special elements require review."
+    },
+    {
+      "ruleNumber": "5.2",
+      "section": 5,
+      "sectionName": "Procedural writing",
+      "title": "Give one instruction per sentence unless actions occur at the same time.",
+      "sourceVerification": "verified",
+      "enforcement": "semantic",
+      "checkerSupport": "none",
+      "humanReview": "required",
+      "limitation": "Simultaneous-action meaning requires review."
+    },
+    {
+      "ruleNumber": "5.3",
+      "section": 5,
+      "sectionName": "Procedural writing",
+      "title": "Write procedure instructions in the imperative form.",
+      "sourceVerification": "verified",
+      "enforcement": "semantic",
+      "checkerSupport": "none",
+      "humanReview": "required",
+      "limitation": "Imperative-form analysis requires grammar and context."
+    },
+    {
+      "ruleNumber": "5.4",
+      "section": 5,
+      "sectionName": "Procedural writing",
+      "title": "Put a necessary condition before the command and separate it with a comma.",
+      "sourceVerification": "verified",
+      "enforcement": "semantic",
+      "checkerSupport": "none",
+      "humanReview": "required",
+      "limitation": "Condition scope requires semantic review."
+    },
+    {
+      "ruleNumber": "5.5",
+      "section": 5,
+      "sectionName": "Procedural writing",
+      "title": "Use notes for information only, not for instructions, requirements, or limits.",
+      "sourceVerification": "verified",
+      "enforcement": "semantic",
+      "checkerSupport": "none",
+      "humanReview": "required",
+      "limitation": "Note meaning requires semantic review."
+    },
+    {
+      "ruleNumber": "6.1",
+      "section": 6,
+      "sectionName": "Descriptive writing",
+      "title": "Give descriptive information gradually.",
+      "sourceVerification": "verified",
+      "enforcement": "semantic",
+      "checkerSupport": "none",
+      "humanReview": "required",
+      "limitation": "Information progression is document-level semantics."
+    },
+    {
+      "ruleNumber": "6.2",
+      "section": 6,
+      "sectionName": "Descriptive writing",
+      "title": "Use key words and key phrases to give descriptive text a logical structure.",
+      "sourceVerification": "verified",
+      "enforcement": "semantic",
+      "checkerSupport": "none",
+      "humanReview": "required",
+      "limitation": "Logical structure requires document-level review."
+    },
+    {
+      "ruleNumber": "6.3",
+      "section": 6,
+      "sectionName": "Descriptive writing",
+      "title": "Limit each descriptive sentence to 25 words.",
+      "sourceVerification": "verified",
+      "enforcement": "deterministic",
+      "checkerSupport": "partial",
+      "humanReview": "required-for-special-word-count-cases",
+      "limitation": "Core word-count rules are implemented; some special elements require review."
+    },
+    {
+      "ruleNumber": "6.4",
+      "section": 6,
+      "sectionName": "Descriptive writing",
+      "title": "Use paragraphs to group related descriptive information.",
+      "sourceVerification": "verified",
+      "enforcement": "semantic",
+      "checkerSupport": "none",
+      "humanReview": "required",
+      "limitation": "Relatedness is semantic."
+    },
+    {
+      "ruleNumber": "6.5",
+      "section": 6,
+      "sectionName": "Descriptive writing",
+      "title": "Keep one topic in each paragraph.",
+      "sourceVerification": "verified",
+      "enforcement": "semantic",
+      "checkerSupport": "none",
+      "humanReview": "required",
+      "limitation": "Topic count is semantic."
+    },
+    {
+      "ruleNumber": "6.6",
+      "section": 6,
+      "sectionName": "Descriptive writing",
+      "title": "Limit each descriptive paragraph to six sentences.",
+      "sourceVerification": "verified",
+      "enforcement": "deterministic",
+      "checkerSupport": "partial",
+      "humanReview": "required-for-ambiguous-boundaries",
+      "limitation": "Extracted sentence boundaries are checked; unusual embedded structures need review."
+    },
+    {
+      "ruleNumber": "7.1",
+      "section": 7,
+      "sectionName": "Safety instructions",
+      "title": "Identify the level of risk with the applicable safety word or symbol.",
+      "sourceVerification": "verified",
+      "enforcement": "semantic",
+      "checkerSupport": "none",
+      "humanReview": "required",
+      "limitation": "Risk classification requires domain judgment."
+    },
+    {
+      "ruleNumber": "7.2",
+      "section": 7,
+      "sectionName": "Safety instructions",
+      "title": "Start a safety instruction with a clear command or condition.",
+      "sourceVerification": "verified",
+      "enforcement": "semantic",
+      "checkerSupport": "none",
+      "humanReview": "required",
+      "limitation": "Safety meaning requires domain review."
+    },
+    {
+      "ruleNumber": "7.3",
+      "section": 7,
+      "sectionName": "Safety instructions",
+      "title": "Explain the risk or possible result in the safety instruction.",
+      "sourceVerification": "verified",
+      "enforcement": "semantic",
+      "checkerSupport": "none",
+      "humanReview": "required",
+      "limitation": "Risk/result accuracy requires domain review."
+    },
+    {
+      "ruleNumber": "8.1",
+      "section": 8,
+      "sectionName": "Punctuation and word count",
+      "title": "Use standard English punctuation but do not use a semicolon.",
+      "sourceVerification": "verified",
+      "enforcement": "deterministic",
+      "checkerSupport": "full",
+      "humanReview": "none",
+      "limitation": "Semicolons outside exempt machine syntax are deterministic."
+    },
+    {
+      "ruleNumber": "8.2",
+      "section": 8,
+      "sectionName": "Punctuation and word count",
+      "title": "Use hyphens only to connect words that are directly related.",
+      "sourceVerification": "verified",
+      "enforcement": "semantic",
+      "checkerSupport": "none",
+      "humanReview": "required",
+      "limitation": "Semantic relation is required."
+    },
+    {
+      "ruleNumber": "8.3",
+      "section": 8,
+      "sectionName": "Punctuation and word count",
+      "title": "Use parentheses only for the purposes permitted by the standard.",
+      "sourceVerification": "verified",
+      "enforcement": "semantic",
+      "checkerSupport": "none",
+      "humanReview": "required",
+      "limitation": "Purpose of parentheses is semantic."
+    },
+    {
+      "ruleNumber": "8.4",
+      "section": 8,
+      "sectionName": "Punctuation and word count",
+      "title": "For word count in a vertical list, treat a colon as the end of a sentence.",
+      "sourceVerification": "verified",
+      "enforcement": "deterministic",
+      "checkerSupport": "partial",
+      "humanReview": "required-for-unusual-list-structure",
+      "limitation": "Normal Markdown list structure is recognized; not every vertical-list form is inferable."
+    },
+    {
+      "ruleNumber": "8.5",
+      "section": 8,
+      "sectionName": "Punctuation and word count",
+      "title": "Count parenthetical text as one word in its containing sentence and count its sentence separately.",
+      "sourceVerification": "verified",
+      "enforcement": "deterministic",
+      "checkerSupport": "partial",
+      "humanReview": "required-for-ambiguous-parentheses",
+      "limitation": "Balanced parenthetical prose is handled; malformed or unusual structures need review."
+    },
+    {
+      "ruleNumber": "8.6",
+      "section": 8,
+      "sectionName": "Punctuation and word count",
+      "title": "Count each specified special element as one word for sentence length.",
+      "sourceVerification": "verified",
+      "enforcement": "deterministic",
+      "checkerSupport": "partial",
+      "humanReview": "required-for-unrecognized-special-elements",
+      "limitation": "Known numbers, units, names, identifiers, and quoted text are handled; not every proper noun, title, label, or unit is inferable."
+    },
+    {
+      "ruleNumber": "8.7",
+      "section": 8,
+      "sectionName": "Punctuation and word count",
+      "title": "Count a hyphenated word as one word.",
+      "sourceVerification": "verified",
+      "enforcement": "deterministic",
+      "checkerSupport": "full",
+      "humanReview": "none",
+      "limitation": "Hyphenated tokens count as one word."
+    },
+    {
+      "ruleNumber": "9.1",
+      "section": 9,
+      "sectionName": "Writing practices",
+      "title": "Change the sentence construction when word-for-word replacement is insufficient.",
+      "sourceVerification": "verified",
+      "enforcement": "semantic",
+      "checkerSupport": "none",
+      "humanReview": "required",
+      "limitation": "Safe reconstruction must preserve meaning."
+    },
+    {
+      "ruleNumber": "9.2",
+      "section": 9,
+      "sectionName": "Writing practices",
+      "title": "Use each approved word correctly.",
+      "sourceVerification": "verified",
+      "enforcement": "semantic",
+      "checkerSupport": "none",
+      "humanReview": "required",
+      "limitation": "Approved meaning and part of speech require dictionary review."
+    },
+    {
+      "ruleNumber": "9.3",
+      "section": 9,
+      "sectionName": "Writing practices",
+      "title": "Do not combine words to create a phrasal verb.",
+      "sourceVerification": "verified",
+      "enforcement": "semantic",
+      "checkerSupport": "partial",
+      "humanReview": "required-for-unlisted-phrasal-verbs",
+      "limitation": "Recorded phrasal verbs are checked; complete detection requires language analysis."
+    },
+    {
+      "ruleNumber": "9.4",
+      "section": 9,
+      "sectionName": "Writing practices",
+      "title": "Use terminology and wording consistently.",
+      "sourceVerification": "verified",
+      "enforcement": "semantic",
+      "checkerSupport": "none",
+      "humanReview": "required",
+      "limitation": "Full consistency is document-level semantics."
+    }
+  ],
+  "rules": [
+    {
+      "ludwiseRule": "LW-STE-PROSE-KIND-UNRESOLVED",
+      "title": "Blocking enforcement requires an explicit procedural or descriptive prose kind.",
+      "steReference": {
+        "section": null,
+        "sectionName": null,
+        "ruleNumber": null,
+        "sourceVerification": "not-applicable"
+      },
+      "appliesToLudwise": true,
+      "contentClasses": ["STE-STRICT"],
+      "enforcement": "deterministic",
+      "implementationStatus": "implemented",
+      "checkerSupport": "full",
+      "limitations": "Audit mode can estimate list shape; enforcement never trusts that estimate.",
+      "humanReview": "none"
+    },
+    {
+      "ludwiseRule": "LW-STE-SENTENCE-LENGTH-PROCEDURAL",
+      "title": "A procedural sentence has 20 words or fewer.",
+      "steReference": {
+        "section": 5,
+        "sectionName": "Procedural writing",
+        "ruleNumber": "5.1",
+        "sourceVerification": "verified"
+      },
+      "appliesToLudwise": true,
+      "contentClasses": ["STE-STRICT"],
+      "enforcement": "deterministic",
+      "implementationStatus": "implemented",
+      "checkerSupport": "partial",
+      "limitations": "Some special word-count elements require review.",
+      "humanReview": "required-for-special-word-count-cases"
+    },
+    {
+      "ludwiseRule": "LW-STE-SENTENCE-LENGTH-DESCRIPTIVE",
+      "title": "A descriptive sentence has 25 words or fewer.",
+      "steReference": {
+        "section": 6,
+        "sectionName": "Descriptive writing",
+        "ruleNumber": "6.3",
+        "sourceVerification": "verified"
+      },
+      "appliesToLudwise": true,
+      "contentClasses": ["STE-STRICT"],
+      "enforcement": "deterministic",
+      "implementationStatus": "implemented",
+      "checkerSupport": "partial",
+      "limitations": "Some special word-count elements require review.",
+      "humanReview": "required-for-special-word-count-cases"
+    },
+    {
+      "ludwiseRule": "LW-STE-PARAGRAPH-SENTENCES",
+      "title": "A descriptive paragraph has six sentences or fewer.",
+      "steReference": {
+        "section": 6,
+        "sectionName": "Descriptive writing",
+        "ruleNumber": "6.6",
+        "sourceVerification": "verified"
+      },
+      "appliesToLudwise": true,
+      "contentClasses": ["STE-STRICT"],
+      "enforcement": "deterministic",
+      "implementationStatus": "implemented",
+      "checkerSupport": "partial",
+      "limitations": "Unusual embedded structures require review.",
+      "humanReview": "required-for-ambiguous-boundaries"
+    },
+    {
+      "ludwiseRule": "LW-STE-CONTRACTION",
+      "title": "Do not use a contraction to shorten controlled prose.",
+      "steReference": {
+        "section": 4,
+        "sectionName": "Sentences",
+        "ruleNumber": "4.2",
+        "sourceVerification": "verified"
+      },
+      "appliesToLudwise": true,
+      "contentClasses": ["STE-STRICT"],
+      "enforcement": "deterministic",
+      "implementationStatus": "implemented",
+      "checkerSupport": "partial",
+      "limitations": "Omitted necessary words still require review.",
+      "humanReview": "required-for-omissions"
+    },
+    {
+      "ludwiseRule": "LW-STE-TERM-PREFERRED",
+      "title": "Use the recorded preferred technical noun consistently for one concept.",
+      "steReference": {
+        "section": 1,
+        "sectionName": "Words",
+        "ruleNumber": "1.11",
+        "sourceVerification": "verified"
+      },
+      "appliesToLudwise": true,
+      "contentClasses": ["STE-STRICT"],
+      "enforcement": "deterministic",
+      "implementationStatus": "implemented",
+      "checkerSupport": "partial",
+      "limitations": "Only recorded synonym conflicts are deterministic.",
+      "humanReview": "required-for-new-terms"
+    },
+    {
+      "ludwiseRule": "LW-STE-PHRASAL-VERB-RECORDED",
+      "title": "Do not use a recorded phrasal verb.",
+      "steReference": {
+        "section": 9,
+        "sectionName": "Writing practices",
+        "ruleNumber": "9.3",
+        "sourceVerification": "verified"
+      },
+      "appliesToLudwise": true,
+      "contentClasses": ["STE-STRICT"],
+      "enforcement": "deterministic",
+      "implementationStatus": "implemented",
+      "checkerSupport": "partial",
+      "limitations": "Only recorded phrasal verbs are deterministic.",
+      "humanReview": "required-for-unlisted-phrasal-verbs"
+    },
+    {
+      "ludwiseRule": "LW-STE-SPELLING-VARIANT",
+      "title": "Use the recorded American English spelling.",
+      "steReference": {
+        "section": 1,
+        "sectionName": "Words",
+        "ruleNumber": "1.14",
+        "sourceVerification": "verified"
+      },
+      "appliesToLudwise": true,
+      "contentClasses": ["STE-STRICT"],
+      "enforcement": "deterministic",
+      "implementationStatus": "implemented",
+      "checkerSupport": "partial",
+      "limitations": "Only configured variants are deterministic.",
+      "humanReview": "required-for-unlisted-spellings"
+    },
+    {
+      "ludwiseRule": "LW-STE-PUNCTUATION-SEMICOLON",
+      "title": "Do not use a semicolon in controlled prose.",
+      "steReference": {
+        "section": 8,
+        "sectionName": "Punctuation and word count",
+        "ruleNumber": "8.1",
+        "sourceVerification": "verified"
+      },
+      "appliesToLudwise": true,
+      "contentClasses": ["STE-STRICT"],
+      "enforcement": "deterministic",
+      "implementationStatus": "implemented",
+      "checkerSupport": "full",
+      "limitations": "None.",
+      "humanReview": "none"
+    },
+    {
+      "ludwiseRule": "LW-STE-TERM-PROHIBITED",
+      "title": "Do not use an expression that the LUDWISE terminology policy prohibits.",
+      "steReference": {
+        "section": null,
+        "sectionName": null,
+        "ruleNumber": null,
+        "sourceVerification": "not-applicable"
+      },
+      "appliesToLudwise": true,
+      "contentClasses": ["STE-STRICT", "STE-DERIVED"],
+      "enforcement": "deterministic",
+      "implementationStatus": "implemented",
+      "checkerSupport": "partial",
+      "limitations": "This is a closed LUDWISE list.",
+      "humanReview": "none"
+    },
+    {
+      "ludwiseRule": "LW-STE-ABBREVIATION-PROHIBITED",
+      "title": "Do not use an abbreviation prohibited by the LUDWISE policy.",
+      "steReference": {
+        "section": null,
+        "sectionName": null,
+        "ruleNumber": null,
+        "sourceVerification": "not-applicable"
+      },
+      "appliesToLudwise": true,
+      "contentClasses": ["STE-STRICT", "STE-DERIVED"],
+      "enforcement": "deterministic",
+      "implementationStatus": "implemented",
+      "checkerSupport": "full",
+      "limitations": "This is a LUDWISE extension.",
+      "humanReview": "none"
+    },
+    {
+      "ludwiseRule": "LW-STE-ABBREVIATION-EXPANSION",
+      "title": "Expand an abbreviation on first use when the LUDWISE policy requires it.",
+      "steReference": {
+        "section": null,
+        "sectionName": null,
+        "ruleNumber": null,
+        "sourceVerification": "not-applicable"
+      },
+      "appliesToLudwise": true,
+      "contentClasses": ["STE-STRICT"],
+      "enforcement": "deterministic",
+      "implementationStatus": "implemented",
+      "checkerSupport": "full",
+      "limitations": "This is a LUDWISE extension scoped to one file.",
+      "humanReview": "none"
+    },
+    {
+      "ludwiseRule": "LW-STE-PUNCTUATION-ALTERNATIVE-SLASH",
+      "title": "Do not use a configured slash form to join alternatives.",
+      "steReference": {
+        "section": null,
+        "sectionName": null,
+        "ruleNumber": null,
+        "sourceVerification": "not-applicable"
+      },
+      "appliesToLudwise": true,
+      "contentClasses": ["STE-STRICT", "STE-DERIVED"],
+      "enforcement": "deterministic",
+      "implementationStatus": "implemented",
+      "checkerSupport": "partial",
+      "limitations": "Only configured forms are checked.",
+      "humanReview": "required-for-unrecorded-forms"
+    },
+    {
+      "ludwiseRule": "LW-STE-ABBREVIATION-UNKNOWN",
+      "title": "Review an abbreviation that the LUDWISE policy does not record.",
+      "steReference": {
+        "section": null,
+        "sectionName": null,
+        "ruleNumber": null,
+        "sourceVerification": "not-applicable"
+      },
+      "appliesToLudwise": true,
+      "contentClasses": ["STE-STRICT"],
+      "enforcement": "heuristic",
+      "implementationStatus": "not-implemented",
+      "checkerSupport": "none",
+      "limitations": "Capitalized text has too many non-abbreviation meanings for a safe blocker.",
+      "humanReview": "required"
+    },
+    {
+      "ludwiseRule": "LW-STE-COMMENT-NECESSITY",
+      "title": "A code comment must state information that clearer code cannot state.",
+      "steReference": {
+        "section": null,
+        "sectionName": null,
+        "ruleNumber": null,
+        "sourceVerification": "not-applicable"
+      },
+      "appliesToLudwise": true,
+      "contentClasses": ["STE-STRICT"],
+      "enforcement": "process",
+      "implementationStatus": "process-only",
+      "checkerSupport": "partial",
+      "limitations": "Comment necessity is a review judgment.",
+      "humanReview": "required"
+    },
+    {
+      "ludwiseRule": "LW-STE-DERIVED-PIPELINE",
+      "title": "User-facing text follows the STE-derived pipeline without changing meaning.",
+      "steReference": {
+        "section": null,
+        "sectionName": null,
+        "ruleNumber": null,
+        "sourceVerification": "not-applicable"
+      },
+      "appliesToLudwise": true,
+      "contentClasses": ["STE-DERIVED"],
+      "enforcement": "process",
+      "implementationStatus": "process-only",
+      "checkerSupport": "none",
+      "limitations": "Visitor strings and semantic equivalence are not machine-checked.",
+      "humanReview": "required"
+    },
+    {
+      "ludwiseRule": "LW-STE-FILE-UNREADABLE",
+      "title": "A governed file must be readable and parseable.",
+      "steReference": {
+        "section": null,
+        "sectionName": null,
+        "ruleNumber": null,
+        "sourceVerification": "not-applicable"
+      },
+      "appliesToLudwise": true,
+      "contentClasses": [],
+      "enforcement": "deterministic",
+      "implementationStatus": "implemented",
+      "checkerSupport": "full",
+      "limitations": "LUDWISE safeguard.",
+      "humanReview": "none"
+    },
+    {
+      "ludwiseRule": "LW-STE-CFG-POLICY",
+      "title": "The language policy must be complete and well formed.",
+      "steReference": {
+        "section": null,
+        "sectionName": null,
+        "ruleNumber": null,
+        "sourceVerification": "not-applicable"
+      },
+      "appliesToLudwise": true,
+      "contentClasses": [],
+      "enforcement": "deterministic",
+      "implementationStatus": "implemented",
+      "checkerSupport": "full",
+      "limitations": "LUDWISE safeguard.",
+      "humanReview": "none"
+    },
+    {
+      "ludwiseRule": "LW-STE-CFG-TERMINOLOGY",
+      "title": "The terminology policy must be internally consistent.",
+      "steReference": {
+        "section": null,
+        "sectionName": null,
+        "ruleNumber": null,
+        "sourceVerification": "not-applicable"
+      },
+      "appliesToLudwise": true,
+      "contentClasses": [],
+      "enforcement": "deterministic",
+      "implementationStatus": "implemented",
+      "checkerSupport": "full",
+      "limitations": "LUDWISE safeguard.",
+      "humanReview": "none"
+    },
+    {
+      "ludwiseRule": "LW-STE-CFG-CONFORMANCE",
+      "title": "The standard map and checker-control registry must agree with declared coverage.",
+      "steReference": {
+        "section": null,
+        "sectionName": null,
+        "ruleNumber": null,
+        "sourceVerification": "not-applicable"
+      },
+      "appliesToLudwise": true,
+      "contentClasses": [],
+      "enforcement": "deterministic",
+      "implementationStatus": "implemented",
+      "checkerSupport": "full",
+      "limitations": "LUDWISE safeguard.",
+      "humanReview": "none"
+    },
+    {
+      "ludwiseRule": "LW-STE-CFG-EXEMPTION",
+      "title": "Declared exemptions and implemented exemptions must match.",
+      "steReference": {
+        "section": null,
+        "sectionName": null,
+        "ruleNumber": null,
+        "sourceVerification": "not-applicable"
+      },
+      "appliesToLudwise": true,
+      "contentClasses": [],
+      "enforcement": "deterministic",
+      "implementationStatus": "implemented",
+      "checkerSupport": "full",
+      "limitations": "LUDWISE safeguard.",
+      "humanReview": "none"
+    },
+    {
+      "ludwiseRule": "LW-STE-CFG-CLASSIFICATION-COVERAGE",
+      "title": "Every prose-bearing file must match an explicit classification.",
+      "steReference": {
+        "section": null,
+        "sectionName": null,
+        "ruleNumber": null,
+        "sourceVerification": "not-applicable"
+      },
+      "appliesToLudwise": true,
+      "contentClasses": [],
+      "enforcement": "deterministic",
+      "implementationStatus": "implemented",
+      "checkerSupport": "full",
+      "limitations": "LUDWISE safeguard.",
+      "humanReview": "none"
+    },
+    {
+      "ludwiseRule": "LW-STE-EXCEPTION-INVALID",
+      "title": "A language exception must record all required fields and known rules.",
+      "steReference": {
+        "section": null,
+        "sectionName": null,
+        "ruleNumber": null,
+        "sourceVerification": "not-applicable"
+      },
+      "appliesToLudwise": true,
+      "contentClasses": [],
+      "enforcement": "deterministic",
+      "implementationStatus": "implemented",
+      "checkerSupport": "full",
+      "limitations": "LUDWISE safeguard.",
+      "humanReview": "none"
+    },
+    {
+      "ludwiseRule": "LW-STE-EXCEPTION-EXPIRED",
+      "title": "An expired language exception must not remain active.",
+      "steReference": {
+        "section": null,
+        "sectionName": null,
+        "ruleNumber": null,
+        "sourceVerification": "not-applicable"
+      },
+      "appliesToLudwise": true,
+      "contentClasses": [],
+      "enforcement": "deterministic",
+      "implementationStatus": "implemented",
+      "checkerSupport": "full",
+      "limitations": "LUDWISE safeguard.",
+      "humanReview": "none"
+    },
+    {
+      "ludwiseRule": "LW-STE-EXCEPTION-UNUSED",
+      "title": "A language exception that matches no tracked file must be removed.",
+      "steReference": {
+        "section": null,
+        "sectionName": null,
+        "ruleNumber": null,
+        "sourceVerification": "not-applicable"
+      },
+      "appliesToLudwise": true,
+      "contentClasses": [],
+      "enforcement": "deterministic",
+      "implementationStatus": "implemented",
+      "checkerSupport": "full",
+      "limitations": "LUDWISE safeguard.",
+      "humanReview": "none"
+    }
+  ],
+  "coverage": {
+    "knownSections": 9,
+    "knownWritingRules": 53,
+    "standardRuleMapRows": 53,
+    "mappedWritingRules": 53,
+    "completeRuleMap": true,
+    "rowsCitingASection": 8,
+    "ludwiseExtensionRows": 17,
+    "totalRows": 25,
+    "note": "The normative map is complete. Machine enforcement remains intentionally partial where safe deterministic checking is not possible."
+  }
+}

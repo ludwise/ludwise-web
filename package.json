@@ -23,6 +23,9 @@
     "format:check": "prettier --check .",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
+    "check:ste": "node scripts/ste/cli.mjs check",
+    "check:ste:audit": "node scripts/ste/cli.mjs audit",
+    "check:ste:report": "node scripts/ste/cli.mjs report",
     "typecheck": "astro check",
     "typecheck:tests": "tsc -p tsconfig.test.json --noEmit",
     "test": "vitest run",
@@ -31,7 +34,7 @@
     "test:e2e": "playwright test",
     "test:e2e:empty": "playwright test --config=playwright.states.config.ts",
     "test:e2e:degraded": "node scripts/run-degraded.mjs",
-    "check": "pnpm run format:check && pnpm run lint && pnpm run cf-typegen && pnpm run typecheck && pnpm run typecheck:tests && pnpm run test && pnpm run build",
+    "check": "pnpm run format:check && pnpm run lint && pnpm run check:ste && pnpm run cf-typegen && pnpm run typecheck && pnpm run typecheck:tests && pnpm run test && pnpm run build",
     "prepare": "husky"
   },
   "dependencies": {
