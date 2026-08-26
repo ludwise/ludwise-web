@@ -10,22 +10,16 @@ export const prerender = false;
  * Liveness probe.
  *
  * Always 200: if this handler ran, the Worker is alive, its configuration
- * validated - the middleware would have answered 503 otherwise - and the
- * rendering path works. That is the whole claim.
+ * validated, and the rendering path works. That is the whole claim.
  *
- * It deliberately does **not** ask the backend anything, and the temptation to
- * is stronger here than it was before the split: this Worker now has a
- * dependency it could check, and a health endpoint that reported on it would
- * look more useful. It would be worse. A liveness probe that fails when a
- * dependency is slow turns one backend blip into "the site is down" in every
- * uptime monitor, and it hands any caller a free amplification primitive -
- * every unauthenticated hit becomes a backend request.
+ * It deliberately asks the backend nothing. A liveness probe that fails when a
+ * dependency is slow turns one blip into "the site is down" in every uptime
+ * monitor, and hands any caller an amplification primitive - every
+ * unauthenticated hit becoming a backend request. Reachability is a readiness
+ * question, for whoever asks it with their own budget and alerting.
  *
- * Whether the backend is reachable is a readiness question and belongs to
- * whatever asks it deliberately, with its own budget and its own alerting.
- *
- * `git_commit` is omitted because nothing reads it here. It is already on every
- * log record, which is where an incident investigation looks for it.
+ * `git_commit` is omitted because nothing reads it here; it is on every log
+ * record already.
  */
 export const GET: APIRoute = ({ locals }) =>
   new Response(

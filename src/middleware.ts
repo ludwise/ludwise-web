@@ -2,20 +2,16 @@
  * The composition root.
  *
  * This file and `src/pages/**` are the only places permitted to import
- * `cloudflare:*`, which is what makes this the composition root rather than a
- * place bindings happen to be read. Everything below it receives what it needs
- * as an argument.
+ * `cloudflare:*`; everything below receives what it needs as an argument.
  *
  * Four middlewares, in an order that is not arbitrary:
  *
- *   correlation -> configuration -> logging -> backend
+ *     correlation -> configuration -> logging -> backend
  *
- * Correlation runs first and cannot fail, so a configuration failure further
- * down still produces a response carrying a request id - which is the one thing
- * a visitor can quote and an operator can search for. Configuration runs before
- * logging because the logger's level comes from it. The backend client is
- * installed last because it needs both the timeout from configuration and the
- * correlation identifiers to forward.
+ * Correlation runs first and cannot fail, so a configuration failure still
+ * produces a response carrying a request id. Configuration precedes logging
+ * because the logger's level comes from it, and the backend client is last
+ * because it needs both the timeout and the correlation identifiers.
  */
 
 // The supported way to reach a binding in this adapter. `Astro.locals.runtime`
@@ -264,28 +260,17 @@ const backend = defineMiddleware((context, next) => {
 /**
  * How this request reaches the backend, which differs in development alone.
  *
- * Deployed, it is always the service binding. There is no alternative and no
- * configuration that could select one: `BACKEND` names a Worker script, not a
- * URL, so there is nothing a mistyped variable could redirect (ADR 0024).
+ * Deployed it is always the service binding: `BACKEND` names a Worker script,
+ * not a URL, so nothing a mistyped variable could redirect (ADR 0024).
  *
- * Locally the picture is different, and in a way that is easy to get wrong.
- * `wrangler dev` *does* provide a `BACKEND` binding - it resolves the name from
- * `wrangler.jsonc` whether or not anything is running behind it - so a request
- * over that binding does not fail with "no binding", it fails with a 503 from
- * Wrangler itself. That looks exactly like a backend outage, which makes it a
- * genuinely confusing way to spend an afternoon.
+ * Locally, `wrangler dev` provides that binding whether or not anything runs
+ * behind it, so a request over it fails with a 503 from Wrangler that looks
+ * exactly like a backend outage. `BACKEND_DEV_URL` therefore wins in
+ * development, pointing at a local backend or `scripts/fake-backend.ts`.
  *
- * So in development an explicit `BACKEND_DEV_URL` wins over the binding. It
- * points at whatever the developer actually has: a local backend from the
- * private repository, or the fake in `scripts/fake-backend.ts` that lets this
- * repository's own suites run without it.
- *
- * The environment check is the load-bearing part and is checked first. That
- * variable is honoured **only** when the environment is development, so a
- * staging or production deployment that somehow acquired it would ignore it
- * entirely. Without that, this would be a way to point the live site at an
- * arbitrary origin by setting one variable - precisely the SSRF-shaped hole
- * that having no configurable backend URL was supposed to avoid.
+ * The environment check is load-bearing and comes first: honoured outside
+ * development, this would point the live site at an arbitrary origin on one
+ * variable - the SSRF-shaped hole having no configurable URL avoids.
  */
 function resolveTransport(environment: Environment): { fetch: typeof fetch; baseUrl: string } {
   if (environment === 'development') {

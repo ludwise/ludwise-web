@@ -1,21 +1,15 @@
 /**
  * Reading a query string the way a submitted GET form actually arrives.
  *
- * A blank control is not a filter. A GET form submits every control it
- * contains, so leaving a number field empty or a select on its default sends
- * `name=` rather than nothing at all. `Number('')` is 0 and an empty select
- * value is `''`, and a use case rightly refuses both - which means that without
- * this boundary, pressing "Apply filters" on the form the page itself rendered
- * would fail the request it had just built.
+ * A blank control is not a filter. A GET form submits every control it holds,
+ * so an empty number field sends `name=`; `Number('')` is 0 and a use case
+ * rightly refuses it. Without this boundary, "Apply filters" would fail the
+ * request the page had just built.
  *
- * So blank, here, means not supplied. A value that is present but malformed is
- * carried through as it is and refused by the use case, because a filter the
- * visitor can see in the address bar and cannot see in the results is worse
- * than one that is rejected out loud.
- *
- * Shared by every query-string boundary rather than copied into each: the
- * failure mode of a second, subtly different copy is a `''` quietly becoming a
- * `0`, which is a filter nobody asked for and nobody can see.
+ * A present-but-malformed value is carried through and refused out loud: a
+ * filter a visitor can see in the address bar and not in the results is worse
+ * than one that is rejected. Shared rather than copied, because a second copy
+ * turns `''` into a `0` nobody asked for and nobody can see.
  */
 
 const DECIMAL_INTEGER = /^[+-]?\d+$/;

@@ -1,27 +1,16 @@
 /**
  * What to tell a visitor about each filter the backend refused.
  *
- * Keyed by field name, which is the half of a rejection that crosses the wire.
- * The other half - the backend's own `reason` - deliberately does not: those
- * strings say things like "expected a safe integer greater than or equal to 1",
- * which names an internal expectation and is written for whoever reads the
- * logs. Turning that into a sentence a person can act on is a presentation
- * decision, so it is made here.
+ * Keyed by field name, the half of a rejection that crosses the wire. The
+ * backend's `reason` deliberately does not: those strings name internal
+ * expectations for whoever reads the logs, so wording one for a person is a
+ * presentation decision made here.
  *
- * That split is also why these sentences live in one module rather than beside
- * each page. `marketCode` and `currencyCode` are refused together and share one
- * sentence; `/games` and `/sales` word the same rule slightly differently
- * because their controls differ. Both facts are easier to keep true in one
- * table than in two.
- *
- * ## Why unknown fields are dropped rather than shown
- *
- * A field the backend names and this table does not know is a version skew: a
- * newer backend refusing something this build has no control for. Rendering the
- * raw field name would show a visitor an internal identifier and tell them
- * nothing about what to do. Dropping it leaves the generic "those filters do
- * not go together" heading, which is true and actionable. The field name is
- * still logged, so the skew is visible to an operator.
+ * One table rather than one per page: `marketCode` and `currencyCode` are
+ * refused together and share a sentence, while `/games` and `/sales` word the
+ * same rule differently. An unknown field is dropped rather than shown - it
+ * means a newer backend refused something this build has no control for - and
+ * still logged, so the skew reaches an operator.
  */
 
 /** Advice for `/games`, keyed by the field names `/v1/games` may refuse. */

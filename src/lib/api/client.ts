@@ -1,41 +1,17 @@
 /**
  * The one place this site talks to the backend.
  *
- * Every read goes through `request` below. Nothing else in the repository calls
- * `fetch` at a LUDWISE backend, and that is enforced by
- * `tests/architecture/boundaries.test.ts` rather than by convention. The
- * reason is not tidiness: a scattered `fetch` is a place where a timeout is
- * forgotten, where a correlation header is not forwarded, where a malformed
- * response is trusted, and where a backend error message ends up in a page.
- * Each of those has to be got right once.
+ * `tests/architecture/boundaries.test.ts` enforces that rather than convention:
+ * a scattered `fetch` is where a timeout is forgotten or a backend error
+ * message ends up in a page.
  *
- * ## How it reaches the backend
+ * It reaches the backend over a service binding to a named `WorkerEntrypoint`
+ * (ADR 0028), not a hostname - so no CORS handling, API key or rate limiter
+ * here, none of which defends an unroutable surface. Binding the *default*
+ * entrypoint, as ADR 0024 did, leaves `/v1` reachable on the custom domain and
+ * refused by the backend's Access guard.
  *
- * Over a Cloudflare **service binding** to a named `WorkerEntrypoint`
- * (ADR 0028), not a public hostname. `wrangler.jsonc` names `VisitorRead`, and
- * a named entrypoint is not an HTTP routing target: no hostname reaches it, so
- * there is no URL for a browser to call and no public API surface to defend.
- * That is why this file has no CORS handling, no API key, and no rate limiter:
- * none of them defends a surface that is not routable.
- *
- * ADR 0024 bound the backend's *default* entrypoint instead and reasoned that
- * `/v1` was unrouted because no route pattern named a path. A custom domain
- * claims every path on its hostname, so `/v1` was reachable the whole time -
- * and refused, along with every read this file made, by the backend's own
- * Access guard. A binding carries no Access identity.
- *
- * `fetch` is injected rather than reached for. In production it is the
- * binding's own `fetch`, which dispatches straight to the backend script
- * without touching the network; in a test it is a function that answers from a
- * fixture. Neither is a special case of the other, so neither is the default.
- *
- * ## What the browser does
- *
- * Nothing. Every read happens during SSR, and the rendered HTML is what
- * crosses to the visitor. There is no client-side API call anywhere in this
- * repository, which is why `PUBLIC_`-prefixed configuration does not exist
- * here: an environment variable Astro would inline into client JavaScript is
- * the wrong shape for a value only the server uses.
+ * `fetch` is injected, and every read happens during SSR.
  */
 
 import type {
@@ -111,24 +87,14 @@ const defaultSleep = (ms: number): Promise<void> =>
 /**
  * Whether a failure is worth a second attempt.
  *
- * Only two kinds are, and both mean "the backend did not answer": the binding
- * was unavailable, or it did not answer in time. Everything else is either an
- * answer we should respect or a signal that trying again will produce the same
- * thing.
+ * Only two are, and both mean the backend did not answer: the binding was
+ * unavailable, or it timed out. A rejection is never retried - it would be
+ * refused again at double the load. Nor is a 5xx carrying a backend code:
+ * `ERR_APP_INFRASTRUCTURE` means the database failed, and the backend is better
+ * placed than this client to decide whether to ask it twice.
  *
- * A rejection is never retried - the request was refused for what it contained,
- * and sending it again refuses it again while doubling the load.
- *
- * A 5xx carrying a backend error code is never retried either, and this is the
- * one worth explaining. `ERR_APP_INFRASTRUCTURE` means the backend reached its
- * database and the database failed. Retrying immediately adds load to a
- * dependency that is already struggling, which is how a brief blip becomes a
- * sustained one. The backend is in a better position than this client to
- * decide whether its own dependency is worth asking twice.
- *
- * Nothing here is method-aware because every request is a GET. When a write
- * appears, this function must not simply be widened: an unsafe request needs an
- * idempotency key before it may be retried at all.
+ * Not method-aware, because every request is a GET. A write must not simply
+ * widen this: an unsafe request needs an idempotency key first.
  */
 function isRetryable(error: LudwiseApiError): boolean {
   return (

@@ -1,25 +1,17 @@
 /**
- * The response headers that are the same on every response the Worker
- * produces, and why each one is here.
+ * The response headers that are the same on every response the Worker produces,
+ * and why each one is here.
  *
- * These became load-bearing with the first HTML page. A JSON endpoint is a poor
- * clickjacking target and sends no referrer worth worrying about; a page that
- * will carry price comparisons and outbound store links is both.
+ * "Every Worker response" is the accurate scope, not every response: under
+ * Workers Assets a request matching `dist/client` is served without invoking
+ * the Worker, so `/fonts/*.woff2` never passes through. Those are same-origin
+ * static files; a committed `public/_headers` is the route if they ever need
+ * these.
  *
- * "Every Worker response" is the accurate scope, not every response. Under
- * Workers Assets a request matching a file in `dist/client` is served by the
- * asset service without invoking the Worker at all, so `/fonts/*.woff2` never
- * passes through here. Those are same-origin static files with correct content
- * types; if they ever need these headers, a committed `public/_headers` is the
- * route.
- *
- * Note what is deliberately absent: a `script-src` policy. Doing that properly
- * means nonces or hashes for the theme script in the document head and for
- * Astro's island hydration script, and a policy with `unsafe-inline` in it is
- * a policy that says nothing. Astro has first-class CSP support; wiring it is
- * its own change with its own verification, and shipping a policy that only
- * looks strict would be worse than shipping none. That argument covers
- * `script-src` only - the directives that need no nonce are set below.
+ * Deliberately absent: a `script-src` policy. Doing it properly means nonces or
+ * hashes for the theme script and Astro's hydration script, and a policy
+ * carrying `unsafe-inline` says nothing. Astro has first-class CSP support;
+ * wiring it is its own change. That covers `script-src` only.
  */
 
 import type { Environment } from '../config/index.js';

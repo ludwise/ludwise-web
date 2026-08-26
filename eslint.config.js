@@ -60,13 +60,13 @@ export default tseslint.config(
 
   js.configs.recommended,
 
-  // A `//` block over three lines is a readability finding, not a style
-  // preference: see AGENTS.md. Scoped to src/ first; tests/ and scripts/ are
-  // tracked separately.
+  // Comment length is a readability finding, not a style preference: see
+  // AGENTS.md. Scoped to src/ first; tests/ and scripts/ are tracked
+  // separately.
   {
     files: ['src/**/*.{ts,tsx,astro}'],
     plugins: { ludwise },
-    rules: { 'ludwise/max-comment-block-lines': ['error', { max: 3 }] },
+    rules: { 'ludwise/max-comment-block-lines': ['error', { max: 3, maxBlock: 15 }] },
   },
 
   // Type-aware linting is scoped to src/ rather than applied globally and then

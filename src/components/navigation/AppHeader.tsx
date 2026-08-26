@@ -1,39 +1,17 @@
 /**
- * Reference: design/system/components/navigation.md § AppHeader — prop
- * contract, and `useIsCompactHeader`, ported verbatim. The global header:
- * wordmark, primary destinations, search, market, theme, account. Sticky,
- * 60px, one hairline bottom border, no shadow.
+ * Reference: design/system/components/navigation.md § AppHeader — prop contract
+ * and `useIsCompactHeader` ported verbatim. Sticky, 60px, one hairline border.
  *
- * The one `client:load` island on the page (see the handoff README's island
- * table) — theme toggle, search and the sub-1024px collapse all need it.
- * SearchField is part of this file rather than its own component because the
- * handoff itself makes SearchField part of AppHeader, not a standalone
- * export.
+ * The one `client:load` island on the page. SearchField lives here because the
+ * handoff makes it part of AppHeader rather than a standalone export.
  *
- * Icon.astro, IconButton.astro, Button.astro and Wordmark.astro are Astro
- * components and cannot be imported into a React island — Astro's component
- * model does not cross into React the other direction. This file therefore
- * renders its own icon glyphs from the shared `../foundation/icons.js`
- * map and its own minimal button/wordmark markup in AppHeader.css, matching
- * the static components' visual language rather than reusing their code.
+ * Icon, Button and Wordmark are Astro components a React island cannot import,
+ * so this file renders its own glyphs from the framework-neutral
+ * `../foundation/icons.js` map and its own button and wordmark markup.
  *
- * The reference implementation assumes search and accounts already exist as
- * product capabilities. Search is now wired to a native GET action, while
- * accounts remain gated on the prop that carries their behaviour:
- *
- *   - The search field (both the desktop slot and the mobile row) renders
- *     when the host supplies either a native GET `searchAction` or the
- *     existing interactive `onSearchChange` handler. A native action keeps
- *     search available before hydration and on pages without client state.
- *   - The account/sign-in control renders only when the host supplies
- *     `authed` (i.e. `authed !== undefined`), not merely when it is
- *     supplied and true. A host that has not said whether the visitor is
- *     authenticated has no account state to show, so `authed`'s default was
- *     removed rather than left at `false` — a default would make "unknown"
- *     indistinguishable from "answered no".
- *
- * The account gate reuses the existing prop as the signal that the capability
- * is wired up. Remove it the day account state is implemented.
+ * Search uses a native GET action, so it works before hydration. The account
+ * control renders only when the host supplies `authed` at all: the prop has no
+ * default, so "unknown" stays distinguishable from "answered no".
  */
 import { useEffect, useRef, useState, type ChangeEvent, type MouseEvent } from 'react';
 

@@ -1,60 +1,16 @@
 /**
- * The wire shapes LUDWISE's backend answers with.
+ * The wire shapes LUDWISE's backend answers with, and the authoritative
+ * statement of that contract (ADR 0025).
  *
- * This file is the **authoritative** statement of that contract, and it lives
- * here rather than in the backend deliberately (ADR 0025). The public
- * repository must be readable and buildable without access to the private one,
- * so it cannot import the types from there and cannot be generated from a
- * schema that is not present. The backend vendors this file into its own
- * `tests/contract/` and proves conformance at compile time - if a view type
- * there stops satisfying a type here, that build fails rather than this one.
+ * It lives here, not in the backend, because the public repository must build
+ * without the private one. The backend vendors it into `tests/contract/` and
+ * proves conformance at compile time.
  *
- * That direction is worth stating plainly, because it looks backwards: the
- * private repository is authoritative about *behaviour*, and this file is
- * authoritative about the *shape* it must keep. The conformance test is what
- * joins the two, and it is not optional.
- *
- * ## What this file is allowed to know
- *
- * Four things, and nothing else:
- *
- * - the wire shapes below
- * - the query parameter names sent alongside them, which a visitor can already
- *   see in their own address bar
- * - the error codes a failure may carry
- * - the page sizes the backend echoes back
- *
- * It does not know how ranking works, that persistence is SQL, that D1 exists,
- * or what any use case is called. A type here that implied any of those would
- * be publishing the thing the split exists to keep private.
- *
- * ## Evolution
- *
- * Additively. A response may gain a field; it may never lose or narrow one
- * without a version change. That is what lets a frontend deploy and a backend
- * deploy happen in either order:
- *
- *     old frontend + new backend  -> works (new fields ignored)
- *     new frontend + old backend  -> works (new fields optional)
- *
- * A field added here before the backend serves it must therefore be optional,
- * and read as absent rather than assumed. When a genuinely incompatible change
- * is needed, it goes to `/v2` and both contracts exist for a while.
- *
- * ## Nullable versus optional
- *
- * The distinction is load-bearing throughout and never accidental.
- *
- * `T | null` means the backend looked and there is no value: no release date
- * was published, no market was recorded. It is a fact.
- *
- * `?:` means the field may be absent from the response entirely, which today
- * means only "this deployment predates that field". Nothing in the current
- * contract is optional-because-sometimes-uninteresting.
- *
- * Neither is ever filled in with a fabricated default. `PRODUCT.md` §120
- * forbids showing a value that is not there, and a `0` standing in for "we do
- * not know" is exactly that.
+ * This file may know these shapes, the query parameter names, the error codes a
+ * failure may carry, and the page sizes echoed back - nothing else. Evolution is
+ * additive, so either side may deploy first. `T | null` is "looked, no value";
+ * `?:` is "this deployment predates the field"; neither is ever a fabricated
+ * default (`PRODUCT.md` §120).
  */
 
 /** Every money value carries its own exponent. See `MoneyView`. */

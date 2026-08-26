@@ -1,25 +1,14 @@
 /**
  * Where a `/sales` query string becomes sales browsing input.
  *
- * The parameter names match `/games` wherever they mean the same thing, so a
- * visitor moving between the two pages keeps the same mental model and the
- * link-building helpers transfer unchanged. `min` and `max` are the one
- * exception worth naming: on `/games` they are minor units, and here they are
- * whole major units of whatever currency the resolved context uses, because
- * this page's price filter is visitor-facing in a way `/games`'s is not.
- * `BrowseSalesInput.minPriceMajor` / `maxPriceMajor` carry that in their own
- * name rather than reusing `/games`'s field names for a different unit.
+ * Parameter names match `/games` wherever they mean the same thing, so the
+ * link-building helpers transfer unchanged. `min` and `max` are the exception:
+ * minor units on `/games`, whole major units here, which
+ * `BrowseSalesInput.minPriceMajor` carries in its own name.
  *
- * Two are deliberately absent. There is no `q`: searching by title lives at
- * `/games`, and answering it here would mean a second relevance ranking to keep
- * in step with the first. There is no `discounted` either, because the whole
- * page is discounts.
- *
- * Nothing here corrects a value. A lower-case market code or an unsupported
- * sort is reported as it was asked for, and refused by the use case - which is
- * where the shape of a market code and the list of supported orders are
- * decided. See query-params.ts for why blank and malformed are different
- * answers.
+ * No `q` - title search lives at `/games`, and answering it here would mean a
+ * second relevance ranking. No `discounted`, because the page is discounts.
+ * Nothing here corrects a value; see query-params.ts on blank versus malformed.
  */
 
 import { optionalInteger, optionalText, repeatedText } from './query-params.js';

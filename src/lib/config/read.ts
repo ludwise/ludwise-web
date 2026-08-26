@@ -19,20 +19,16 @@ let cached: AppConfig | undefined;
 /**
  * Where configuration values come from.
  *
- * `process.env` rather than a Cloudflare binding import, because the
- * `nodejs_compat_populate_process_env` flag is pinned in `wrangler.jsonc` and
- * populates it from the Worker's `vars`. That keeps this module free of
- * `cloudflare:*`, which matters more than it looks: the architecture test bans
- * that import outside the composition root, and configuration is read from
- * tests that have no Workers runtime at all.
+ * `process.env`, populated from the Worker's `vars` by the pinned
+ * `nodejs_compat_populate_process_env` flag, rather than a `cloudflare:*`
+ * import - which the architecture test bans outside the composition root, and
+ * which tests with no Workers runtime could not use anyway.
  *
- * `wrangler types` narrows `process.env` to the literal values in
- * `wrangler.jsonc`, but `loadConfig` takes the widest possible shape on
- * purpose: it has to be able to see a value that is missing or wrong, because
- * that is the situation it exists to report. Passing the narrowed type in is
- * safe - it is assignable - and the validation still runs against whatever the
- * deployment actually has, because those literal types describe what the
- * configuration file says rather than what the runtime received.
+ * `wrangler types` narrows `process.env` to the literals in `wrangler.jsonc`,
+ * but `loadConfig` takes the widest shape on purpose: it must be able to see a
+ * value that is missing or wrong, since that is what it exists to report. Those
+ * literal types describe what the configuration file says, not what the runtime
+ * received.
  */
 export function getConfig(): AppConfig {
   cached ??= loadConfig(process.env);
