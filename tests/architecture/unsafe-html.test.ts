@@ -10,29 +10,16 @@ import { listSourceFiles } from '../helpers/imports.js';
  * Every place the framework's escaping is switched off, and whether anything
  * variable flows into it.
  *
- * Astro's `set:html` and React's `dangerouslySetInnerHTML` are the only two
- * ways to put unescaped markup into a page here. Both are legitimate for a
- * compile-time constant - an inlined icon path is markup by nature. Both are a
- * cross-site scripting sink the moment a value joins the string.
+ * Astro's `set:html` and React's `dangerouslySetInnerHTML` are the only ways to
+ * put unescaped markup into a page here, and both are legitimate for a
+ * compile-time constant. The dangerous version does not look dangerous:
+ * `set:html={'<title>' + title + '</title>'}` reads as assembling a constant and
+ * stays harmless for as long as every caller passes a literal. So the rule is
+ * structural: a raw-HTML sink takes a name, or a lookup into one, and nothing else.
  *
- * The dangerous version does not look dangerous. `set:html={'<title>' + title +
- * '</title>' + markup}` reads as assembling a constant, and stays harmless for
- * exactly as long as every caller passes a literal. `Icon` is a public
- * primitive, so the first `<Icon title={game.title} />` written by someone who
- * never read its implementation is a stored injection - the value comes from a
- * provider, through the database, into the page.
- *
- * So the rule is structural rather than a judgement about today's callers: a
- * raw-HTML sink takes a name, or a lookup into one, and nothing else.
- *
- * What it does not catch, stated so the guarantee is not read as wider than it
- * is: it judges the expression at the sink, never the provenance of the name.
- * `const markup = '<b>' + title;` in frontmatter followed by
- * `set:html={markup}` passes, because `markup` is a name. Closing that needs
- * dataflow analysis rather than a regex, which is a different tool and a
- * different decision. The rule's value is that the dangerous thing cannot be
- * written *at the sink*, where it is easy to write by accident and hard to see
- * in review.
+ * It judges the expression at the sink, never the provenance of the name:
+ * `const markup = '<b>' + title` then `set:html={markup}` passes. Closing that
+ * needs dataflow analysis, a different tool and a different decision.
  */
 
 // tests/architecture -> tests -> repository root.
@@ -78,10 +65,9 @@ describe('the rule can actually fire', () => {
     ['a react interpolation', 'dangerouslySetInnerHTML={{ __html: `<b>${name}</b>` }}'],
     ['a react concatenation', 'dangerouslySetInnerHTML={{ __html: prefix + markup }}'],
 
-    // Every one of the following defeated the first version of this rule,
-    // which looked for composition operators on a single line. They are kept
-    // as cases because each is a plausible way to write the dangerous thing,
-    // not because anyone wrote them.
+    // Each of these defeated the first version of the rule, which looked for
+    // composition operators on a single line. Kept as cases because each is a
+    // plausible way to write the dangerous thing, not because anyone wrote them.
     ['a concat call', 'set:html={markup.concat(title)}'],
     ['a join', "set:html={[markup, title].join('')}"],
     ['a replace', "set:html={markup.replace('X', title)}"],

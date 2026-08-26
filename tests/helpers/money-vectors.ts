@@ -2,19 +2,14 @@
  * Shared test vectors for `formatAmountMinor`.
  *
  * ADR 0023 accepts that this one function exists twice - once in the backend's
- * domain layer, which is private, and once in the public web client, which
- * cannot import it. This file is the mitigation, and it is a real one rather
- * than a gesture: both repositories drive their own implementation over this
- * exact table, so the two agree because they were each checked against one
- * statement of the answer, not because somebody diffed them once.
+ * private domain layer, once in the public web client that cannot import it.
+ * This is the mitigation: both repositories drive their own implementation over
+ * this exact table, so the two agree because each was checked against one
+ * statement of the answer rather than because somebody diffed them once.
  *
- * The file is checked in to both repositories and must stay byte-identical.
- * Changing it in one place only is the failure mode this exists to prevent, so
- * a change here is a change to both trees in the same slice of work.
- *
- * Every case is here for a reason, and several are regressions rather than
- * hypotheticals - the earlier implementation produced the string in the comment
- * beside them before the guard that now prevents it.
+ * Checked in to both repositories and must stay byte-identical; changing it in
+ * one place only is the failure this exists to prevent. Several cases are
+ * regressions rather than hypotheticals.
  */
 
 export interface MoneyVector {
@@ -43,13 +38,9 @@ export const MONEY_VECTORS: readonly MoneyVector[] = [
   { amountMinor: 50, minorUnit: 2, expected: '0.50', why: 'trailing zero is significant' },
   { amountMinor: 0, minorUnit: 2, expected: '0.00', why: 'free is 0.00, never empty' },
 
-  // Negative amounts are reachable: the backend retains anomalous provider
-  // reports as evidence rather than discarding them, and price_observations
-  // deliberately omits the non-negative constraint for that reason.
-  //
-  // Both of these were corrupt strings before the sign was split off ahead of
-  // padding - padStart counted the minus as one of the padded characters and
-  // separated it from the number it belonged to.
+  // Negative amounts are reachable: price_observations omits the non-negative
+  // constraint so an anomalous provider report is retained as evidence. Both were
+  // corrupt before the sign was split off ahead of padding.
   { amountMinor: -5, minorUnit: 2, expected: '-0.05', why: 'was "0.-5" before the sign split' },
   { amountMinor: -50, minorUnit: 2, expected: '-0.50', why: 'was "-.50" before the sign split' },
   { amountMinor: -1999, minorUnit: 2, expected: '-19.99', why: 'ordinary negative' },

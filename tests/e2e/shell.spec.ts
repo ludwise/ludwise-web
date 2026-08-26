@@ -141,9 +141,8 @@ test.describe('the application shell', () => {
       .filter((url) => /^https?:/.test(url))
       .filter((url) => new URL(url).origin !== origin);
 
-    // An origin allowlist, not a denylist of two font hostnames. A denylist
-    // has to name every vendor anyone might ever add; this covers all of them,
-    // including the one nobody has thought of. Reported as the offending URLs
+    // An origin allowlist, not a denylist of two font hostnames: a denylist has
+    // to name every vendor anyone might ever add. Reported as the offending URLs
     // rather than a count, so a failure names what reached out.
     expect(external).toEqual([]);
     expect(requests).toContain(`${origin}/fonts/geist-sans-latin-400-normal.woff2`);
@@ -243,17 +242,15 @@ test.describe('theme', () => {
 
     await page.goto('/');
 
-    // Three assertions, because the obvious one is the weakest. Counting a
-    // selector the payload never sets would pass whether or not anything was
-    // sanitised - the payload carries no id, so `script#injected` is vacuous.
-    //
-    // What actually proves it: nothing executed, no element was added, and the
-    // attribute never carries the payload. It may carry `light` - the pre-paint
-    // script sets that once the server has declined to, which is the correct
-    // outcome of rejecting the cookie rather than escaping it.
+    // Counting a selector the payload never sets would pass whether or not
+    // anything was sanitised. What proves it: nothing executed, no element was
+    // added, and the attribute never carries the payload.
     expect(dialogs).toEqual([]);
     expect(await page.locator('script').count()).toBe(scriptsWithoutAttack);
 
+    // A real theme is allowed here: the pre-paint script sets one once the
+    // server has declined to, which is rejecting the cookie rather than
+    // escaping it. What must never appear is the payload.
     const rendered = await page.locator('html').getAttribute('data-theme');
     expect(rendered === null || THEMES.includes(rendered as (typeof THEMES)[number])).toBe(true);
     await context.close();
@@ -299,23 +296,18 @@ test.describe('accessibility', () => {
 });
 
 test.describe('responsive', () => {
-  // 320 is the narrowest viewport this product targets, and it is the width
-  // that actually broke: the compact utilities row plus a rigid logo overflow
-  // it by a few pixels even after the nav and inline search are hidden.
-  // /sales is checked as well as /games: it is the widest layout in the
-  // product, a card grid beside a sticky aside, so it is the one most likely
-  // to overflow before the aside stacks.
+  // 320 is the narrowest viewport this product targets and the width that
+  // actually broke. /sales is checked as well as /games because it is the widest
+  // layout here - a card grid beside a sticky aside.
   for (const width of [320, 375, 768, 1024]) {
     for (const path of ['/games', '/sales']) {
       test(`${path} does not scroll horizontally at ${String(width)}px`, async ({ page }) => {
         await page.setViewportSize({ width, height: 900 });
         await page.goto(path);
 
-        // Deliberately does NOT wait for hydration. The server-rendered layout
-        // has to be correct on its own: a visitor on a slow connection sees it
-        // for as long as the island takes to load, and a visitor with JavaScript
-        // disabled sees only it. Adding a hydration wait here would turn this
-        // assertion into a check that React eventually tidies up.
+        // Deliberately does not wait for hydration: the server-rendered layout
+        // has to be correct on its own, for a slow connection and for a visitor
+        // with JavaScript disabled.
 
         const overflows = await page.evaluate(
           () => document.documentElement.scrollWidth > document.documentElement.clientWidth,

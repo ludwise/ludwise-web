@@ -4,21 +4,16 @@ import { expect, test, type Page } from '@playwright/test';
 /**
  * What a visitor sees when the backend does not answer.
  *
- * The most important suite in this repository, and the one that did not exist
- * before the split - because before it there was no backend to be unavailable.
- * Splitting the repositories introduced a dependency, and this is where the
- * consequence of that dependency failing is pinned.
- *
- * The rule it exists to enforce: **unavailable is not empty**. Those two arrive
- * at a page as similar-looking absences and mean opposite things. Rendering the
+ * The rule it exists to enforce: **unavailable is not empty**. The two arrive at
+ * a page as similar-looking absences and mean opposite things. Rendering the
  * first as the second tells a visitor there are no games on sale when the truth
  * is that we failed to ask, which is a false claim about the market rather than
  * a cosmetic slip.
  *
  * Run under `playwright.states.config.ts` with the backend in `unavailable`
- * mode - the socket is destroyed rather than answered with a 503, because a 503
+ * mode: the socket is destroyed rather than answered with a 503, because a 503
  * is the backend telling us something and this is the backend not being there,
- * which is a different path through the client.
+ * a different path through the client.
  */
 
 const LOGOTYPE = '.lw-header__wordmark-accent';

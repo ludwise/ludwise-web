@@ -1,23 +1,17 @@
 /**
  * Checks the built artifact for things a public site must not ship.
  *
- * `tests/architecture/boundaries.test.ts` checks the *source*. This checks what
- * the build actually produced, and the two answer different questions: a value
- * can reach a bundle without appearing in any source file - inlined by Vite's
- * `define`, pulled in through a dependency, or baked into a server chunk by a
- * configuration mistake.
+ * `tests/architecture/boundaries.test.ts` checks the source; this checks what
+ * the build produced. A value can reach a bundle without appearing in any
+ * source file - inlined by Vite's `define`, pulled in through a dependency, or
+ * baked into a server chunk by a configuration mistake.
  *
- * Two rules, and the second is the one worth having.
- *
- * **Nothing secret anywhere.** Obvious, and cheap to check.
- *
- * **Nothing about the backend in the client bundle.** The client bundle is
- * shipped to every visitor and is trivially readable. Astro inlines any
+ * Two rules: nothing secret anywhere, and nothing about the backend in the
+ * client bundle. That bundle is shipped to every visitor, Astro inlines any
  * `PUBLIC_`-prefixed variable into it, and this repository deliberately has
- * none - every read happens during SSR. If a backend hostname, a binding name
- * or an API path ever appears there, it means somebody has started fetching
- * from the browser, which is the architecture changing rather than a leak on
- * its own. Either way it should be a decision rather than a surprise.
+ * none - every read happens during SSR. A backend hostname appearing there
+ * means somebody has started fetching from the browser, which should be a
+ * decision rather than a surprise.
  */
 
 import { readdirSync, readFileSync, statSync } from 'node:fs';

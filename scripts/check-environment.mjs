@@ -1,22 +1,16 @@
 /**
  * Refuses a deployment whose backend binding names the wrong environment.
  *
- * The single worst configuration mistake available in this architecture. A
- * staging site reading production data publishes production prices on a
- * hostname that is not meant to be public, and makes staging's own data
- * untrustworthy for the testing it exists to do. From a developer's machine it
- * is worse: an experiment reading real data over a binding nobody audited.
+ * The worst configuration mistake available here: a staging site reading
+ * production data publishes production prices on a hostname not meant to be
+ * public, and leaves staging's own data untrustworthy for the testing it exists
+ * to do.
  *
- * Cloudflare's own model makes this mostly structural. A service binding names
- * a Worker *script*, not a URL, so there is no hostname a mistyped variable
- * could redirect and no configuration a deploy could override. This check is
- * for the case the structure cannot catch: someone editing `wrangler.jsonc` and
- * naming the wrong script.
- *
- * Run before the build in both deploy workflows, so a wrong binding fails while
- * nothing has shipped. The deployed Worker's own `/api/health` reports its
- * environment afterwards, which is the same question asked of what actually ran
- * rather than of what was written down.
+ * Cloudflare makes this mostly structural - a service binding names a Worker
+ * script, not a URL, so there is no hostname a mistyped variable could
+ * redirect. This catches what the structure cannot: someone naming the wrong
+ * script in `wrangler.jsonc`. It runs before the build in both deploy
+ * workflows, so a wrong binding fails while nothing has shipped.
  */
 
 import { readFileSync } from 'node:fs';

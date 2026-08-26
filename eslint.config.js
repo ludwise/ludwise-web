@@ -61,10 +61,9 @@ export default tseslint.config(
   js.configs.recommended,
 
   // Comment length is a readability finding, not a style preference: see
-  // AGENTS.md. Scoped to src/ first; tests/ and scripts/ are tracked
-  // separately.
+  // AGENTS.md.
   {
-    files: ['src/**/*.{ts,tsx,astro}'],
+    files: ['src/**/*.{ts,tsx,astro}', 'tests/**/*.{ts,tsx}', 'scripts/**/*.{mjs,js,ts}'],
     plugins: { ludwise },
     rules: { 'ludwise/max-comment-block-lines': ['error', { max: 3, maxBlock: 15 }] },
   },

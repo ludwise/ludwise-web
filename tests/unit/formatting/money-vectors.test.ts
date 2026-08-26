@@ -46,11 +46,9 @@ describe('formatMoney', () => {
     expect(formatMoney({ amountMinor: 500, currencyCode: 'JPY', minorUnit: 0 }, 'en-US')).toBe(
       '¥500',
     );
-    // Three decimals, which Intl's default for KWD happens to agree with.
     // Asserted on the parts rather than the whole string: Intl separates a
-    // currency code from its amount with U+00A0, not a space, and an assertion
-    // written with an ordinary space fails against output that is correct and
-    // looks identical in a diff.
+    // currency code from its amount with U+00A0, so an assertion written with an
+    // ordinary space fails against output that is correct and looks identical.
     const kwd = formatMoney({ amountMinor: 1999, currencyCode: 'KWD', minorUnit: 3 }, 'en-US');
     expect(kwd).toContain('KWD');
     expect(kwd).toContain('1.999');

@@ -10,16 +10,14 @@ import { describe, expect, it } from 'vitest';
  *
  * The handoff is explicit that the token layer is adopted verbatim: "Copy it,
  * keep the `@import` structure, change only the font loading" and "Do not
- * rename a token. If a name is wrong, raise it; do not silently diverge."
- * Two copies of the same file in one repository drift the moment someone
- * tunes a colour in the one they happen to have open, and a silent divergence
- * here is invisible until a designer reviews a screen and cannot say why it
- * does not match.
+ * rename a token. If a name is wrong, raise it; do not silently diverge." Two
+ * copies of one file drift the moment someone tunes a colour in whichever they
+ * have open, and the divergence is invisible until a designer reviews a screen
+ * and cannot say why it does not match.
  *
- * So this test pins the whole custom-property surface - every name and every
- * value, in order - rather than spot-checking a few. The single permitted
- * divergence is the font transport, asserted explicitly below rather than
- * excluded quietly.
+ * So this pins the whole custom-property surface - every name and value, in
+ * order - rather than spot-checking. The one permitted divergence is the font
+ * transport, asserted explicitly below rather than excluded quietly.
  */
 
 // tests/integration/design -> tests/integration -> tests -> repository root.
@@ -108,10 +106,9 @@ describe('design token parity with the vendored bundle', () => {
     it('serves fonts from this origin rather than Google Fonts', () => {
       const adopted = read(join(ADOPTED_TOKENS_DIR, FONT_TRANSPORT_FILE));
 
-      // PRODUCT.md section 91 makes performance a product feature. A
-      // third-party request on the critical path of every page contradicts
-      // that, and hands a font vendor the visitor's IP address on a site that
-      // sets no cookies of its own.
+      // PRODUCT.md section 91 makes performance a product feature. A third-party
+      // request on the critical path of every page contradicts that, and hands a
+      // font vendor the visitor's IP on a site that sets no cookies of its own.
       expect(read(join(BUNDLE_TOKENS_DIR, FONT_TRANSPORT_FILE))).toContain('fonts.googleapis.com');
       expect(adopted).not.toContain('fonts.googleapis.com');
       expect(adopted).toContain('@font-face');

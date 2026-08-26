@@ -141,10 +141,9 @@ describe('assertEnvironmentsMatch', () => {
     // data that is already disposable.
     ['development', 'staging', 'allowed'],
 
-    // Everything else. Note that development -> production is refused as
-    // firmly as staging -> production: a developer's experiment reading real
-    // data over an unaudited binding is not a workflow, it is the accident
-    // this function exists to prevent.
+    // development -> production is refused as firmly as staging -> production: a
+    // developer's experiment reading real data over an unaudited binding is the
+    // accident this function exists to prevent.
     ['development', 'production', 'refused'],
     ['staging', 'production', 'refused'],
     ['staging', 'development', 'refused'],

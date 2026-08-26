@@ -9,13 +9,11 @@ import { listSourceFiles } from '../helpers/imports.js';
 /**
  * Guards the two design-system rules that a reimplementation loses first.
  *
- * A token layer only holds if nothing bypasses it. One hard-coded `#2D2A26`
- * looks harmless and correct in the theme the author happened to be viewing,
- * and is invisible in review - it only surfaces when someone switches to the
- * other theme, or when a token is retuned and one component silently does not
- * follow. The same is true of a per-component focus ring: it looks fine in
- * isolation and produces an inconsistent, sometimes invisible, focus
- * indicator across the product.
+ * A token layer only holds if nothing bypasses it. One hard-coded `#2D2A26` is
+ * invisible in review, and surfaces only when someone switches theme or when a
+ * token is retuned and one component silently does not follow. A per-component
+ * focus ring looks fine in isolation and produces an inconsistent, sometimes
+ * invisible, focus indicator across the product.
  *
  * Both are stated as rules in the handoff, which is why they are asserted
  * rather than reviewed: `design/system/guidelines/component-states.md` says
@@ -194,10 +192,9 @@ describe('every component has a consumer', () => {
     expect(componentFiles.length).toBeGreaterThanOrEqual(5);
 
     const orphans = componentFiles.filter((file) => {
-      // `group/Name` is how every import of it is written, whether from a page
-      // (`../components/feedback/EmptyState.astro`) or from a sibling
-      // (`../foundation/Icon.astro`). Matching the path rather than the bare
-      // name avoids counting prose in a comment as a use.
+      // `group/Name` is how every import of it is written, from a page or from
+      // a sibling alike. Matching the path rather than the bare name avoids
+      // counting prose in a comment as a use.
       const importPath = file.split('/').slice(-2).join('/').replace(/.w+$/, '');
 
       return !listSourceFiles('src')
