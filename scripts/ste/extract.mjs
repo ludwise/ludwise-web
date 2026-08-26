@@ -55,14 +55,14 @@ const contiguous = (source, start, end) => ({
   map: Array.from({ length: end - start }, (_, index) => start + index),
 });
 
-const joined = (pieces) => {
+const joined = (pieces, separator = '\n') => {
   const parts = [];
   const map = [];
 
   for (const piece of pieces) {
     if (parts.length > 0) {
-      parts.push('\n');
-      map.push(piece.start);
+      parts.push(separator);
+      for (let index = 0; index < separator.length; index += 1) map.push(piece.start);
     }
     parts.push(piece.text);
     for (let index = 0; index < piece.text.length; index += 1) map.push(piece.start + index);
@@ -334,20 +334,49 @@ const astroFrontmatter = (source) => {
   return { text: source.slice(open, close + 1), offset: open };
 };
 
+/**
+ * An Astro template comment, written as an expression that renders nothing.
+ *
+ * The frontmatter is JavaScript and the parser reads it. The template is not,
+ * so its comments are found by shape instead.
+ */
+const ASTRO_TEMPLATE_COMMENT = /\{\s*\/\*([\s\S]*?)\*\/\s*\}/g;
+
 export const commentCoverage = (source, path) => {
   if (!path.endsWith('.astro')) return 'full';
-  return astroFrontmatter(source) === null ? 'none' : 'frontmatter-only';
+  ASTRO_TEMPLATE_COMMENT.lastIndex = 0;
+  const hasTemplateComment = ASTRO_TEMPLATE_COMMENT.test(source);
+  return astroFrontmatter(source) === null && !hasTemplateComment ? 'none' : 'full';
+};
+
+const astroTemplateComments = (source, from) => {
+  const units = [];
+  ASTRO_TEMPLATE_COMMENT.lastIndex = 0;
+  let match = ASTRO_TEMPLATE_COMMENT.exec(source);
+
+  while (match !== null) {
+    if (match.index >= from && !DIRECTIVE.test(match[1])) {
+      const open = source.indexOf('/*', match.index);
+      const pieces = stripBlockComment(source.slice(open, open + match[1].length + 4), open);
+      if (pieces.length > 0) units.push(unit('comment', 'mixed', joined(pieces), open));
+    }
+    match = ASTRO_TEMPLATE_COMMENT.exec(source);
+  }
+
+  return units;
 };
 
 export const extractComments = (source, path) => {
   let text = source;
   let base = 0;
+  let templateFrom = 0;
 
   if (path.endsWith('.astro')) {
     const frontmatter = astroFrontmatter(source);
-    if (frontmatter === null) return [];
+    if (frontmatter === null) return astroTemplateComments(source, 0);
     text = frontmatter.text;
     base = frontmatter.offset;
+    templateFrom = frontmatter.offset + frontmatter.text.length;
   }
 
   const units = [];
@@ -408,5 +437,229 @@ export const extractComments = (source, path) => {
   }
 
   flush();
+  if (path.endsWith('.astro')) units.push(...astroTemplateComments(source, templateFrom));
   return units;
+};
+
+/**
+ * Attributes that a person reads, rather than a machine.
+ *
+ * The list is short on purpose. An attribute that is not on it is treated as
+ * machine syntax, so a class name or a route can never be measured as prose.
+ */
+const VISIBLE_ATTRIBUTES = new Set([
+  'alt',
+  'aria-description',
+  'aria-label',
+  'aria-placeholder',
+  'aria-roledescription',
+  'aria-valuetext',
+  'content',
+  'description',
+  'label',
+  'placeholder',
+  'title',
+]);
+
+const OPAQUE_ELEMENTS = new Set(['script', 'style']);
+
+const WORDS = /\p{L}{2,}(?:\s+\p{L}+)/u;
+const SENTENCE_SHAPE = /^[\p{L}\p{N}\p{P}\p{Zs}]+$/u;
+
+/**
+ * Whether a value is a sentence a visitor could read.
+ *
+ * Two adjacent words are the bar. A single token is usually a route, a key or
+ * an identifier. No sentence rule can say anything useful about one token.
+ */
+const isVisitorText = (value) => {
+  const text = value.trim();
+  if (text.length === 0 || !SENTENCE_SHAPE.test(text)) return false;
+  if (text.includes('/') || text.includes('\\')) return false;
+  return WORDS.test(text);
+};
+
+const stringUnit = (kind, text, start) => {
+  const map = Array.from({ length: text.length }, (_, index) => start + index);
+  return unit(kind, 'mixed', { text, map }, start);
+};
+
+const trimmedPiece = (piece) => {
+  const lead = piece.text.length - piece.text.trimStart().length;
+  return { text: piece.text.trim(), start: piece.start + lead };
+};
+
+/**
+ * Collapse the expressions inside a run of template text.
+ *
+ * The literal words around an expression are still prose that a visitor reads,
+ * so the run is kept and the expression is removed. Replacing it with a space
+ * keeps two words from being joined into one.
+ */
+const templateText = (raw, start) => {
+  const pieces = [];
+  let index = 0;
+  let depth = 0;
+  let from = 0;
+
+  while (index < raw.length) {
+    if (raw[index] === '{') {
+      if (depth === 0) pieces.push({ text: raw.slice(from, index), start: start + from });
+      depth += 1;
+    } else if (raw[index] === '}' && depth > 0) {
+      depth -= 1;
+      if (depth === 0) from = index + 1;
+    }
+    index += 1;
+  }
+  if (depth === 0) pieces.push({ text: raw.slice(from), start: start + from });
+
+  return pieces.filter((piece) => piece.text.trim().length > 0);
+};
+
+const astroTemplateStrings = (source) => {
+  const frontmatter = astroFrontmatter(source);
+  const base = frontmatter === null ? 0 : frontmatter.offset + frontmatter.text.length + 4;
+  const template = source.slice(Math.min(base, source.length));
+  const units = [];
+  let index = 0;
+  let text = '';
+  let textStart = 0;
+
+  const flushText = () => {
+    const pieces = text.trim().length === 0 ? [] : templateText(text, base + textStart);
+    if (pieces.length > 0) {
+      const trimmed = pieces.map(trimmedPiece).filter((piece) => piece.text.length > 0);
+      const body = joined(trimmed, ' ');
+      if (trimmed.length > 0 && isVisitorText(body.text)) {
+        units.push(unit('template-text', 'mixed', body, trimmed[0].start));
+      }
+    }
+    text = '';
+  };
+
+  while (index < template.length) {
+    if (template[index] !== '<') {
+      if (text.length === 0) textStart = index;
+      text += template[index];
+      index += 1;
+      continue;
+    }
+
+    flushText();
+
+    if (template.startsWith('<!--', index)) {
+      const close = template.indexOf('-->', index);
+      index = close === -1 ? template.length : close + 3;
+      continue;
+    }
+
+    const tag = /^<\/?\s*([a-zA-Z][\w.:-]*)/.exec(template.slice(index));
+    const close = template.indexOf('>', index);
+    if (tag === null || close === -1) {
+      index += 1;
+      continue;
+    }
+
+    const open = template.slice(index, close + 1);
+    for (const found of matchesOfAttribute(open)) {
+      if (!VISIBLE_ATTRIBUTES.has(found.name.toLowerCase())) continue;
+      if (!isVisitorText(found.value)) continue;
+      units.push(stringUnit('template-attribute', found.value.trim(), base + index + found.start));
+    }
+
+    index = close + 1;
+
+    const name = tag[1].toLowerCase();
+    if (!open.startsWith('</') && !open.endsWith('/>') && OPAQUE_ELEMENTS.has(name)) {
+      const end = template.toLowerCase().indexOf(`</${name}`, index);
+      index = end === -1 ? template.length : end;
+    }
+  }
+
+  flushText();
+  return units;
+};
+
+const ATTRIBUTE = /([a-zA-Z][\w:-]*)\s*=\s*"([^"]*)"/g;
+
+const matchesOfAttribute = (open) => {
+  ATTRIBUTE.lastIndex = 0;
+  const found = [];
+  let match = ATTRIBUTE.exec(open);
+  while (match !== null) {
+    found.push({
+      name: match[1],
+      value: match[2],
+      start: match.index + match[0].length - match[2].length - 1,
+    });
+    match = ATTRIBUTE.exec(open);
+  }
+  return found;
+};
+
+/**
+ * Visitor strings that a module holds rather than a template.
+ *
+ * A string literal is read only where it is a sentence. The shapes are a named
+ * constant, a table value, a visible JSX attribute, and JSX element text. A key,
+ * a route or an identifier never passes the sentence test.
+ */
+const moduleStrings = (source, path, base = 0) => {
+  const file = ts.createSourceFile(
+    'input' + (path.endsWith('.tsx') || path.endsWith('.jsx') ? '.tsx' : '.ts'),
+    source,
+    { languageVersion: ts.ScriptTarget.Latest, jsDocParsingMode: ts.JSDocParsingMode.ParseNone },
+    true,
+    scriptKind(path),
+  );
+
+  const units = [];
+  const add = (kind, text, start) => {
+    if (isVisitorText(text)) units.push(stringUnit(kind, text.trim(), base + start));
+  };
+
+  const visit = (node) => {
+    if (ts.isJsxText(node)) {
+      add('template-text', node.getText(file), node.getStart(file));
+    } else if (ts.isJsxAttribute(node) && node.initializer !== undefined) {
+      const name = node.name.getText(file).toLowerCase();
+      if (VISIBLE_ATTRIBUTES.has(name) && ts.isStringLiteral(node.initializer)) {
+        add('template-attribute', node.initializer.text, node.initializer.getStart(file) + 1);
+      }
+    } else if (ts.isStringLiteral(node) && !ts.isImportDeclaration(node.parent)) {
+      const parent = node.parent;
+      const named =
+        ts.isVariableDeclaration(parent) ||
+        ts.isPropertyAssignment(parent) ||
+        ts.isReturnStatement(parent) ||
+        ts.isConditionalExpression(parent) ||
+        ts.isArrayLiteralExpression(parent);
+      if (named) add('string', node.text, node.getStart(file) + 1);
+    }
+    for (const child of node.getChildren(file)) visit(child);
+  };
+
+  visit(file);
+  return units;
+};
+
+const STRING_EXTENSIONS = ['.astro', '.ts', '.tsx', '.mts', '.cts', '.js', '.jsx', '.mjs', '.cjs'];
+
+export const stringCoverage = (path) =>
+  STRING_EXTENSIONS.some((one) => path.endsWith(one)) ? 'full' : 'none';
+
+export const extractStrings = (source, path) => {
+  if (stringCoverage(path) === 'none') return [];
+
+  if (path.endsWith('.astro')) {
+    const frontmatter = astroFrontmatter(source);
+    const inFrontmatter =
+      frontmatter === null ? [] : moduleStrings(frontmatter.text, 'a.ts', frontmatter.offset);
+    return [...inFrontmatter, ...astroTemplateStrings(source)].sort(
+      (left, right) => left.start - right.start,
+    );
+  }
+
+  return moduleStrings(source, path);
 };

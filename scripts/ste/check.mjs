@@ -16,6 +16,8 @@ import {
   declaredProseKind,
   extractComments,
   extractMarkdown,
+  extractStrings,
+  stringCoverage,
 } from './extract.mjs';
 import { matchesAnyGlob } from './glob.mjs';
 import { IMPLEMENTED_RULE_IDS, PROSE_RULE_IDS, runRules } from './rules.mjs';
@@ -67,6 +69,14 @@ const unitsFor = (assignment, source, file) => {
     const coverage = commentCoverage(source, file);
     return {
       units: coverage === 'none' ? [] : extractComments(source, file),
+      supported: coverage !== 'none',
+      unread: coverage === 'full' ? 0 : 1,
+    };
+  }
+  if (assignment.unit === 'strings') {
+    const coverage = stringCoverage(file);
+    return {
+      units: coverage === 'none' ? [] : extractStrings(source, file),
       supported: coverage !== 'none',
       unread: coverage === 'full' ? 0 : 1,
     };

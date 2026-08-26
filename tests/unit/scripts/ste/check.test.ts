@@ -110,29 +110,34 @@ describe('checkFiles', () => {
     expect(result.filesChecked).toBe(0);
   });
 
-  it('never reads a string literal, so a derived unit adds no diagnostic', () => {
+  it('reads a visitor string as its own unit, under the derived rule set', () => {
+    const derived = {
+      ...documents,
+      policy: {
+        ...documents.policy,
+        classification: [
+          {
+            id: 'fixture-strings',
+            paths: ['tests/fixtures/ste/*.ts'],
+            unit: 'strings',
+            class: 'STE-DERIVED',
+            reason: 'Fixture.',
+          },
+          ...documents.policy.classification,
+        ],
+      },
+    };
     const result = checkFiles({
       rootDir: process.cwd(),
       files: ['tests/fixtures/ste/comments.ts'],
-      documents: {
-        ...documents,
-        policy: {
-          ...documents.policy,
-          classification: [
-            {
-              id: 'fixture-strings',
-              paths: ['tests/fixtures/ste/*.ts'],
-              unit: 'strings',
-              class: 'STE-DERIVED',
-              reason: 'Fixture.',
-            },
-            ...documents.policy.classification,
-          ],
-        },
-      },
+      documents: derived,
     });
-    expect(result.diagnostics.filter((one) => one.unit === 'strings')).toEqual([]);
-    expect(result.unsupportedUnits).toBeGreaterThan(0);
+    expect(result.unsupportedUnits).toBe(0);
+    expect(result.diagnostics.map((one) => one.rule)).toContain('LW-STE-ABBREVIATION-PROHIBITED');
+    const spelling = result.diagnostics.filter(
+      (one) => one.unit === 'strings' && one.rule === 'LW-STE-SPELLING-VARIANT',
+    );
+    expect(spelling).toEqual([]);
   });
 
   it('applies a central exception instead of an inline suppression', () => {

@@ -143,10 +143,30 @@ describe('extractComments, on what it must not join or drop', () => {
 
   it('reports how much of a file its comments cover', () => {
     expect(commentCoverage('const a = 1;\n', 'a.ts')).toBe('full');
-    expect(commentCoverage('---\nconst a = 1;\n---\n<p>x</p>\n', 'a.astro')).toBe(
-      'frontmatter-only',
-    );
+    expect(commentCoverage('---\nconst a = 1;\n---\n<p>x</p>\n', 'a.astro')).toBe('full');
     expect(commentCoverage('<p>x</p>\n', 'a.astro')).toBe('none');
+  });
+
+  it('reads a comment from an Astro template as well as its frontmatter', () => {
+    const source = '---\n// A reason.\n---\n<p>x</p>\n{/* A template reason. */}\n';
+    expect(extractComments(source, 'a.astro').map((one) => one.text.trim())).toEqual([
+      'A reason.',
+      'A template reason.',
+    ]);
+  });
+
+  it('reads a template comment when the component has no frontmatter', () => {
+    const source = '<p>x</p>\n{/* Only a template reason. */}\n';
+    expect(extractComments(source, 'a.astro').map((one) => one.text.trim())).toEqual([
+      'Only a template reason.',
+    ]);
+  });
+
+  it('reports an offset in a template comment that points back into the source', () => {
+    const source = '---\nconst a = 1;\n---\n<p>x</p>\n{/* A template reason. */}\n';
+    const units = extractComments(source, 'a.astro');
+    const template = units.find((one) => one.text.includes('template reason'));
+    expect(source.slice(template!.start, template!.start + 2)).toBe('/*');
   });
 });
 

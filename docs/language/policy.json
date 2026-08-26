@@ -53,8 +53,8 @@
     },
     "strings": {
       "summary": "Only the human-readable string literals in the file are controlled prose.",
-      "checkerSupport": "none",
-      "checkerSupportReason": "String extraction is not implemented. See docs/language/checker.md."
+      "checkerSupport": "partial",
+      "checkerSupportReason": "The extractor reads template text, a visitor-visible attribute and a named string constant. A string that a runtime value composes is reviewed rather than measured."
     }
   },
   "proseBearingExtensions": [
