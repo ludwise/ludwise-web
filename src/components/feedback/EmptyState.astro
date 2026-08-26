@@ -1,21 +1,20 @@
 ---
-// Reference: design/system/components/feedback.md § EmptyState — prop
-// contract ported verbatim. Every empty state answers three questions in
-// order: what happened, why the space is empty, what to do next — enforced
-// here only by the title/default-slot/action ordering, not by validation.
-//
-// `children`, `action` and `secondaryAction` are ReactNode in the reference;
-// as in InlineMessage, they become the default slot and two named slots.
-//
-// `titleAs` is NOT in the handoff's prop contract — an addition, justified
-// because the bundle ships no error-page composition, so nothing in it ever
-// needed the title to be a heading. Without one, `/404` and `/500` (which
-// compose from EmptyState) have no programmatic heading at all: the title is
-// the only heading-styled text on the page, but a bare <span> leaves a
-// screen-reader user navigating by heading with no structure to land on
-// (WCAG 1.3.1). Defaults to 'span' so every in-page use (e.g. `/games`,
-// where EmptyState sits inside a page that already has its own heading
-// hierarchy) is unaffected and gains no stray heading.
+/**
+ * Reference: design/system/components/feedback.md § EmptyState — prop contract
+ * ported verbatim. Every empty state answers three questions in order: what
+ * happened, why the space is empty, what to do next. That order is carried by
+ * title/default-slot/action, not by validation.
+ *
+ * `children`, `action` and `secondaryAction` are ReactNode in the reference; as
+ * in InlineMessage they become the default slot and two named slots.
+ *
+ * `titleAs` is an addition, not in the handoff's prop contract. The bundle ships
+ * no error-page composition, so nothing in it needed the title to be a heading —
+ * but `/404` and `/500` compose from EmptyState, where the title is the only
+ * heading-styled text on the page. A bare `<span>` leaves a screen-reader user
+ * navigating by heading with nothing to land on (WCAG 1.3.1). Defaults to
+ * `'span'`, so in-page uses gain no stray heading.
+ */
 import Icon from '../foundation/Icon.astro';
 import type { IconName } from '../foundation/icons.js';
 
@@ -34,11 +33,11 @@ const { icon = 'search', title, titleAs = 'span', compact = false } = Astro.prop
 
 const hasActions = Astro.slots.has('action') || Astro.slots.has('secondaryAction');
 
-// Astro supports a dynamic tag via a capitalised variable holding the tag
-// name (same technique Wordmark.astro uses for its href-or-not <a>/<span>).
-// The class below sets the full font shorthand regardless of tag, so h1/h2/h3
-// carry the identical visual treatment a <span> would — only the semantics
-// change.
+/**
+ * Astro takes a dynamic tag from a capitalised variable, the technique
+ * Wordmark.astro uses for its href-or-not `<a>`/`<span>`. The class below sets
+ * the full font shorthand whatever the tag, so only the semantics change.
+ */
 const TitleTag = titleAs;
 ---
 

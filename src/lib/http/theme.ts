@@ -43,10 +43,9 @@ export function readThemeCookie(cookieHeader: string | null | undefined): Theme 
     const separator = pair.indexOf('=');
     if (separator === -1) continue;
 
-    // Compared whole, so `user_theme=dark` does not match, and matched
-    // exactly, so `darkish` and `DARK` do not: the attribute selector in the
-    // token layer is case-sensitive, and a near-miss that reached the document
-    // would silently produce an unstyled page.
+    // Whole and exact, so neither `user_theme=dark` nor `darkish` matches: the
+    // token layer's attribute selector is case-sensitive, and a near-miss that
+    // reached the document would silently produce an unstyled page.
     if (pair.slice(0, separator).trim() !== THEME_COOKIE_NAME) continue;
 
     const value = pair.slice(separator + 1).trim();

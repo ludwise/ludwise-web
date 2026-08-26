@@ -1,9 +1,13 @@
 ---
-// Reference: design/system/components/foundation.md § Icon — prop contract ported
-// verbatim; markup and sizing come from the shared name→path-data map in
-// ./icons.ts rather than being duplicated here (AppHeader.tsx needs the same
-// 49 glyphs and cannot import an .astro file, so the map lives in a
-// framework-neutral module both can reach).
+/**
+ * Reference: design/system/components/foundation.md § Icon — prop contract
+ * ported verbatim.
+ *
+ * Markup and sizing come from the shared name-to-path-data map in ./icons.ts
+ * rather than being duplicated here: AppHeader.tsx needs the same glyphs and
+ * cannot import an .astro file, so the map lives in a framework-neutral module
+ * both can reach.
+ */
 import { ICON_SIZES, LUDWISE_ICONS, type IconName, type IconSize } from './icons.js';
 
 interface Props {
@@ -23,15 +27,16 @@ const { name, size = 'md', strokeWidth = 1.75, title, class: className } = Astro
 
 const px = typeof size === 'number' ? size : (ICON_SIZES[size] ?? ICON_SIZES.md);
 
-// Switching off escaping below is safe only because this is a lookup into the
-// compile-time LUDWISE_ICONS map, keyed by the closed IconName union - a
-// constant, never a runtime value.
-//
-// `title` is deliberately NOT composed into that string. It is a prop, so the
-// first caller writing `title={game.title}` would put provider data, through
-// the database, into unescaped markup. The accessible name comes from
-// `aria-label` instead: Astro escapes attributes, and aria-label wins over an
-// SVG <title> in the accessible name computation anyway.
+/**
+ * Path data for the glyph, and the only reason escaping may be switched off
+ * below: a lookup into the compile-time `LUDWISE_ICONS` map, keyed by the closed
+ * `IconName` union. Never a runtime value.
+ *
+ * `title` is deliberately not composed into this string. It is a prop, so the
+ * first caller writing `title={game.title}` would put provider data into
+ * unescaped markup. The accessible name comes from `aria-label`, which Astro
+ * escapes and which wins over an SVG `<title>` anyway.
+ */
 const markup = LUDWISE_ICONS[name];
 ---
 

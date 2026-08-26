@@ -83,6 +83,18 @@ function withCorrelationHeaders(
  * Runs first and cannot fail, so that a configuration failure further down the
  * chain still produces a response carrying a request id.
  */
+/**
+ * The environment, or `undefined` when configuration never validated.
+ *
+ * `locals.config` is typed as always present because every handler runs after
+ * the configuration middleware sets it - but this runs after `next()` has
+ * unwound, which includes the path where configuration threw. Absent,
+ * `withSecurityHeaders` withholds indexing rather than assuming production.
+ */
+function configuredEnvironment(context: { locals: App.Locals }): Environment | undefined {
+  return (context.locals as { config?: AppConfig }).config?.environment;
+}
+
 const correlation = defineMiddleware(async (context, next) => {
   const derived = deriveCorrelation(context.request.headers);
   context.locals.requestId = derived.requestId;
@@ -93,18 +105,9 @@ const correlation = defineMiddleware(async (context, next) => {
 
   const response = withCorrelationHeaders(await next(), derived);
 
-  // Security headers are applied here rather than in their own middleware for
-  // one reason: this is the outermost step, so they land on every response
-  // including the configuration-failure 503 below, which returns before any
-  // later middleware runs.
-  //
-  // The environment is read defensively for the same reason. `locals.config` is
-  // typed as always present because every handler runs after the configuration
-  // middleware set it - but this line runs after next() has unwound, which
-  // includes the path where configuration threw. Absent, withSecurityHeaders
-  // withholds indexing rather than assuming production.
-  const { config } = context.locals as { config?: AppConfig };
-  return withSecurityHeaders(response, config?.environment);
+  // Applied in the outermost step so they land on every response, including the
+  // configuration-failure 503 that returns before any later middleware runs.
+  return withSecurityHeaders(response, configuredEnvironment(context));
 });
 
 /**
@@ -302,10 +305,9 @@ function resolveTransport(environment: Environment): { fetch: typeof fetch; base
     };
   }
 
-  // Not a ConfigError: configuration validated fine, and this is a missing
-  // binding rather than a bad value. It reaches a page as an unavailable
-  // backend, which is exactly what it is from a visitor's point of view - and
-  // is the state the site is designed to render honestly.
+  // Not a ConfigError: configuration validated fine, and a missing binding is not
+  // a bad value. It reaches a page as an unavailable backend, which is what it is
+  // to a visitor, and a state this site renders honestly.
   throw new Error('No backend transport is available');
 }
 
@@ -326,11 +328,9 @@ const analytics = defineMiddleware(async (context, next) => {
   const response = await next();
 
   if (isDocumentResponse(response)) {
-    // The whole RouteInfo, not just the route: `pageViewEvent` refuses to
-    // describe a page whose route was sanitised rather than matched, because a
-    // sanitised path is whatever the visitor asked for and may carry values
-    // they did not choose to send. Losing a count is recoverable; collecting a
-    // path is not.
+    // The whole RouteInfo: `pageViewEvent` refuses a page whose route was
+    // sanitised rather than matched, because a sanitised path is whatever the
+    // visitor asked for. Losing a count is recoverable; collecting a path is not.
     const event = pageViewEvent(
       routeTemplate({
         routePattern: (context as { routePattern?: string }).routePattern,

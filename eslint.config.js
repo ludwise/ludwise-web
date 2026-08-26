@@ -2,6 +2,7 @@ import js from '@eslint/js';
 import globals from 'globals';
 import astro from 'eslint-plugin-astro';
 import tseslint from 'typescript-eslint';
+import ludwise from './eslint-rules/max-comment-block-lines.js';
 
 // --- Layering ---------------------------------------------------------------
 //
@@ -58,6 +59,15 @@ export default tseslint.config(
   },
 
   js.configs.recommended,
+
+  // A `//` block over three lines is a readability finding, not a style
+  // preference: see AGENTS.md. Scoped to src/ first; tests/ and scripts/ are
+  // tracked separately.
+  {
+    files: ['src/**/*.{ts,tsx,astro}'],
+    plugins: { ludwise },
+    rules: { 'ludwise/max-comment-block-lines': ['error', { max: 3 }] },
+  },
 
   // Type-aware linting is scoped to src/ rather than applied globally and then
   // switched off again. Root config files and scripts sit outside the tsconfig

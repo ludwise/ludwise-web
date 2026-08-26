@@ -9,6 +9,12 @@ refactoring over explanatory comments.
 
 - Comments explain **why**, not **what** the next lines do.
 - Keep inline comments short, precise, factual, and durable.
+- **A run of `//` comments may not exceed three lines.**
+  `eslint-rules/max-comment-block-lines.js` enforces this under `src/`. A fourth
+  line means either the code is not saying what it does, or a contract is being
+  described somewhere documentation tooling cannot read it. Make the code carry
+  it, move the contract onto its declaration as a `/** */` doc comment, or put
+  the evidence in the test that pins it — deleting the text is not the fix.
 - Treat an inline comment longer than about 80 characters as a readability smell.
   First improve naming, types, decomposition, or control flow; then decide whether
   the comment is still necessary.

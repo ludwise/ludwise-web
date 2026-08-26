@@ -29,33 +29,31 @@ export const SECURITY_HEADERS = Object.freeze({
   // HTML, which is how a stored value becomes a script.
   'x-content-type-options': 'nosniff',
 
-  // Nothing here is meant to be embedded. X-Frame-Options for the browsers
-  // that still only honour it, frame-ancestors for the ones that do it
-  // properly - the two are not redundant, they are for different clients.
-  //
-  // base-uri is the valuable one of the remaining three: a <base> tag
-  // relativises every script and link on the page, which is the standard
-  // escalation from a partial HTML injection to full script control. object-src
-  // and form-action cost nothing and close a plugin and a form-hijack vector.
+  /**
+   * Nothing here is meant to be embedded. Paired with `frame-ancestors` below
+   * rather than replaced by it: the two are for different clients, not
+   * redundant.
+   */
   'x-frame-options': 'DENY',
+  /**
+   * `base-uri` is the valuable one: a `<base>` tag relativises every script and
+   * link on the page, the standard escalation from a partial HTML injection to
+   * full script control. `object-src` and `form-action` cost nothing and close
+   * a plugin and a form-hijack vector.
+   */
   'content-security-policy':
     "frame-ancestors 'none'; base-uri 'none'; object-src 'none'; form-action 'self'",
 
-  // HTML varies by the theme cookie and carries a per-request id. Nothing
-  // caches it today - Cloudflare does not cache a Worker HTML response without
-  // a cache rule - but the day someone adds one without this, a visitor's
-  // request id is served to somebody else, and an id quoted from a cached page
-  // sends an operator to a third party's record. Costs nothing to be right now
-  // and impossible to notice later.
-  //
-  // Set rather than appended, deliberately. Nothing upstream of this produces a
-  // Vary to preserve: Astro emits none, the adapter's image endpoints are not
-  // served (imageService: 'compile', and nothing imports astro:assets), and a
-  // request matching dist/client never invokes the Worker at all - those get
-  // their headers from public/_headers. Confirmed against the deployed
-  // staging Worker, which returns no Vary on HTML, JSON or 404 responses even
-  // when the edge has compressed them. If a Worker response ever does carry
-  // one, this has to merge instead, and the test below is what will say so.
+  /**
+   * HTML varies by the theme cookie and carries a per-request id.
+   *
+   * Nothing caches it today, but the day a cache rule is added without this, a
+   * visitor's request id is served to somebody else - and an id quoted from a
+   * cached page sends an operator to a third party's record.
+   *
+   * Set rather than merged, deliberately; the security-headers test pins that
+   * choice and says why merge logic would be unreachable today.
+   */
   vary: 'cookie',
 
   // A LUDWISE URL names a game. Sending the full path to a storefront on an

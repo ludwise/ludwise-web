@@ -50,16 +50,9 @@ try {
 
     rejectedFilters = adviseGameSearch(error.fields);
 
-    // The form is built from catalogue facets, and a visitor who cannot see it
-    // again cannot correct the combination they just sent. The backend rebuilt
-    // it and sent it along with the rejection, so this costs no second round
-    // trip - see ADR 0025.
-    //
-    // Cast rather than validated, and narrowly: `data` is typed `unknown` on
-    // the contract because which view it holds depends on which endpoint
-    // answered, and this call site is the place that knows. A backend that sent
-    // something else produces a page with no filter form, which the template
-    // already handles.
+    // The form comes back with the rejection at no extra round trip (ADR 0025).
+    // Cast narrowly: `data` is `unknown` on the contract, and this is the call
+    // site that knows which view it holds.
     view = (error.data as GameSearchView | undefined) ?? null;
 
     if (view === null) {

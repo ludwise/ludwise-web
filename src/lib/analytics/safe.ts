@@ -36,10 +36,9 @@ export function createSafeAnalytics(
           });
         }
       } catch (error) {
-        // The error handler is itself guarded. It normally writes a log record,
-        // and if that path were ever to throw, an unguarded call here would turn
-        // a swallowed analytics failure into a 500. The handler must be at least
-        // as safe as the thing it is handling.
+        // The handler must be at least as safe as the thing it is handling: it
+        // normally writes a log record, and an unguarded call here would turn a
+        // swallowed analytics failure into a 500.
         try {
           onError?.(error, event);
         } catch {

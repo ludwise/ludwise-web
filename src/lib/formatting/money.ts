@@ -60,10 +60,8 @@ export function formatAmountMinor(amountMinor: number, minorUnit: number): strin
 
   if (minorUnit === 0) return `${sign}${unsignedDigits}`;
 
-  // Pad so there is always at least one integer digit, even when the amount is
-  // smaller than one major unit: 5 minor units at two decimals is "0.05", not
-  // ".05". Padding the unsigned digits only, so the sign can never be split
-  // away from the number.
+  // At least one integer digit, so 5 minor units at two decimals is '0.05' rather
+  // than '.05'. Unsigned digits only: the sign must never be split off.
   const padded = unsignedDigits.padStart(minorUnit + 1, '0');
   const splitIndex = padded.length - minorUnit;
   return `${sign}${padded.slice(0, splitIndex)}.${padded.slice(splitIndex)}`;

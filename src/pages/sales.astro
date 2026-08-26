@@ -46,12 +46,9 @@ try {
 
     rejectedFilters = adviseSales(error.fields);
 
-    // The form is built from what is actually on sale, and a visitor who cannot
-    // see it again cannot correct the combination they just sent. The backend
-    // rebuilt it alongside the rejection, reusing the pair enumeration the
-    // failed read had already done - the most expensive query the product
-    // issues, on a path anyone can reach by editing the address bar (ADR 0025).
-    // Reusing it is what keeps that path from paying for the enumeration twice.
+    // The form comes back with the rejection, reusing the pair enumeration the
+    // failed read already did - the most expensive query the product issues, on a
+    // path anyone reaches by editing the address bar (ADR 0025).
     view = (error.data as BrowseSalesView | undefined) ?? null;
 
     if (view === null) {
@@ -83,10 +80,8 @@ const selectedStores = new Set(input.stores ?? []);
 const storeCount = view?.facets.stores.length ?? 0;
 
 // The pairs holding a sale, plus the one the visitor asked for when it holds
-// none. Without it the select would offer a pair nobody chose while the
-// address bar said otherwise. Sorted with a locale-independent rule rather
-// than localeCompare, so this list and every other order this page renders
-// agree with each other regardless of the visitor's locale.
+// none - otherwise the select offers a pair nobody chose while the address bar
+// says otherwise. Locale-independent order, so every list on the page agrees.
 const offeredContexts =
   context !== null &&
   !(view?.facets.contexts ?? []).some(
@@ -109,11 +104,9 @@ const hasFilters =
 const inputValue = (value: number | undefined): string =>
   value === undefined || !Number.isFinite(value) ? '' : String(value);
 
-// The out-of-range-page state (paginating past the last page) is the only way
-// `games` is empty while `resultCount` is not: a page inside the valid range
-// always slices at least one result. Kept distinct from "no games match these
-// filters" - one names a page that does not exist, the other a filter that
-// excluded everything.
+// Paginating past the last page is the only way `games` is empty while
+// `resultCount` is not. Kept distinct from "no games match these filters": one
+// names a page that does not exist, the other a filter that excluded everything.
 const pageOutOfRange = view !== null && view.games.length === 0 && view.resultCount > 0;
 ---
 

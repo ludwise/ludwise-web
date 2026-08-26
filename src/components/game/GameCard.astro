@@ -1,49 +1,46 @@
 ---
-// Reference: design/system/components/game.md § GameCard — the discovery
-// primitive: one game and its best current offer. The content hierarchy is
-// ported verbatim and, as the handoff requires, never reordered: game
-// identity, then purchasable state, then price, then deal context, then
-// secondary metadata.
-//
-// The whole card is one link and holds no nested interactive control. That is
-// the handoff's rule, not a simplification — a control inside a card "creates
-// a keyboard trap and an ambiguous click target". It is also why the card
-// links to the canonical game page rather than out to a store: every offer,
-// and every outbound link, already lives there.
-//
-// Ported: title, href, price, referencePrice, discountPercentage, storeCount.
-//
-// Not implemented, each because the data does not exist rather than to save
-// work:
-//   * `artworkSrc` / GameArtwork — no artwork is in the canonical model. A
-//     placeholder tile would be decoration standing in for a fact (#14).
-//   * `ratingSummary` — no rating exists anywhere in the model, and
-//     PRODUCT.md §120 forbids rendering a value that is not there (#25).
-//   * `signal` / PriceSignal — observed-low is #24, and §11.8 allows the
-//     claim only within LUDWISE's own observation window.
-//   * `variant` — only `standard` has a consumer. The handoff is explicit
-//     that exactly three variants exist and a fourth needs a system change,
-//     so the other two arrive with a surface that renders them rather than
-//     being stubbed here.
-//
-// Added, and both are product requirements rather than styling:
-//   * `observedAtMs` / FreshnessIndicator. The handoff puts freshness on
-//     GameRow and not on GameCard, but every number on this card is
-//     commercial data, and PRODUCT.md §55 requires that a visitor is not
-//     misled into believing stale data was freshly verified. A card that
-//     showed a price with no indication of its age would be exactly that.
-//   * `editionLabel`. One game can carry several offers and this card shows
-//     one of them (PRODUCT.md §37). When the represented offer is an edition
-//     rather than the base game, saying so is what keeps the price honest.
-//
-// The handoff composes Price and DiscountBadge side by side; LUDWISE's
-// Price.astro already renders the badge itself, so it is used alone.
-//
-// The handoff's store line is a bare count ("2 stores"). PRODUCT.md §131
-// requires the relevant store itself, not merely how many hold the game, so
-// the count is now paired with StoreIdentity - already the game-detail
-// page's own way of naming a store (OfferTable.astro) - naming the one
-// whose price this card actually shows.
+/**
+ * Reference: design/system/components/game.md § GameCard — the discovery
+ * primitive: one game and its best current offer.
+ *
+ * The content hierarchy is ported verbatim and never reordered: game identity,
+ * purchasable state, price, deal context, secondary metadata.
+ *
+ * The whole card is one link with no nested interactive control. That is the
+ * handoff's rule, not a simplification — a control inside a card "creates a
+ * keyboard trap and an ambiguous click target". It is also why the card links to
+ * the canonical game page rather than out to a store: every offer, and every
+ * outbound link, already lives there.
+ *
+ * Ported: title, href, price, referencePrice, discountPercentage, storeCount.
+ *
+ * Not implemented, each because the data does not exist rather than to save work:
+ *
+ * - `artworkSrc` / GameArtwork — no artwork is in the canonical model, and a
+ *   placeholder tile would be decoration standing in for a fact (#14).
+ * - `ratingSummary` — no rating exists anywhere in the model, and PRODUCT.md
+ *   §120 forbids rendering a value that is not there (#25).
+ * - `signal` / PriceSignal — observed-low is #24, and §11.8 allows the claim
+ *   only within LUDWISE's own observation window.
+ * - `variant` — only `standard` has a consumer, and the handoff is explicit that
+ *   a fourth variant needs a system change, so the other two arrive with a
+ *   surface that renders them rather than being stubbed here.
+ *
+ * Added, both product requirements rather than styling:
+ *
+ * - `observedAtMs` / FreshnessIndicator. The handoff puts freshness on GameRow,
+ *   but every number on this card is commercial data, and PRODUCT.md §55
+ *   requires that a visitor is not misled into believing stale data was freshly
+ *   verified.
+ * - `editionLabel`. One game can carry several offers and this card shows one of
+ *   them (PRODUCT.md §37); saying when that one is an edition rather than the
+ *   base game is what keeps the price honest.
+ *
+ * The handoff composes Price and DiscountBadge side by side; Price.astro renders
+ * the badge itself, so it is used alone. Its store line is a bare count, where
+ * PRODUCT.md §131 requires the store itself — so the count is paired with
+ * StoreIdentity, already the game-detail page's way of naming one.
+ */
 import Price from './Price.astro';
 import FreshnessIndicator from './FreshnessIndicator.astro';
 import StoreIdentity from './StoreIdentity.astro';

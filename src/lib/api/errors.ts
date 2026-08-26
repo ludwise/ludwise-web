@@ -71,10 +71,9 @@ export class LudwiseApiError extends Error {
   readonly data: unknown;
 
   constructor(kind: ApiFailureKind, operation: string, options: LudwiseApiErrorOptions = {}) {
-    // Built from the kind and the operation only. Neither is caller data or
-    // backend data, so this message is safe wherever it ends up - which is what
-    // lets the rest of the codebase stop asking whether a given error is safe
-    // to print.
+    // Kind and operation only, neither of them caller or backend data, so this
+    // message is safe wherever it ends up - which is what lets the rest of the
+    // codebase stop asking whether an error is safe to print.
     super(`${kind}: ${operation}`, { cause: options.cause });
     this.name = 'LudwiseApiError';
     this.kind = kind;

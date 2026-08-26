@@ -41,6 +41,15 @@ import { LUDWISE_ICONS, type IconName } from '../foundation/icons.js';
 import { serializeThemeCookie, type Theme } from '../../lib/http/theme.js';
 import './AppHeader.css';
 
+/**
+ * One glyph from the compile-time icon map.
+ *
+ * `markup` is a lookup into `LUDWISE_ICONS`, keyed by the closed `IconName`
+ * union and never derived from a request or a database row. That constancy is
+ * the whole basis for switching escaping off, so nothing variable may join the
+ * string: `title` is a prop, and reaches the accessible name through
+ * `aria-label`, which React escapes, rather than an interpolated `<title>`.
+ */
 function IconGlyph({
   name,
   size,
@@ -51,13 +60,6 @@ function IconGlyph({
   title?: string | undefined;
 }) {
   const markup = LUDWISE_ICONS[name];
-  // `markup` is never derived from a request, a database row or any other
-  // runtime value — it is a lookup into the static, compile-time
-  // LUDWISE_ICONS map keyed by the closed IconName union, the same trusted
-  // source Icon.astro's set:html uses. That constancy is the whole basis for
-  // switching escaping off, so nothing variable may join the string:
-  // `title` is a prop and reaches the accessible name through aria-label,
-  // which React escapes, rather than through an interpolated <title>.
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -80,13 +82,15 @@ function IconGlyph({
   );
 }
 
-// The lockup, reimplemented from Wordmark.astro/LudwiseMark.astro's geometry
-// because those are Astro components (see the file comment above). Fixed at
-// the reference's `<Wordmark size="md" href="#" />`, except the href: the
-// reference's `#` was a placeholder for a specimen with no router, and this
-// is the second tab stop on every real page, announcing itself as "LUDWISE —
-// home" — it has to actually go there. The header does not expose a size or
-// tone knob, matching the prop contract, which has none.
+/**
+ * Geometry for the lockup, reimplemented from Wordmark.astro because that is an
+ * Astro component this island cannot import.
+ *
+ * Fixed at the reference's `<Wordmark size="md" />`; the header exposes no size
+ * or tone knob, matching a prop contract that has none. The href is the one
+ * departure: the reference's `#` was a placeholder for a specimen with no
+ * router, and this is the second tab stop on every real page.
+ */
 const WORDMARK_PX = 19;
 const WORDMARK_TILE_RATIO = 1.22;
 const WORDMARK_GAP_RATIO = 0.42;
@@ -321,6 +325,22 @@ function useHeaderTheme(initial: Theme, onThemeToggle: (() => void) | undefined)
   return { currentTheme, toggleTheme };
 }
 
+/**
+ * The `data-compact` attribute value, or `undefined` to leave it off.
+ *
+ * Which layout renders is CSS's job, never this component's: `useIsCompactHeader`
+ * resolves in an effect, so it answers `false` on the server and through the
+ * whole pre-hydration window, and a layout only correct after hydration would
+ * break the server-rendered HTML PRODUCT.md §83 and §89 require.
+ *
+ * `compact` is the escape hatch the prop contract documents. Supplied, this
+ * attribute wins: AppHeader.css gives it higher specificity than the media
+ * query. Omitted, the media query alone decides.
+ */
+function compactAttribute(compact: boolean | undefined): 'true' | 'false' | undefined {
+  return compact === undefined ? undefined : compact ? 'true' : 'false';
+}
+
 export function AppHeader({
   items,
   activeId,
@@ -339,16 +359,7 @@ export function AppHeader({
   const { menuOpen, menuButtonRef, toggleMenu, closeMenu } = useMenuPanel(onMenu);
   const { currentTheme, toggleTheme } = useHeaderTheme(theme, onThemeToggle);
 
-  // Which layout renders is CSS's job, never this component's: useIsCompactHeader
-  // resolves in an effect, so it answers `false` on the server and for the whole
-  // pre-hydration window, and a layout only correct after hydration would break
-  // the server-rendered HTML PRODUCT.md §83 and §89 require.
-  //
-  // `compact` is the escape hatch the prop contract documents. Supplied, it is
-  // written onto the root as `data-compact`, which AppHeader.css gives higher
-  // specificity than the media query; omitted, no attribute is written and the
-  // media query alone decides.
-  const compactOverride = compact === undefined ? undefined : compact ? 'true' : 'false';
+  const compactOverride = compactAttribute(compact);
 
   const handleNavClick = (id: string) => (event: MouseEvent<HTMLAnchorElement>) => {
     if (!onNavigate) return;
@@ -357,12 +368,8 @@ export function AppHeader({
     closeMenu();
   };
 
-  // Two DOM instances of the nav, not one instance whose styling depends on
-  // JS state: `bar` is the row of links shown inline at desktop width,
-  // `panel` is the column of touch-sized links shown inside the mobile menu
-  // panel. Which one is visible is a CSS concern (AppHeader.css); which one
-  // this is affects only its own classes, never anything computed at
-  // render time, so there is nothing for hydration to get temporarily wrong.
+  // Both variants are rendered; CSS decides which is visible. `variant` reaches
+  // nothing but this nav's own classes, so hydration has nothing to get wrong.
   const renderNav = (variant: 'bar' | 'panel') => (
     <nav aria-label="Primary" className={`lw-header__nav lw-header__nav--${variant}`}>
       {items.map((item) => {

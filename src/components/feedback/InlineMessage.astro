@@ -1,14 +1,17 @@
 ---
-// Reference: design/system/components/feedback.md § InlineMessage — prop
-// contract ported verbatim. Bound to the region it describes: a failed
-// panel, a partial result, a stale section (PRODUCT.md §56 — one provider
-// failing must scope its warning to that section, not read as a platform
-// outage).
-//
-// `children` and `action` are ReactNode in the reference; Astro has no
-// equivalent "arbitrary renderable" prop, so they become the default slot and
-// a named "action" slot respectively — the same capability (any markup, not
-// just text), expressed the way this framework passes markup into a component.
+/**
+ * Reference: design/system/components/feedback.md § InlineMessage — prop
+ * contract ported verbatim.
+ *
+ * Bound to the region it describes: a failed panel, a partial result, a stale
+ * section. PRODUCT.md §56 requires one provider failing to scope its warning to
+ * that section rather than read as a platform outage.
+ *
+ * `children` and `action` are ReactNode in the reference. Astro has no
+ * equivalent "arbitrary renderable" prop, so they become the default slot and a
+ * named "action" slot — the same capability, expressed the way this framework
+ * passes markup into a component.
+ */
 import Icon from '../foundation/Icon.astro';
 import type { IconName } from '../foundation/icons.js';
 
@@ -30,12 +33,14 @@ const TONE_ICON: Record<MessageTone, IconName> = {
   neutral: 'info',
 };
 
-// The icon that carries tone visually (TONE_ICON, above) is aria-hidden, so
-// without this a screen-reader user cannot tell an info message from a
-// warning — accessibility.md's "never colour alone" rule, applied to a
-// channel that isn't colour at all. `neutral` has no assigned word: it is the
-// tone with no claim to make ("no information present"), so there is nothing
-// true to announce.
+/**
+ * The word that carries tone for a screen reader.
+ *
+ * `TONE_ICON` above is aria-hidden, so without this an info message and a
+ * warning are indistinguishable — accessibility.md's "never colour alone",
+ * applied to a channel that is not colour at all. `neutral` has no word: it is
+ * the tone with no claim to make, so there is nothing true to announce.
+ */
 const TONE_WORD: Partial<Record<MessageTone, string>> = {
   info: 'Information',
   success: 'Success',

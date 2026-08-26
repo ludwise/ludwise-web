@@ -285,13 +285,9 @@ async function attempt<T>(
     throw new LudwiseApiError('malformed', spec.operation, { status: response.status, cause });
   }
 
-  // The narrowest possible structural check, and deliberately not a full schema
-  // validation. Every view in the contract is a JSON object, so a string, an
-  // array or a null here means something other than the backend answered - a
-  // proxy error page, most likely. Validating every field instead would be a
-  // second copy of the contract that has to be kept in step with the first, and
-  // it would reject a response that merely added a field, which the contract
-  // explicitly permits (ADR 0025).
+  // The narrowest structural check, not schema validation: every view is a JSON
+  // object, so anything else means the backend did not answer. A field-by-field
+  // copy would also reject an added field, which ADR 0025 permits.
   if (typeof body !== 'object' || body === null || Array.isArray(body)) {
     throw new LudwiseApiError('malformed', spec.operation, { status: response.status });
   }

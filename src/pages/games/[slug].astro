@@ -32,11 +32,9 @@ try {
   });
 }
 
-// The distinction the whole page turns on. `view === null` with no failure
-// means the backend answered, and its answer is that no game carries this slug
-// - which is a real 404. `view === null` with a failure means we could not find
-// out, which must never be rendered as "this game does not exist": a visitor
-// following a good link would be told their link is broken.
+// The distinction the page turns on. Null with no failure is the backend saying
+// no game carries this slug - a real 404. Null with a failure is not knowing,
+// which must never render as "this game does not exist".
 const notFound = view === null && failureCode === null;
 if (notFound) Astro.response.status = 404;
 
