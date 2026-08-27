@@ -1,3 +1,7 @@
+---
+ste-prose: descriptive
+---
+
 # Overlays
 
 Reference specifications for `components/overlays/`. For each component: the **prop contract** (the API you must preserve), the **usage rules**, and the **reference implementation**.

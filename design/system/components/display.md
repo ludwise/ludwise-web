@@ -1,3 +1,7 @@
+---
+ste-prose: descriptive
+---
+
 # Data display
 
 Reference specifications for `components/display/`. For each component: the **prop contract** (the API you must preserve), the **usage rules**, and the **reference implementation**.

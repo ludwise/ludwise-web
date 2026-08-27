@@ -1,3 +1,7 @@
+---
+ste-prose: descriptive
+---
+
 # Rollout state
 
 The repository is in audit mode.

@@ -1,3 +1,7 @@
+---
+ste-prose: descriptive
+---
+
 # LUDWISE web client
 
 The public website for [LUDWISE](https://ludwise.com), a transparent PC game

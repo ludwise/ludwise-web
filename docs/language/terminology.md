@@ -1,3 +1,7 @@
+---
+ste-prose: descriptive
+---
+
 # Controlled terminology
 
 ASD-STE100 allows a subject-specific technical noun and a technical verb, so
@@ -43,7 +47,7 @@ that this repository already contains, with the word to write instead. A new
 technical verb is added only when no approved verb states the concept, and the
 addition is recorded with its reason.
 
-## How to add a term
+## How to add a term <!-- ste-prose: procedural -->
 
 1. Confirm that the concept has no preferred term already.
 2. Read the source that defines the concept.

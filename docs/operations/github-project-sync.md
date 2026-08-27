@@ -1,3 +1,7 @@
+---
+ste-prose: descriptive
+---
+
 # GitHub Project synchronization
 
 LUDWISE issues are tracked in the organization project [LUDWISE Development](https://github.com/orgs/ludwise/projects/2).

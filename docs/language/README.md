@@ -1,3 +1,7 @@
+---
+ste-prose: descriptive
+---
+
 # LUDWISE language policy
 
 LUDWISE uses one controlled standard for English technical prose.

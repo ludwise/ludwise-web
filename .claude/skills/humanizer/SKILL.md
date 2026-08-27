@@ -1,6 +1,7 @@
 ---
 name: humanizer
 description: How to take the tells of machine-written prose out of a visitor-visible string before it is committed.
+ste-prose: descriptive
 ---
 
 ## When to use

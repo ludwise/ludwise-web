@@ -1,3 +1,7 @@
+---
+ste-prose: descriptive
+---
+
 # Reference designs
 
 ## `screens.md`

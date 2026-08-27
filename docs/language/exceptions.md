@@ -1,3 +1,7 @@
+---
+ste-prose: descriptive
+---
+
 # Exceptions
 
 There is no inline suppression. A comment such as an ignore marker beside a line

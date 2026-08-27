@@ -1,11 +1,16 @@
+---
+ste-prose: descriptive
+---
+
 # AGENTS.md
 
 Tool-neutral engineering guidance for this repository.
 
-## Controlled language
+## Controlled language <!-- ste-prose: procedural -->
 
 > All English prose that LUDWISE authors and controls must obey the LUDWISE
-> ASD-STE100 profile, unless its content class has an explicit exemption.
+> ASD-STE100 profile. The exception is a content class with an explicit
+> exemption.
 
 This is an architecture invariant, not a writing preference. The standard is
 pinned to ASD-STE100 Simplified Technical English, Issue 9, dated 2025-01-15.

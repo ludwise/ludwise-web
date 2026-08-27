@@ -1,3 +1,7 @@
+---
+ste-prose: descriptive
+---
+
 # Architecture
 
 How this repository is put together, and why the boundary between it and the
@@ -208,7 +212,7 @@ the contract before the backend serves it must be optional and read as absent.
 When a genuinely incompatible change is needed it goes to `/v2`, and both
 contracts exist for a while.
 
-### Changing it
+### Changing it <!-- ste-prose: procedural -->
 
 1. Change `src/lib/api/contract.ts` here.
 2. Copy it verbatim into the backend's `tests/contract/contract.ts`.

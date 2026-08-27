@@ -1,3 +1,7 @@
+---
+ste-prose: descriptive
+---
+
 # Accessibility
 
 Target: **WCAG 2.2 AA**, built into the tokens rather than added per screen.

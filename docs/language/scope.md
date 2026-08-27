@@ -1,3 +1,7 @@
+---
+ste-prose: descriptive
+---
+
 # Content classes
 
 Every file in this repository belongs to one of three classes for each kind of

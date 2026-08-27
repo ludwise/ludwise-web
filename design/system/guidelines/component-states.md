@@ -1,3 +1,7 @@
+---
+ste-prose: descriptive
+---
+
 # Component state matrix
 
 `—` means the state does not apply.

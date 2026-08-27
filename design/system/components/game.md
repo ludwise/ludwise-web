@@ -1,3 +1,7 @@
+---
+ste-prose: descriptive
+---
+
 # Game primitives
 
 Reference specifications for `components/game/`. For each component: the **prop contract** (the API you must preserve), the **usage rules**, and the **reference implementation**.

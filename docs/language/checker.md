@@ -1,3 +1,7 @@
+---
+ste-prose: descriptive
+---
+
 # The checker
 
 The checker lives in [../../scripts/ste/](../../scripts/ste/).

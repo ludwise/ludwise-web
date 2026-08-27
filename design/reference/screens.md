@@ -1,3 +1,7 @@
+---
+ste-prose: descriptive
+---
+
 # Screen composition reference
 
 The four screens of the LUDWISE consumer web product, as composed from the design-system components. Read these as **composition reference**: what goes on each screen, in what order, at what density, and which states are demonstrated.

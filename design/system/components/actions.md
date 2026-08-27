@@ -1,3 +1,7 @@
+---
+ste-prose: descriptive
+---
+
 # Actions
 
 Reference specifications for `components/actions/`. For each component: the **prop contract** (the API you must preserve), the **usage rules**, and the **reference implementation**.

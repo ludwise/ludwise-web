@@ -1,3 +1,7 @@
+---
+ste-prose: descriptive
+---
+
 # Abbreviation policy
 
 ASD-STE100 does not set a general abbreviation policy, so LUDWISE sets one. The

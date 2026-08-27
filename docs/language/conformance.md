@@ -1,3 +1,7 @@
+---
+ste-prose: descriptive
+---
+
 # Conformance matrix
 
 The policy has two separate layers.

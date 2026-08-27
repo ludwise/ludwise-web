@@ -1,3 +1,7 @@
+---
+ste-prose: descriptive
+---
+
 # The design system
 
 How to build UI here, and what is not yours to decide.

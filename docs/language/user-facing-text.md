@@ -1,10 +1,14 @@
+---
+ste-prose: descriptive
+---
+
 # Text that a person outside the team reads
 
 This is the `STE-DERIVED` class. A visitor reads the public product text. That
 person is not a contributor, and does not read a controlled language for a
 living.
 
-## The pipeline
+## The pipeline <!-- ste-prose: procedural -->
 
 ```text
 meaning -> ASD-STE100 baseline -> /humanizer -> semantic safety review -> final text

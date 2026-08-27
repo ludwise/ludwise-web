@@ -1,3 +1,7 @@
+---
+ste-prose: descriptive
+---
+
 # Token reference
 
 Every token is a CSS custom property declared in `tokens/`, reachable from `styles.css`. Product code references the **semantic** layer. Primitives exist so the semantic layer can be re-pointed.

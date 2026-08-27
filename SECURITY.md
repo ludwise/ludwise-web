@@ -1,3 +1,7 @@
+---
+ste-prose: descriptive
+---
+
 # Security Policy
 
 ## Reporting a vulnerability

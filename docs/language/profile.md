@@ -1,3 +1,7 @@
+---
+ste-prose: descriptive
+---
+
 # The LUDWISE ASD-STE100 profile
 
 Profile version 1 uses ASD-STE100 Simplified Technical English, Issue 9.
@@ -13,7 +17,7 @@ It states how LUDWISE applies the standard to software documentation.
 `STE-DERIVED` text starts from a conforming baseline and then follows the derived-text pipeline.
 `STE-EXEMPT` content is machine syntax or externally controlled text.
 
-## Procedural writing
+## Procedural writing <!-- ste-prose: procedural -->
 
 Procedural prose tells a reader what action to do.
 Apply section 5 to procedural sentences.

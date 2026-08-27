@@ -1,3 +1,7 @@
+---
+ste-prose: descriptive
+---
+
 # Trademarks
 
 The Apache-2.0 licence in `LICENSE` covers **code**. It says nothing useful

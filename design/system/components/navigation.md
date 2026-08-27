@@ -1,3 +1,7 @@
+---
+ste-prose: descriptive
+---
+
 # Navigation
 
 Reference specifications for `components/navigation/`. For each component: the **prop contract** (the API you must preserve), the **usage rules**, and the **reference implementation**.

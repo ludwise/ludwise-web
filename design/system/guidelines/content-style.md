@@ -1,3 +1,7 @@
+---
+ste-prose: descriptive
+---
+
 # Content style
 
 ## Fixed strings
