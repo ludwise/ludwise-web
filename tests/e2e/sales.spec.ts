@@ -5,10 +5,10 @@ import { expect, test, type Page } from '@playwright/test';
  * The sales page against a populated database.
  *
  * tests/fixtures/sales.sql seeds every case the sale rule has to get right,
- * including three that must not appear at all, plus one expensive and deeply
- * discounted game whose price rank and discount rank disagree - without it,
- * sorting "by discount" and sorting "by price" can render the same order and
- * still look correct. Asserting only that the sales show up would pass
+ * including three that must not appear at all. It also seeds one expensive and
+ * deeply discounted game whose price rank and discount rank disagree. Without
+ * it, sorting "by discount" and sorting "by price" can render the same order
+ * and still look correct. Asserting only that the sales show up would pass
  * against a query that returned the whole catalog. So every test here that
  * checks a card also checks something absent.
  */
@@ -124,7 +124,7 @@ test.describe('sales browsing', () => {
   });
 
   /**
-   * #2's fix: one control offering only pairs that hold a sale, rather than
+   * #2's fix: one control offering only pairs that hold a sale. It replaces
    * two independent selects a visitor could submit in a combination that
    * exists for neither of them. Switching through it, rather than a direct
    * link, is what actually exercises the control.
@@ -153,9 +153,9 @@ test.describe('sales browsing', () => {
     const results = page.getByRole('list', { name: 'Games on sale' });
     await expect(results.getByRole('listitem')).toHaveCount(1);
     await expect(results.getByText('Two Store Demo Game')).toBeVisible();
-    // A region, not merely an attribute: aria-label on a role-less div is
-    // dropped by most screen readers, which is why this checks the
-    // accessible structure rather than the markup that used to stand in for it.
+    // A region, not merely an attribute. An aria-label on a role-less div is
+    // dropped by most screen readers. So this checks the accessible structure
+    // rather than the markup that used to stand in for it.
     await expect(page.getByRole('region', { name: 'Active filters' })).toBeVisible();
     await expect(page.getByRole('link', { name: 'Reset all' })).toHaveAttribute('href', '/sales');
   });
@@ -227,8 +227,8 @@ test.describe('sales browsing', () => {
 
   /**
    * #8's fix: the visitor-facing inputs are whole units of the active
-   * currency, not the minor units LUDWISE stores. €70 has to exclude the
-   * €29.99 and €19.99 offers and keep the €80.00 one - typing 7000 would
+   * currency, not the minor units LUDWISE stores. A value of €70 has to exclude
+   * the €29.99 and €19.99 offers and keep the €80.00 one. Typing 7000 would
    * have been required, and would have meant something else entirely.
    */
   test('filters by price in whole currency units, not stored minor units', async ({ page }) => {

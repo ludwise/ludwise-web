@@ -7,7 +7,7 @@
  * file - if the purpose line is hard to write, the event is not ready.
  *
  * Deliberately tiny. PRODUCT.md section 102 asks for product events rather
- * than raw personal information, and a catalog that grows ahead of the
+ * than raw personal information. A catalog that grows ahead of the
  * product is a catalog of speculation nobody can later interpret.
  */
 
@@ -33,13 +33,14 @@ export interface PageViewInput {
 /**
  * A page was rendered, or `null` when it cannot be described safely.
  *
- * `route` must be a route template, never the URL requested: full URLs and
+ * `route` must be a route template, never the URL requested. Full URLs and
  * arbitrary paths carry values a visitor did not choose to send, which
  * docs/analytics/privacy-principles.md forbids.
  *
  * Enforced, not promised. `routeTemplate` falls back to `sanitizePathname`,
- * which collapses only digits, UUIDs and long hex - right for an operational
- * log, wrong for analytics - so a sanitised route produces no event at all.
+ * which collapses only digits, UUIDs and long hex. That is right for an
+ * operational log and wrong for analytics. So a sanitised route produces no
+ * event at all.
  * Losing a count is recoverable. Collecting a path is not.
  *
  * No referrer, user agent, viewport, session or visitor identifier.

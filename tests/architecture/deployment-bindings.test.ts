@@ -115,9 +115,9 @@ const ALLOWED_BINDINGS = new Set(['ASSETS', 'BACKEND']);
  * inferred, so that adding a real one is a decision someone makes here.
  *
  * `kv_namespaces` is the one that actually fired. The rest are the other ways a
- * public web client could grow direct state or direct data access, which is the
- * thing the split exists to prevent. This repository reads through `/v1` or it
- * does not read at all.
+ * public web client could grow direct state or direct data access. Preventing
+ * that is the thing the split exists for. This repository reads through `/v1`
+ * or it does not read at all.
  */
 const MUST_BE_EMPTY = [
   'kv_namespaces',
@@ -272,7 +272,7 @@ describe('the authored deployment routing', () => {
   });
 
   it('binds every environment to the named entrypoint, local included', () => {
-    // All three environments at once, the local block in particular:
+    // All three environments at once, the local block in particular.
     // check-environment.mjs inspects only the deployed ones, so a top-level
     // binding that lost its entrypoint would reach neither check.
     const blocks = [

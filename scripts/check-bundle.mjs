@@ -3,8 +3,8 @@
  *
  * `tests/architecture/boundaries.test.ts` checks the source. This checks what
  * the build produced. A value can reach a bundle without appearing in any
- * source file - inlined by Vite's `define`, pulled in through a dependency, or
- * baked into a server chunk by a configuration mistake.
+ * source file. Vite's `define` can inline it, a dependency can pull it in, or
+ * a configuration mistake can bake it into a server chunk.
  *
  * Two rules: nothing secret anywhere, and nothing about the backend in the
  * client bundle. That bundle is shipped to every visitor, Astro inlines any

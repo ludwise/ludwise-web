@@ -48,12 +48,12 @@ const indexable = Astro.locals.config.environment === 'production';
          swap window `font-display: swap` would otherwise leave visible.
 
          500 is deliberately not preloaded, and this was measured rather than
-         guessed: on a throttled connection, preloading 400+500 had the
+         guessed. On a throttled connection, preloading 400+500 had the
          headline face arriving at 1,361ms, and 400+600 at 719ms, with 124ms
          better FCP. 500 renders one pill in the header and is discovered from
          the stylesheet like every other weight.
 
-         `crossorigin` is required even same-origin: fonts are always fetched
+         `crossorigin` is required even same-origin. Fonts are always fetched
          in CORS mode, and without it the preload is discarded and fetched
          twice. */
       ['geist-sans-latin-400-normal', 'geist-sans-latin-600-normal'].map((file) => (
@@ -71,19 +71,19 @@ const indexable = Astro.locals.config.environment === 'production';
          tests/integration/design/asset-parity.test.ts.
 
          SVG only. A raster fallback would need a rasterisation step and an
-         image dependency to produce .ico and apple-touch-icon variants, and
+         image dependency to produce .ico and apple-touch-icon variants. Also,
          every browser this project supports reads an SVG icon. A browser that
          does not falls back to probing /favicon.ico, gets a 404 and shows its
-         own default glyph, which is the same thing it showed before this
+         own default glyph. That is the same thing it showed before this
          existed. */
     }
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
 
     {
       /* Runs before first paint, and only when this Worker had no preference to
-         render. Inline rather than a file because an external script would need
-         the round trip that a render-blocking script in <head> exists to avoid,
-         and after that round trip the flash has already happened.
+         render. Inline rather than a file, because an external script would need
+         a round trip. A render-blocking script in <head> exists to avoid that
+         round trip, after which the flash has already happened.
 
          It deliberately does NOT write the cookie. Storing a value on a
          visitor's device with no act on their part is not covered by

@@ -75,7 +75,7 @@ test.describe('the application shell', () => {
     await page.goto('/');
 
     // The declaration, then the file. Asserting only the tag would pass with a
-    // link pointing at nothing, which is exactly the state this replaces: the
+    // link pointing at nothing. That is exactly the state this replaces: the
     // browser probes /favicon.ico, gets a 404 and shows its default glyph.
     const href = await page.locator('link[rel="icon"]').getAttribute('href');
     expect(href).toBe('/favicon.svg');
@@ -123,8 +123,8 @@ test.describe('the application shell', () => {
 
     expect(response?.status()).toBe(404);
     // A heading, not merely the text. Styled as one but marked up as a span,
-    // this page has no structure at all for anyone navigating by heading -
-    // and no axe rule in the WCAG tag set reports it.
+    // this page has no structure at all for anyone navigating by heading.
+    // No axe rule in the WCAG tag set reports it.
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('Page not found');
   });
 
@@ -206,7 +206,7 @@ test.describe('theme', () => {
   test('records a toggled preference and keeps it across a navigation', async ({ page }) => {
     await page.goto('/');
     // The toggle is an island. Playwright will happily click a button that is
-    // in the DOM but whose handler React has not attached yet, and the click
+    // in the DOM but whose handler React has not attached yet. The click
     // then does nothing - a flake that looks like a broken toggle.
     await waitForHydration(page);
 
@@ -248,7 +248,7 @@ test.describe('theme', () => {
     expect(dialogs).toEqual([]);
     expect(await page.locator('script').count()).toBe(scriptsWithoutAttack);
 
-    // A real theme is allowed here: the pre-paint script sets one once the
+    // A real theme is allowed here. The pre-paint script sets one once the
     // server has declined to, which is rejecting the cookie rather than
     // escaping it. What must never appear is the payload.
     const rendered = await page.locator('html').getAttribute('data-theme');
@@ -278,8 +278,8 @@ test.describe('theme', () => {
 test.describe('accessibility', () => {
   for (const theme of THEMES) {
     // The not-found route is audited too. It is composed differently from the
-    // product routes - an EmptyState standing alone rather than inside a page
-    // - and it is the route a visitor is most likely to reach by accident.
+    // product routes, as an EmptyState standing alone rather than inside a
+    // page. It is also the route a visitor is most likely to reach by accident.
     for (const path of ['/', '/games', '/sales', '/this-route-does-not-exist']) {
       test(`${path} has no violations in the ${theme} theme`, async ({ browser }) => {
         const context = await browser.newContext();
@@ -305,7 +305,7 @@ test.describe('responsive', () => {
         await page.setViewportSize({ width, height: 900 });
         await page.goto(path);
 
-        // Deliberately does not wait for hydration: the server-rendered layout
+        // Deliberately does not wait for hydration. The server-rendered layout
         // has to be correct on its own, for a slow connection and for a visitor
         // with JavaScript disabled.
 

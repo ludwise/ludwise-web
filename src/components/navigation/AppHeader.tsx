@@ -5,9 +5,9 @@
  * The one `client:load` island on the page. SearchField lives here because the
  * handoff makes it part of AppHeader rather than a standalone export.
  *
- * Icon, Button and Wordmark are Astro components a React island cannot import,
- * so this file renders its own glyphs from the framework-neutral
- * `../foundation/icons.js` map and its own button and wordmark markup.
+ * Icon, Button and Wordmark are Astro components a React island cannot import.
+ * So this file renders its own glyphs from the framework-neutral
+ * `../foundation/icons.js` map, plus its own button and wordmark markup.
  *
  * Search uses a native GET action, so it works before hydration. The account
  * control renders only when the host supplies `authed` at all: the prop has no
@@ -24,8 +24,8 @@ import './AppHeader.css';
  *
  * `markup` is a lookup into `LUDWISE_ICONS`, keyed by the closed `IconName`
  * union and never derived from a request or a database row. That constancy is
- * the whole basis for switching escaping off, so nothing variable may join the
- * string: `title` is a prop, and reaches the accessible name through
+ * the whole basis for switching escaping off. So nothing variable may join the
+ * string. `title` is a prop, and reaches the accessible name through
  * `aria-label`, which React escapes, rather than an interpolated `<title>`.
  */
 function IconGlyph({
@@ -122,10 +122,10 @@ interface SearchFieldProps {
 }
 
 /** design/system/components/forms.md § SearchField — prop contract ported
- *  verbatim, minus the raw HTML-attribute passthrough the reference inherits
- *  via `extends Omit<InputHTMLAttributes, ...>`: this SearchField is used only
- *  from within AppHeader, not exported as a standalone public primitive, so
- *  that passthrough surface has no caller here. */
+ *  verbatim. It drops the raw HTML-attribute passthrough the reference
+ *  inherits via `extends Omit<InputHTMLAttributes, ...>`. This SearchField is
+ *  used only from within AppHeader, and is not exported as a standalone
+ *  public primitive. So that passthrough surface has no caller here. */
 function SearchField({
   value,
   onChange,
@@ -233,8 +233,8 @@ export function useIsCompactHeader(breakpoint: number = DEFAULT_COMPACT_BREAKPOI
  * behavior that closes it.
  *
  * A non-modal disclosure, not a modal dialog: opening it never moves focus
- * into the panel. So there is no focus trap and nothing to restore — only a
- * place for focus to land when Escape closes it, which
+ * into the panel. So there is no focus trap and nothing to restore. There is
+ * only a place for focus to land when Escape closes it, which
  * accessibility.md § Focus and keyboard requires. Escape is listened for on
  * the document rather than the panel because focus may be on the trigger,
  * inside the panel, or (having tabbed past it) beyond both.
@@ -245,7 +245,7 @@ function useMenuPanel(onMenu: ((open: boolean) => void) | undefined) {
   const viewportIsCompact = useIsCompactHeader();
 
   // The panel's own state, not the layout. CSS already hides the panel at
-  // desktop width, but React state should not disagree with what is on screen
+  // desktop width. But React state should not disagree with what is on screen
   // once a real resize has passed the breakpoint.
   useEffect(() => {
     if (!viewportIsCompact) setMenuOpen(false);
@@ -279,10 +279,10 @@ function useMenuPanel(onMenu: ((open: boolean) => void) | undefined) {
  * changes on click rather than on the next render the host happens to cause.
  *
  * `initial` is the cookie value this Worker resolved (src/lib/http/theme.ts),
- * which is all this Worker can know. A first-time visitor has no cookie, so
+ * which is all this Worker can know. A first-time visitor has no cookie. So
  * what is actually on `<html>` was decided before paint by the head script
- * from prefers-color-scheme — the effect below adopts that, or the toggle
- * would offer to switch to the theme already showing.
+ * from prefers-color-scheme. The effect below adopts that value. Otherwise
+ * the toggle would offer to switch to the theme already showing.
  */
 function useHeaderTheme(initial: Theme, onThemeToggle: (() => void) | undefined) {
   const [currentTheme, setCurrentTheme] = useState<Theme>(initial);
@@ -367,8 +367,8 @@ export function AppHeader({
     </nav>
   );
 
-  // Same reasoning as renderNav: the bar copy carries an extra class so CSS
-  // can hide it at compact widths, the panel copy needs no such class
+  // Same reasoning as renderNav. The bar copy carries an extra class so CSS
+  // can hide it at compact widths. The panel copy needs no such class,
   // because its whole container is already gated on `menuOpen`.
   const renderMarketButton = (extraClassName?: string) =>
     marketLabel ? (
@@ -455,15 +455,17 @@ export function AppHeader({
                 </button>
               ))}
 
-            {/* Rendered unconditionally, because CSS decides whether it shows:
-                gating it on a hydration-resolved value would leave it out of the
-                server HTML, where a mobile visitor's only route to the nav is.
+            {/* Rendered unconditionally, because CSS decides whether it shows.
+                Gating it on a hydration-resolved value would leave it out of
+                the server-rendered HTML, which is a mobile visitor's only route
+                to the nav.
 
-                aria-expanded, not aria-pressed: this discloses `#lw-header-menu`
-                rather than toggling a pressed state. The name stays "Menu" —
-                aria-expanded already carries open/closed, and a changing name
-                alongside it states the same thing twice. The glyph carries it
-                visually through `data-pressed`, which implies no ARIA role. */}
+                This uses aria-expanded, not aria-pressed. It discloses
+                `#lw-header-menu` rather than toggling a pressed state. The
+                name stays "Menu". The reason is that aria-expanded already
+                carries open/closed, and a changing name alongside it states the
+                same thing twice. The glyph carries it visually through
+                `data-pressed`, which implies no ARIA role. */}
             <button
               ref={menuButtonRef}
               type="button"

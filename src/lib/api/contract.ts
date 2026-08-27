@@ -19,9 +19,9 @@ export interface MoneyView {
    * The amount in the currency's smallest unit, as an integer.
    *
    * Minor units rather than a decimal, because a price is exact and a float is
-   * not. The exponent travels with it rather than being looked up, because
-   * "every currency has two decimals" is false - JPY has none and KWD has
-   * three - and a renderer that assumed otherwise would be wrong by a factor
+   * not. The exponent travels with it rather than being looked up. This is
+   * because "every currency has two decimals" is false. JPY has none and KWD
+   * has three. A renderer that assumed otherwise would be wrong by a factor
    * of a hundred or a thousand on real data.
    */
   readonly amountMinor: number;
@@ -120,10 +120,10 @@ export interface OfferView {
   /**
    * Computed by the backend, never by the frontend.
    *
-   * Whether an offer is a sale, and by how much, is a domain decision - it
+   * Whether an offer is a sale, and by how much, is a domain decision. It
    * depends on availability, on both prices being present, and on the currency
    * exponent being known. A frontend recomputing it from `price` and
-   * `referencePrice` would be a second implementation of that rule, and the two
+   * `referencePrice` would be a second implementation of that rule. The two
    * would disagree the first time either changed.
    */
   readonly discountPercentage: number | null;
@@ -142,7 +142,7 @@ export interface OfferView {
  * Offers grouped by the market and currency they are quoted in.
  *
  * Grouped rather than flat because prices in different currencies are not
- * comparable - there is no conversion anywhere in LUDWISE - so a single sorted
+ * comparable, and there is no conversion anywhere in LUDWISE. A single sorted
  * list would be ordering by nothing. Both fields are nullable: an offer whose
  * market was never recorded still exists and still renders.
  */
@@ -232,8 +232,8 @@ export interface BrowseSalesView {
    *
    * Meaningful only when `context` is `null`, and it exists to keep one
    * sentence honest. "No game is on sale right now" and "LUDWISE has not
-   * collected any prices yet" render the same empty view and mean entirely
-   * different things, and claiming the first when the second is true is a
+   * collected any prices yet" render the same empty view. They mean entirely
+   * different things. Claiming the first when the second is true is a
    * fabricated claim about the market.
    */
   readonly hasAnyOfferData: boolean;
@@ -269,7 +269,7 @@ export type ApiErrorCode = (typeof API_ERROR_CODES)[number];
  * One shape for the whole surface, so a client parses one thing. Note what is
  * absent and stays absent: no message, no operation name, no stack, no SQL, no
  * upstream response, and no `issues` list. Those exist for whoever reads the
- * backend's logs, and `requestId` is here precisely so a visitor can quote one
+ * backend's logs. `requestId` is here precisely so a visitor can quote one
  * value that lets an operator find all of it.
  */
 export interface ApiErrorBody {
@@ -281,7 +281,7 @@ export interface ApiErrorBody {
    *
    * An allowlist intersection computed by the backend - only names that are
    * part of this contract survive it. Every one is a query parameter or the
-   * form control it maps to, so knowing it tells a reader nothing they could
+   * form control it maps to. So knowing it tells a reader nothing they could
    * not have learned from the URL they typed.
    *
    * The *reason* each was refused is deliberately not here. Those strings name
@@ -331,8 +331,8 @@ export type RefusableField = (typeof REFUSABLE_FIELDS)[number];
  * Field names, not parameter names: `minPriceMinor` is sent as `min`. The
  * mapping lives in `client.ts`, and the split exists because `/v1/sales` uses
  * the same `min` parameter for whole major units. Carrying the unit in the
- * field name is what stops one being read as the other, which would be a
- * hundredfold error in a visitor-facing price filter.
+ * field name is what stops one being read as the other. Reading one as the
+ * other would be a hundredfold error in a visitor-facing price filter.
  */
 export interface GameSearchInput {
   readonly query?: string | undefined;
@@ -364,9 +364,9 @@ export interface BrowseSalesInput {
 /**
  * The page sizes the backend uses.
  *
- * Mirrored here so a client can reason about a page before it has one, and
- * echoed on every response as `pageSize` so it is never guessed at when a real
- * answer is available. If these ever disagree, the response wins.
+ * Mirrored here so a client can reason about a page before it has one. It is
+ * also echoed on every response as `pageSize`, so it is never guessed at when a
+ * real answer is available. If these ever disagree, the response wins.
  */
 export const GAME_SEARCH_PAGE_SIZE = 24;
 export const SALE_PAGE_SIZE = 24;

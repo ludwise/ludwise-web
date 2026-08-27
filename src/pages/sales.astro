@@ -80,7 +80,7 @@ const selectedStores = new Set(input.stores ?? []);
 const storeCount = view?.facets.stores.length ?? 0;
 
 // The pairs holding a sale, plus the one the visitor asked for when it holds
-// none - otherwise the select offers a pair nobody chose while the address bar
+// none. Otherwise the select offers a pair nobody chose while the address bar
 // says otherwise. Locale-independent order, so every list on the page agrees.
 const offeredContexts =
   context !== null &&
@@ -219,8 +219,8 @@ const pageOutOfRange = view !== null && view.games.length === 0 && view.resultCo
             <summary>Filters</summary>
 
             <form method="get" action="/sales" class="lw-sale-filters__pair-form">
-              {/* Every other filter is carried forward except the price bounds,
-                  which are amounts in the currency being left - keeping them
+              {/* Every other filter is carried forward except the price bounds.
+                  Those are amounts in the currency being left. Keeping them
                   would silently reinterpret them in another one. */}
               {input.stores?.map((store) => (
                 <input type="hidden" name="store" value={store} />
@@ -244,8 +244,8 @@ const pageOutOfRange = view !== null && view.games.length === 0 && view.resultCo
                 <span>Market and currency</span>
                 {/* One control offering only the pairs that hold a sale. So a
                     visitor cannot submit a market and a currency that were
-                    never paired - unlike two independent selects, where
-                    changing one can leave the other pointed at a currency the
+                    never paired. Two independent selects allow it: changing
+                    one can leave the other pointed at a currency the
                     new market never quoted in. */}
                 <select name="pair">
                   {offeredContexts.map((option) => (

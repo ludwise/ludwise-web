@@ -1,7 +1,7 @@
 /**
  * A stand-in for the backend, replaying its recorded responses from
  * `tests/fixtures/corpus/`. The site cannot render `/games` or `/sales` without
- * something answering `/v1`, and the real backend is a private repository this
+ * something answering `/v1`. The real backend is a private repository this
  * one is built not to need.
  *
  * The recordings are real: the backend's own `tests/contract/corpus.test.ts`
@@ -9,8 +9,8 @@
  * record 0025). They are deterministic, need no credentials in CI, and cover
  * the unavailable and malformed cases a working service cannot produce.
  *
- * Not a second implementation: it replays the recording matching a request and
- * answers 501 where there is none, because a fake that improvised would let a
+ * Not a second implementation. It replays the recording matching a request and
+ * answers 501 where there is none. A fake that improvised would let a
  * suite pass against behavior the real backend does not have.
  */
 
@@ -26,9 +26,9 @@ const CORPUS = resolve(root, 'tests', 'fixtures', 'corpus');
  * Where unmatched requests are recorded.
  *
  * A file is used as well as stderr. Under Playwright the fake's output is
- * interleaved with the site's and the runner's, and is effectively unreadable.
- * "Which requests does the corpus not cover" is the one question a missing
- * recording raises. It should be answerable in one look. Gitignored.
+ * interleaved with the site's and the runner's. That makes it effectively
+ * unreadable. "Which requests does the corpus not cover" is the one question a
+ * missing recording raises. It should be answerable in one look. Gitignored.
  */
 const MISSES = resolve(root, 'corpus-misses.log');
 
@@ -171,13 +171,13 @@ function answer(url: URL): Recorded | undefined {
  *
  * Derived from a real recording rather than written out, so it carries every
  * field the contract has with the contents emptied. A hand-written empty view
- * would be a second place the shape lives, and the first field added to the
- * contract would leave it stale in a way nothing detects.
+ * would be a second place the shape lives. The first field added to the
+ * contract would then leave it stale in a way nothing detects.
  *
  * This state is worth a mode of its own because the interface says different
- * words for it. "No games are on sale right now" is a claim about the market
- * and is only true once LUDWISE has observed prices and found none discounted.
- * "LUDWISE has not collected any prices yet" is the truth here, and
+ * words for it. The sentence "No games are on sale right now" is a claim about
+ * the market. It is only true once LUDWISE has observed prices and found none
+ * discounted. The truth here is "LUDWISE has not collected any prices yet", and
  * `hasAnyOfferData: false` is what tells the page which to render.
  */
 function emptyAnswer(url: URL): Recorded | undefined {
@@ -219,8 +219,8 @@ function emptied(recorded: Recorded, overrides: Record<string, unknown>): Record
  * The request id, put back.
  *
  * The corpus records `<request-id>` because a real one differs on every request
- * and would pin nothing. The site forwards its own, and echoing it back is what
- * lets the suites assert that one id travels the whole way and reaches a
+ * and would pin nothing. The site forwards its own. Echoing it back is what
+ * lets the suites assert that one id travels the whole way. That id reaches a
  * failure page a visitor could quote.
  */
 function withRequestId(body: unknown, requestId: string | undefined): unknown {
@@ -274,9 +274,9 @@ const server = createServer((request, response) => {
         }),
       );
 
-      // Appended to a file as well: under Playwright the fake's stderr is
-      // interleaved with two other processes, and "which requests does the
-      // corpus not cover" has to be answerable in one look.
+      // Appended to a file as well. Under Playwright the fake's stderr is interleaved
+      // with two other processes. "Which requests does the corpus not cover" has to be
+      // answerable in one look.
       process.stderr.write(`no recording for ${request_}\n`);
       appendFileSync(MISSES, `${request_}\n`);
       return;

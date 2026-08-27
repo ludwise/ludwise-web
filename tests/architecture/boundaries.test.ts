@@ -8,8 +8,8 @@
  *
  * That difference is why this file exists rather than being a copy. A rule
  * phrased as "these paths are clean" would go vacuously green in a tree where
- * every path is clean. These rules are phrased as absences, and an absence is
- * only worth asserting if the thing could plausibly appear - so each block
+ * every path is clean. These rules are phrased as absences. An absence is
+ * only worth asserting if the thing could plausibly appear, so each block
  * below names something a reasonable change might actually introduce.
  */
 
@@ -30,8 +30,8 @@ const sourceFiles = listSourceFiles('src');
 /**
  * A file's code, with its prose removed.
  *
- * Every content rule below reads through this rather than the raw file, because
- * both of the first two rules written here failed on their own documentation.
+ * Every content rule below reads through this rather than the raw file. Both
+ * of the first two rules written here failed on their own documentation.
  * `client.ts` explains why it must never request `/ops`, and the rule forbidding
  * `/ops` matched that sentence. `contract.ts` uses the phrase
  * "optional-because-sometimes-uninteresting", forty URL-safe characters and so
@@ -141,7 +141,7 @@ describe('cloudflare bindings are reached only from the composition root', () =>
 
   it('the composition root actually does reach one', () => {
     // Proves the carve-out is a real exception rather than a rule matching
-    // nothing: if middleware stopped importing it, this list would be guarding
+    // nothing. If middleware stopped importing it, this list would be guarding
     // an empty set.
     expect(readFileSync('src/middleware.ts', 'utf8')).toContain("from 'cloudflare:workers'");
   });
@@ -161,13 +161,13 @@ describe('cloudflare bindings are reached only from the composition root', () =>
  * There is exactly one way to talk to the backend.
  *
  * The rule that a scattered `fetch` would break is not tidiness. Each call site
- * is a place where a timeout is forgotten, a correlation header is not
- * forwarded, a malformed response is trusted, or a backend error message ends
- * up in a page. Those have to be got right once.
+ * is a place where a timeout is forgotten or a correlation header is not
+ * forwarded. It is also a place where a malformed response is trusted, or a
+ * backend error message ends up in a page. Those have to be got right once.
  *
  * It is also the security boundary. `client.ts` exposes three named operations
  * and no path parameter. So there is no way to ask the backend for `/ops` or
- * for an internal route - which is what stops this Worker from becoming an open
+ * for an internal route. That is what stops this Worker from becoming an open
  * proxy into a service that has no other public surface.
  */
 describe('the backend is reached only through the API client', () => {
@@ -197,7 +197,7 @@ describe('the backend is reached only through the API client', () => {
     expect(source).toContain("path: '/v1/games'");
     expect(source).toContain("path: '/v1/sales'");
     expect(source).toContain('path: `/v1/games/${encodeURIComponent(slug)}`');
-    // No route outside /v1 is reachable, which is what keeps /ops and the
+    // No route outside /v1 is reachable. That is what keeps /ops and the
     // backend's internal surfaces unreachable from here even though a service
     // binding bypasses Cloudflare Access entirely (architecture decision record 0024).
     expect(source).not.toContain('/ops');

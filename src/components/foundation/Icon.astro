@@ -4,7 +4,7 @@
  * ported verbatim.
  *
  * Markup and sizing come from the shared name-to-path-data map in ./icons.ts
- * rather than being duplicated here: AppHeader.tsx needs the same glyphs and
+ * rather than being duplicated here. AppHeader.tsx needs the same glyphs and
  * cannot import an .astro file. So the map lives in a framework-neutral module
  * both can reach.
  */
@@ -29,8 +29,8 @@ const px = typeof size === 'number' ? size : (ICON_SIZES[size] ?? ICON_SIZES.md)
 
 /**
  * Path data for the glyph, and the only reason escaping may be switched off
- * below: a lookup into the compile-time `LUDWISE_ICONS` map, keyed by the closed
- * `IconName` union. Never a runtime value.
+ * below. It is a lookup into the compile-time `LUDWISE_ICONS` map, keyed by
+ * the closed `IconName` union. Never a runtime value.
  *
  * `title` is deliberately not composed into this string. It is a prop, so the
  * first caller writing `title={game.title}` would put provider data into

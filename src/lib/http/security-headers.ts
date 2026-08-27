@@ -2,7 +2,7 @@
  * The response headers that are the same on every response the Worker produces,
  * and why each one is here.
  *
- * "Every Worker response" is the accurate scope, not every response: under
+ * The accurate scope is every Worker response, not every response. Under
  * Workers Assets a request matching `dist/client` is served without invoking
  * the Worker, so `/fonts/*.woff2` never passes through. Those are same-origin
  * static files. A committed `public/_headers` is the route if they ever need
@@ -28,10 +28,10 @@ export const SECURITY_HEADERS = Object.freeze({
    */
   'x-frame-options': 'DENY',
   /**
-   * `base-uri` is the valuable one: a `<base>` tag relativises every script and
-   * link on the page, the standard escalation from a partial HTML injection to
-   * full script control. `object-src` and `form-action` cost nothing and close
-   * a plugin and a form-hijack vector.
+   * `base-uri` is the valuable one. A `<base>` tag relativises every script and
+   * link on the page. That is the standard escalation from a partial HTML
+   * injection to full script control. `object-src` and `form-action` cost
+   * nothing and close a plugin and a form-hijack vector.
    */
   'content-security-policy':
     "frame-ancestors 'none'; base-uri 'none'; object-src 'none'; form-action 'self'",
@@ -39,8 +39,8 @@ export const SECURITY_HEADERS = Object.freeze({
   /**
    * HTML varies by the theme cookie and carries a per-request id.
    *
-   * Nothing caches it today, but the day a cache rule is added without this, a
-   * visitor's request id is served to somebody else - and an id quoted from a
+   * Nothing caches it today. The day a cache rule is added without this, a
+   * visitor's request id is served to somebody else. An id quoted from a
    * cached page sends an operator to a third party's record.
    *
    * Set rather than merged, deliberately. The security-headers test pins that
@@ -49,12 +49,12 @@ export const SECURITY_HEADERS = Object.freeze({
   vary: 'cookie',
 
   // A LUDWISE URL names a game. Sending the full path to a storefront on an
-  // outbound click would tell that storefront what the visitor was comparing
-  // before they clicked, which is theirs to know only if we choose to say it.
+  // outbound click would tell it what the visitor was comparing before they
+  // clicked. That is theirs to know only if we choose to say it.
   'referrer-policy': 'strict-origin-when-cross-origin',
 
   // Denying features the product does not use costs nothing and removes them
-  // from any embedded content's reach. interest-cohort is a legacy opt-out
+  // from any embedded content's reach. `interest-cohort` is a legacy opt-out
   // kept because it is inert where unsupported and meaningful where it is not.
   'permissions-policy': 'camera=(), microphone=(), geolocation=(), payment=(), interest-cohort=()',
 });
@@ -64,14 +64,14 @@ export const SECURITY_HEADERS = Object.freeze({
  * everywhere.
  *
  * Cloudflare Access is what keeps staging private. This is what keeps it out of
- * a search index anyway, for the paths Access does not cover: a screenshot in a
- * crawled ticket, a link pasted into a public issue, an Access application
- * someone deletes by accident. It is defense in depth and never the defense -
- * a crawler that ignores it is not doing anything wrong, and a stranger reading
- * staging is stopped by Access or by nothing.
+ * a search index anyway. It covers the paths Access does not cover. Examples are
+ * a screenshot in a crawled ticket, a link pasted into a public issue, and an
+ * Access application someone deletes by accident. It is defense in depth and
+ * never the defense. A crawler that ignores it is not doing anything wrong. A
+ * stranger reading staging is stopped by Access or by nothing.
  *
  * Production must never receive it. De-indexing the live site is silent,
- * expensive and slow to notice, which is why the production case is asserted as
+ * expensive and slow to notice. That is why the production case is asserted as
  * an absence in the tests rather than left implicit.
  */
 export const INDEXING_HEADERS = Object.freeze({
@@ -85,12 +85,12 @@ export const INDEXING_HEADERS = Object.freeze({
  * same case `withCorrelationHeaders` in src/middleware.ts already handles the
  * same way. Throwing there would turn a static asset into a 500.
  *
- * `environment` is optional because this runs in the outermost middleware,
- * which also wraps the 503 returned when configuration fails to validate - the
- * one case where there is no resolved environment to read. Absent, it is
- * treated as not-production: guessing the indexable answer there would publish
- * a deployment whose configuration is broken to a crawler, and the restrictive
- * guess costs nothing.
+ * `environment` is optional because this runs in the outermost middleware. That
+ * middleware also wraps the 503 returned when configuration fails to validate.
+ * That is the one case where there is no resolved environment to read. Absent,
+ * it is treated as not-production. Guessing the indexable answer there would
+ * publish a deployment whose configuration is broken to a crawler. The
+ * restrictive guess costs nothing.
  */
 export function withSecurityHeaders(response: Response, environment?: Environment): Response {
   const applied =

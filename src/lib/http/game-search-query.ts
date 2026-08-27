@@ -1,9 +1,9 @@
 /**
  * Where a `/games` query string becomes game search input.
  *
- * The rules for reading a submitted GET form - blank means not supplied, and a
- * malformed value is carried through to be refused out loud - live in
- * query-params.ts, which `/sales` reads through as well.
+ * The rules for reading a submitted GET form live in query-params.ts, which
+ * `/sales` reads through as well. A blank means not supplied, and a malformed
+ * value is carried through to be refused out loud.
  */
 
 import { optionalInteger, optionalText, repeatedText } from './query-params.js';
