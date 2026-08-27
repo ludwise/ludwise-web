@@ -271,7 +271,7 @@ async function attempt<T>(
  *
  * `Partial<ApiErrorBody>` is a claim about shape and not about content, which
  * is why `apiErrorFromBody` still checks the type of every field it reads. The
- * declared type says which fields are worth looking for; it does not promise
+ * declared type says which fields are worth looking for. It does not promise
  * any of them is there or is a string.
  */
 async function readErrorBody(response: Response): Promise<Partial<ApiErrorBody> | undefined> {

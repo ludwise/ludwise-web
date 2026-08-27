@@ -56,13 +56,13 @@ refactoring over explanatory comments.
   does, or a contract is being described somewhere documentation tooling cannot
   read it. Make the code carry it, move the contract onto its declaration, or
   put the evidence in the test that pins it — deleting the text is not the fix.
-- **A doc comment states the contract; it does not argue for it.** Do not
+- **A doc comment states the contract. It does not argue for it.** Do not
   enumerate worked examples: a list of inputs and the wrong output each would
   produce is a set of test cases written as prose, and belongs in the test that
   asserts them. Cite that test, an architecture decision record, or ARCHITECTURE.md in one line instead.
 - Treat an inline comment longer than about 80 characters as a readability smell.
-  First improve naming, types, decomposition, or control flow; then decide whether
-  the comment is still necessary.
+  First improve naming, types, decomposition, or control flow. Then decide
+  whether the comment is still necessary.
 - Do not narrate control flow, restate types, describe obvious syntax, or leave
   implementation-history commentary.
 - Do not use comments to compensate for unclear abstractions or oversized
@@ -78,7 +78,7 @@ Structured documentation comments are API contract documentation, not narrative
 implementation notes. Use the language/tooling convention in the surrounding
 code so documentation generators can treat them as a source of truth. Describe
 externally observable behavior, invariants, errors, side effects, and
-compatibility constraints; do not describe implementation steps.
+compatibility constraints. Do not describe implementation steps.
 
 The 80-character heuristic applies to explanatory inline comments, not to a
 structured API contract that genuinely requires multiple concise lines.

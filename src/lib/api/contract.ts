@@ -8,8 +8,8 @@
  *
  * This file may know these shapes, the query parameter names, the error codes a
  * failure may carry, and the page sizes echoed back - nothing else. Evolution is
- * additive, so either side may deploy first. `T | null` is "looked, no value";
- * `?:` is "this deployment predates the field"; neither is ever a fabricated
+ * additive, so either side may deploy first. `T | null` is "looked, no value".
+ * `?:` is "this deployment predates the field". Neither is ever a fabricated
  * default (`PRODUCT.md` §120).
  */
 
@@ -285,7 +285,7 @@ export interface ApiErrorBody {
    * not have learned from the URL they typed.
    *
    * The *reason* each was refused is deliberately not here. Those strings name
-   * the backend's internal expectations and are written for a log reader; the
+   * the backend's internal expectations and are written for a log reader. The
    * visitor-facing sentences live in this repository, keyed by field name,
    * because how to phrase advice to a person is a presentation decision.
    */

@@ -43,7 +43,7 @@ way to develop a proof of concept.
 ## Supported versions
 
 The project is pre-1.0 and not yet deployed to production. Only the current
-`production` branch is supported; there are no maintained release branches and
+`production` branch is supported. There are no maintained release branches and
 no backports.
 
 ## Scope

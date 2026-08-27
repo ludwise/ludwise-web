@@ -301,7 +301,7 @@ describe('what it refuses to trust', () => {
   });
 
   it('an unreadable failure body still produces a classified failure', async () => {
-    // The response is already a failure; failing to parse the explanation of a
+    // The response is already a failure. Failing to parse the explanation of a
     // failure must not replace it with a different one.
     const fetchImpl = (async () =>
       new Response('502 Bad Gateway', { status: 502 })) as unknown as typeof fetch;

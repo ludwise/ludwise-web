@@ -15,7 +15,7 @@ const ALLOW_EVERYTHING = 'User-agent: *\nAllow: /\n';
  * Tells crawlers whether this deployment is meant to be indexed.
  *
  * Not a security control, and nothing here is written as though it were.
- * Staging is kept private by Cloudflare Access; this only means that a staging
+ * Staging is kept private by Cloudflare Access. This only means that a staging
  * page which somehow does reach a crawler - a link in a public issue, a proxy
  * that strips the Access cookie - is not indexed on top of it. A crawler that
  * ignores this file is not doing anything wrong.

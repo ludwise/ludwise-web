@@ -24,7 +24,7 @@ describe('adviseGameSearch', () => {
 
   it('orders sentences by the table rather than by the order fields were refused in', () => {
     // The backend may validate releaseYearFrom before marketCode or the other
-    // way around; the sentence order must not depend on that.
+    // way around. The sentence order must not depend on that.
     const forward = adviseGameSearch(['releaseYearFrom', 'marketCode']);
     const backward = adviseGameSearch(['marketCode', 'releaseYearFrom']);
     expect(forward).toEqual(backward);

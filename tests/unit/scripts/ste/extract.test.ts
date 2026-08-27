@@ -178,6 +178,39 @@ describe('extractComments, on what it must not join or drop', () => {
     const template = units.find((one) => one.text.includes('template reason'));
     expect(source.slice(template!.start, template!.start + 2)).toBe('/*');
   });
+
+  it('stops a template comment at its own close rather than a later one', () => {
+    const source = [
+      '---',
+      'const a = 1;',
+      '---',
+      '{/* The first reason. */}',
+      '<script is:inline>{(() => { document.title = a ? "one" : "two"; })()}</script>',
+      '{/* The second reason. */}',
+      '',
+    ].join('\n');
+
+    const units = extractComments(source, 'a.astro');
+
+    expect(units.map((one) => one.text.trim())).toEqual([
+      'The first reason.',
+      'The second reason.',
+    ]);
+    expect(units.some((one) => one.text.includes('document.title'))).toBe(false);
+  });
+
+  it('reads a template comment followed by an expression instead of a brace', () => {
+    const source = '---\nconst a = 1;\n---\n{/* A reason to render. */ a && <p>x</p>}\n';
+    expect(extractComments(source, 'a.astro').map((one) => one.text.trim())).toEqual([
+      'A reason to render.',
+    ]);
+  });
+
+  it('does not read a CSS comment inside a style block as a template comment', () => {
+    const source = '---\nconst a = 1;\n---\n<style>.x { /* A CSS note. */ color: red; }</style>\n';
+    expect(extractComments(source, 'a.astro')).toEqual([]);
+    expect(commentCoverage('<style>.x { /* A CSS note. */ }</style>\n', 'a.astro')).toBe('none');
+  });
 });
 
 describe('extractMarkdown, on a fence inside a list item', () => {

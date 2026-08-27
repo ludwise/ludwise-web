@@ -56,7 +56,7 @@ test.describe('the backend is unavailable', () => {
       const response = await page.goto(path);
 
       // 503, never 200 and never 404. A 200 would tell a crawler the page is
-      // fine and let it index an error; a 404 on the detail page would tell a
+      // fine and let it index an error. A 404 on the detail page would tell a
       // visitor following a good link that their link is broken.
       expect(response?.status()).toBe(503);
 

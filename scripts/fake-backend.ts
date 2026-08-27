@@ -56,7 +56,7 @@ interface Recorded {
  * backend's `CASES` and the files themselves, and the two would drift.
  *
  * `game-detail` cases key on their slug, which is read from the recording
- * rather than from the filename. The backend chose that slug; parsing it out of
+ * rather than from the filename. The backend chose that slug. Parsing it out of
  * `game-detail-canonical.json` would be inferring it from a naming convention
  * nobody promised to keep.
  */
@@ -176,7 +176,7 @@ function answer(url: URL): Recorded | undefined {
  *
  * This state is worth a mode of its own because the interface says different
  * words for it. "No games are on sale right now" is a claim about the market
- * and is only true once LUDWISE has observed prices and found none discounted;
+ * and is only true once LUDWISE has observed prices and found none discounted.
  * "LUDWISE has not collected any prices yet" is the truth here, and
  * `hasAnyOfferData: false` is what tells the page which to render.
  */
@@ -243,7 +243,7 @@ const server = createServer((request, response) => {
 
   if (MODE === 'unavailable') {
     // Destroyed rather than answered with a 503, deliberately. A 503 is the
-    // backend telling us something; this is the backend not being there, which
+    // backend telling us something. This is the backend not being there, which
     // is a different code path in the client and the one a real outage takes.
     request.socket.destroy();
     return;

@@ -24,7 +24,7 @@ runnable without it.
 
 The division is not stylistic. Everything on the right is a decision about the
 _catalogue_, and this repository renders those decisions rather than making
-them. A discount percentage arrives computed; an offer ordering arrives ordered.
+them. A discount percentage arrives computed. An offer ordering arrives ordered.
 If you find yourself adding arithmetic over prices here, it belongs on the other
 side of the boundary.
 
@@ -112,7 +112,7 @@ Issues and pull requests are welcome. Two things are worth reading first:
 - [`docs/architecture.md`](docs/architecture.md) — especially the section on
   what must not be duplicated from the backend.
 - [`docs/design-system.md`](docs/design-system.md) — the tokens are the styling
-  API; a hard-coded color will fail a test rather than a review.
+  API. A hard-coded color will fail a test rather than a review.
 
 Commits follow [Conventional Commits](https://www.conventionalcommits.org/),
 which `commitlint` enforces.

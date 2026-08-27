@@ -203,7 +203,7 @@ test.describe('sales browsing', () => {
       .getByRole('list', { name: 'Games on sale' })
       .getByRole('heading', { level: 3 })
       .allInnerTexts();
-    // Steep Discount is 80% off at €80.00; Two Store is 66% off at €19.99;
+    // Steep Discount is 80% off at €80.00. Two Store is 66% off at €19.99.
     // Half Off is 50% off at €29.99.
     expect(byDiscount).toEqual([
       'Steep Discount Demo Game',

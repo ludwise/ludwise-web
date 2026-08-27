@@ -60,13 +60,13 @@ are fine.
 
 Geist and Geist Mono, self-hosted from `public/fonts/`, vendored by
 `scripts/vendor-fonts.mjs` out of the `@fontsource` packages. Run it after
-bumping either package; the output is committed. Weights: sans 400/500/600,
+bumping either package. The output is committed. Weights: sans 400/500/600,
 mono 400/500. The token file also declares 300 and 700 — 300 is unused in
 product UI and 700 is reserved. Do not include them.
 
 ## Themes
 
-Both themes are authored; neither is an inversion. `[data-theme]` on `<html>`
+Both themes are authored. Neither is an inversion. `[data-theme]` on `<html>`
 selects one.
 
 The value is resolved server-side from a `theme` cookie and rendered into the
@@ -80,9 +80,9 @@ a sanitiser: the value is caller-controlled and lands in an HTML attribute, so
 it answers only with a member of a closed set or `null`.
 
 Check both themes before you call a component done. `design/system/guidelines/governance.md`
-has the full review checklist; the short version is: does it work in both
-themes, survive greyscale, survive a 35% longer string, and hold at 200% zoom
-and 375px wide?
+has the full review checklist. The short version asks four questions. Does it
+work in both themes? Does it survive greyscale? Does it survive a 35% longer
+string? Does it hold at 200% zoom and 375px wide?
 
 ## Components
 
@@ -113,7 +113,7 @@ weight of a page. That buys a theme toggle and a menu disclosure.
 
 That ratio is stated here rather than left to be discovered, because the second
 island is the decision that matters and it should be a decision. Adding one
-costs nothing extra in framework bytes, since React already ships; adding the
+costs nothing extra in framework bytes, since React already ships. Adding the
 _first_ one to a page that had none costs all of it. So the question for any new
 island is not "is this component interactive" but "does this page need to load a
 framework at all".
@@ -174,7 +174,7 @@ These are additions, recorded here rather than invented silently:
 
 - **`layout/PageContainer`** — implements the three page-width archetypes from
   `guidelines/layout.md` (wide 1440, standard 1200, reading 720) and the
-  16/24/32 gutters. The rules are the handoff's; the component is not.
+  16/24/32 gutters. The rules are the handoff's. The component is not.
 - **A skip link** — no landmark or skip-link guidance appears anywhere in the
   bundle. It clips itself rather than reusing `.lw-visually-hidden`, because it
   has to become visible on `:focus` and that utility has no focus state.
@@ -188,12 +188,12 @@ These are additions, recorded here rather than invented silently:
   one: `logo-mark-mono.svg` fills itself with `currentColor`, which resolves
   against nothing when a browser fetches an icon outside any document.
   SVG only, with no `.ico` or apple-touch variant, because producing those
-  needs a rasterisation step and an image dependency; a browser that cannot
+  needs a rasterisation step and an image dependency. A browser that cannot
   read an SVG icon shows the same default glyph it showed before.
 - **No footer** — the bundle specifies none, only an unfilled region in a
   layout diagram. Inventing one would be redesigning the product.
 - **`game/GameCard` renders one variant and four fewer props.** The handoff's
-  card carries artwork, a rating summary and a price signal; none of those
+  card carries artwork, a rating summary and a price signal. None of those
   exists in the canonical model, and the product rules forbid rendering a value
   that is not there, so each is absent rather than stubbed with a placeholder.
   Only the `standard` variant is built, because the handoff is explicit that
@@ -201,8 +201,8 @@ These are additions, recorded here rather than invented silently:
   with a surface that renders them. It adds two things: freshness, which the
   handoff puts on `GameRow` and not on `GameCard`, because every number on a
   sale card is commercial data and §55 requires that a visitor is not misled
-  into thinking stale data was freshly verified; and an edition label, because
-  one game can carry several offers and the card shows one of them (§37).
+  into thinking stale data was freshly verified. It also adds an edition label,
+  because one game can carry several offers and the card shows one of them (§37).
   Its quiet lines use `--color-text-secondary` rather than the tertiary the
   handoff's mock uses: at caption size, tertiary on the default surface
   measures 4.19:1, below WCAG 1.4.3's 4.5:1.

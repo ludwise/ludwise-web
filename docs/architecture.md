@@ -98,8 +98,8 @@ entrypoint, and reaching a named one requires a Workers capability — this
 binding. So the guarantee is the conjunction of two facts, each checked by a
 test rather than asserted in a document:
 
-- `/v1` is absent from the backend's route tree;
-- this repository binds `entrypoint: "VisitorRead"` by name, which
+- `/v1` is absent from the backend's route tree.
+- This repository binds `entrypoint: "VisitorRead"` by name, which
   `tests/architecture/deployment-bindings.test.ts` and
   `scripts/check-environment.mjs` both require.
 
@@ -128,7 +128,7 @@ with no other public surface.
   that has not yet published `VisitorRead` fails this deploy rather than serving
   a broken site. **Deploy the backend first.**
 - Binding changes are two-phase: add the binding in one release, use it in the
-  next; remove one at least a release after the code stops reading it.
+  next. Remove one at least a release after the code stops reading it.
   Otherwise rolling back code lands on a Worker whose bindings no longer match.
 
 ## The API client
@@ -170,7 +170,7 @@ needs an idempotency key before it may be retried at all.
 ### Unavailable is not empty
 
 This is the distinction the whole error layer exists to preserve. A failed read
-**throws**; it never returns an empty view. Rendering "no games found" when the
+**throws**. It never returns an empty view. Rendering "no games found" when the
 truth is "we could not ask" is a false claim about the market rather than a
 cosmetic slip, and the same applies to sales, offers, and a game detail page —
 where a failure must never render as a 404, because that tells a visitor
@@ -194,7 +194,7 @@ which is why that test is not optional.
 
 ### Evolution
 
-Additively. A response may gain a field; it may never lose or narrow one without
+Additively. A response may gain a field. It may never lose or narrow one without
 a version change.
 
 ```
@@ -298,7 +298,7 @@ market/currency inputs, and never let a shared cache hold a response carrying a
 request id.
 
 Static assets are the exception and always were. `public/_headers` marks the
-fonts immutable; they are content-addressed by filename and never change in
+fonts immutable. They are content-addressed by filename and never change in
 place.
 
 ## Performance

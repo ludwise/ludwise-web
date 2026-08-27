@@ -144,7 +144,7 @@ interface GeneratedConfig {
 
 /**
  * Set by the CI step that runs this suite after the build. Absent means the
- * build output may legitimately not exist yet; present means it must, and a
+ * build output may legitimately not exist yet. Present means it must, and a
  * missing file is a failure.
  *
  * `test` runs before `build` in `pnpm run check` and in `verify.yml` alike, so
@@ -220,7 +220,7 @@ describe('the generated deployment configuration', () => {
 
   it.runIf(config)('holds no secret-shaped values in plain vars', () => {
     // `vars` is plaintext in the deployed configuration and readable by anyone
-    // who can see the Worker's settings. Secrets belong in secret bindings; the
+    // who can see the Worker's settings. Secrets belong in secret bindings. The
     // point here is that none of these should ever be secret at all.
     for (const [name, value] of Object.entries(config?.vars ?? {})) {
       expect(/token|secret|key|password|credential/iu.test(name), `suspicious var: ${name}`).toBe(

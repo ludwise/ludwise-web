@@ -7,7 +7,7 @@
  * this exact table, so the two agree because each was checked against one
  * statement of the answer rather than because somebody diffed them once.
  *
- * Checked in to both repositories and must stay byte-identical; changing it in
+ * Checked in to both repositories and must stay byte-identical. Changing it in
  * one place only is the failure this exists to prevent. Several cases are
  * regressions rather than hypotheticals.
  */

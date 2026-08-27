@@ -56,7 +56,7 @@ describe('loadConfig', () => {
   });
 
   it('refuses to guess an absent environment', () => {
-    // Guessing development would disable protections; guessing production would
+    // Guessing development would disable protections. Guessing production would
     // enable indexing on a deployment already known to be misconfigured.
     expect(() => loadConfig({ ...VALID, ENVIRONMENT: undefined })).toThrow(ConfigError);
   });

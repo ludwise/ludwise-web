@@ -154,7 +154,7 @@ describe('deriveCorrelation', () => {
     expect(correlation.parentSpanId).toBe('00f067aa0ba902b7');
     expect(correlation.traceFlags).toBe('01');
     expect(correlation.traceSource).toBe('inbound');
-    // A fresh span id is minted for this hop regardless; reusing the parent's
+    // A fresh span id is minted for this hop regardless. Reusing the parent's
     // own span id would make this request indistinguishable from its parent.
     expect(correlation.spanId).not.toBe('00f067aa0ba902b7');
   });
@@ -168,7 +168,7 @@ describe('deriveCorrelation', () => {
   });
 
   it('treats request id and trace validity independently', () => {
-    // A caller can get one right and the other wrong; each is judged on its own.
+    // A caller can get one right and the other wrong. Each is judged on its own.
     const headers = new Headers({
       [REQUEST_ID_HEADER]: 'valid-req-id-99',
       [TRACEPARENT_HEADER]: 'garbage',

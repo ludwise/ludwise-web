@@ -35,7 +35,7 @@ const child = spawn(
 );
 
 // Forwarded rather than left to the default. Playwright terminates the process
-// group it started; without this the listener survives and the next run fails
+// group it started. Without this the listener survives and the next run fails
 // to bind, which looks like a flaky suite rather than a leaked process.
 for (const signal of ['SIGINT', 'SIGTERM'] as const) {
   process.on(signal, () => {

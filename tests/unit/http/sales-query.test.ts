@@ -8,7 +8,7 @@ describe('toBrowseSalesInput', () => {
   it('reads a filled-in form as the filters it names', () => {
     // min/max are whole units of whatever currency the resolved context uses:
     // 500 here is 500 euros, not 500 cents. This boundary does not know the
-    // currency and does not convert; browseSales does, once it does.
+    // currency and does not convert. browseSales does, once it does.
     expect(
       read(
         'market=DE&currency=EUR&store=orbit&store=copper&minDiscount=40&min=500&max=6000&fromYear=2015&toYear=2026&sort=price&page=2',
@@ -76,7 +76,7 @@ describe('toBrowseSalesInput', () => {
   });
 
   // Membership belongs to the use case, which owns the list of orders it
-  // supports; the parser's job is to report what was asked for.
+  // supports. The parser's job is to report what was asked for.
   it('passes an unsupported sort through rather than silently defaulting', () => {
     expect(read('sort=rating').sort).toBe('rating');
   });

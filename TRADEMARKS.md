@@ -40,7 +40,7 @@ Concretely:
 It is an assertion of intent, not a registration. No mark is registered, and
 this document should not be described as though one were. It records where the
 boundary is drawn so that a reader knows what they are and are not being
-granted; if registration ever happens, this file gets a reference to it rather
+granted. If registration ever happens, this file gets a reference to it rather
 than being replaced by one.
 
 ## Third-party marks

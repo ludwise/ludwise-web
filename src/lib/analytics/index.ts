@@ -31,7 +31,7 @@ export function createAnalytics(config: AppConfig, logger: Logger): AnalyticsPro
   if (!config.analyticsEnabled) return noopAnalytics;
 
   return createSafeAnalytics(noopAnalytics, (error, event) => {
-    // The event name and version are safe to log; the properties are not
+    // The event name and version are safe to log. The properties are not
     // duplicated into operational logs, which would widen exposure and split
     // the same data across two different retention policies.
     logger.warn(EVENTS.ANALYTICS_TRACK_FAILED, 'Analytics event could not be delivered', {

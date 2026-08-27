@@ -43,7 +43,7 @@ const FUNCTIONAL_COLOUR = /\b(?:rgba?|hsla?|oklch|color-mix)\s*\(/g;
  * component that the narrower pattern missed: a `:focus-within` box-shadow
  * that put a second, concentric ring around one control, and a bare
  * `outline: none` that was inert only because the cascade happened to order
- * the global rule after it. Both look local and harmless; together they
+ * the global rule after it. Both look local and harmless. Together they
  * produce a focus indicator that changes shape as a keyboard operator moves
  * across the page, which is the exact failure the one-rule policy exists to
  * prevent.

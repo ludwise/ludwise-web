@@ -2,7 +2,7 @@
  * The composition root.
  *
  * This file and `src/pages/**` are the only places permitted to import
- * `cloudflare:*`; everything below receives what it needs as an argument.
+ * `cloudflare:*`. Everything below receives what it needs as an argument.
  *
  * Four middlewares, in an order that is not arbitrary:
  *
@@ -315,7 +315,7 @@ const analytics = defineMiddleware(async (context, next) => {
   if (isDocumentResponse(response)) {
     // The whole RouteInfo: `pageViewEvent` refuses a page whose route was
     // sanitised rather than matched, because a sanitised path is whatever the
-    // visitor asked for. Losing a count is recoverable; collecting a path is not.
+    // visitor asked for. Losing a count is recoverable. Collecting a path is not.
     const event = pageViewEvent(
       routeTemplate({
         routePattern: (context as { routePattern?: string }).routePattern,

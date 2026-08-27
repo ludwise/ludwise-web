@@ -12,7 +12,7 @@ interface Props {
 
 /**
  * Primary destinations. The design system caps these at three to five and
- * puts everything else one level down; there are three real ones today, and a
+ * puts everything else one level down. There are three real ones today, and a
  * nav item pointing at a route that does not exist is worse than a short nav.
  */
 const NAV_ITEMS = [
@@ -122,7 +122,7 @@ const indexable = Astro.locals.config.environment === 'production';
     {
       /* tabindex="-1" so the skip link moves focus rather than only moving the
          sequential navigation start point. Current browsers do the latter
-         correctly on their own; a screen reader virtual cursor historically
+         correctly on their own. A screen reader virtual cursor historically
          did not follow a target it could not focus, and one attribute removes
          the question. */
     }

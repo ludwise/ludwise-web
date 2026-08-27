@@ -10,7 +10,7 @@ import { describe, expect, it } from 'vitest';
  *
  * The handoff is explicit that the token layer is adopted verbatim: "Copy it,
  * keep the `@import` structure, change only the font loading" and "Do not
- * rename a token. If a name is wrong, raise it; do not silently diverge." Two
+ * rename a token. If a name is wrong, raise it. Do not silently diverge." Two
  * copies of one file drift the moment someone tunes a color in whichever they
  * have open, and the divergence is invisible until a designer reviews a page
  * and cannot say why it does not match.

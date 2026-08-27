@@ -1,8 +1,8 @@
 import type { Environment } from '../config/index.js';
 
 /**
- * Ordered by severity. Meanings are documented in docs/operations/logging.md;
- * undocumented levels always drift into inconsistent use.
+ * Ordered by severity. Meanings are documented in docs/operations/logging.md.
+ * Undocumented levels always drift into inconsistent use.
  */
 export const LOG_LEVELS = ['debug', 'info', 'warn', 'error', 'fatal'] as const;
 export type LogLevel = (typeof LOG_LEVELS)[number];
@@ -63,7 +63,7 @@ export interface LogRecord {
   readonly channel: LogChannel;
   /** Stable machine key, for example 'http.request.completed'. Never reworded. */
   readonly event: string;
-  /** Human prose. Free to change in any commit; never parsed, never localised. */
+  /** Human prose. Free to change in any commit. Never parsed, never localised. */
   readonly message: string;
   readonly service: string;
   readonly environment: Environment | 'unknown';

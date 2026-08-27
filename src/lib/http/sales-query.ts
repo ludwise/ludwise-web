@@ -8,7 +8,7 @@
  *
  * No `q` - name search lives at `/games`, and answering it here would mean a
  * second relevance ranking. No `discounted`, because the page is discounts.
- * Nothing here corrects a value; see query-params.ts on blank versus malformed.
+ * Nothing here corrects a value. See query-params.ts on blank versus malformed.
  */
 
 import { optionalInteger, optionalText, repeatedText } from './query-params.js';
@@ -47,8 +47,8 @@ function readPair(
  *
  * `min` and `max` are whole units of whichever currency the resolved context
  * turns out to use - what a visitor typed into "Lowest price" - not minor
- * units. `browseSales` converts them once it knows that currency's exponent;
- * this boundary has no way to know it and does not try.
+ * units. `browseSales` converts them once it knows that currency's exponent.
+ * This boundary has no way to know it and does not try.
  */
 export function toBrowseSalesInput(params: URLSearchParams): BrowseSalesInput {
   const pair = readPair(params);

@@ -64,7 +64,7 @@ function IconGlyph({
  * Geometry for the lockup, reimplemented from Wordmark.astro because that is an
  * Astro component this island cannot import.
  *
- * Fixed at the reference's `<Wordmark size="md" />`; the header exposes no size
+ * Fixed at the reference's `<Wordmark size="md" />`. The header exposes no size
  * or tone knob, matching a prop contract that has none. The href is the one
  * departure: the reference's `#` was a placeholder for a specimen with no
  * router, and this is the second tab stop on every real page.
@@ -180,7 +180,7 @@ export interface NavItem {
 export interface AppHeaderProps {
   items: NavItem[];
   activeId?: string | undefined;
-  /** Called with the item id when a nav link is clicked; the default anchor
+  /** Called with the item id when a nav link is clicked. The default anchor
    *  navigation is prevented. Omit for a real multi-page app, where the href
    *  should navigate normally. */
   onNavigate?: ((id: string) => void) | undefined;
@@ -195,7 +195,7 @@ export interface AppHeaderProps {
    *  from UI language — never conflate the two. */
   marketLabel?: string | undefined;
   /** Called with the new open state when the compact menu button is pressed.
-   *  The header manages its own menu panel; this is only for host-side effects
+   *  The header manages its own menu panel. This is only for host-side effects
    *  such as locking body scroll. */
   onMenu?: ((open: boolean) => void) | undefined;
   authed?: boolean | undefined;
@@ -346,7 +346,7 @@ export function AppHeader({
     closeMenu();
   };
 
-  // Both variants are rendered; CSS decides which is visible. `variant` reaches
+  // Both variants are rendered. CSS decides which is visible. `variant` reaches
   // nothing but this nav's own classes, so hydration has nothing to get wrong.
   const renderNav = (variant: 'bar' | 'panel') => (
     <nav aria-label="Primary" className={`lw-header__nav lw-header__nav--${variant}`}>
@@ -413,7 +413,7 @@ export function AppHeader({
 
         {renderNav('bar')}
 
-        {/* CSS chooses the desktop copy; the native GET form remains usable
+        {/* CSS chooses the desktop copy. The native GET form remains usable
             before the island finishes hydration. */}
         {hasSearch && <div className="lw-header__search-slot">{renderSearch('sm')}</div>}
 
@@ -436,7 +436,7 @@ export function AppHeader({
 
             {/* Gated on authed !== undefined — see the file comment. A host
                 that has not said whether the visitor is authenticated has no
-                account state to show; `authed`'s prop default was removed
+                account state to show. `authed`'s prop default was removed
                 (rather than left at `false`) precisely so "unknown" and
                 "answered no" stay distinguishable here. */}
             {authed !== undefined &&
@@ -481,7 +481,7 @@ export function AppHeader({
         </div>
       </div>
 
-      {/* Unconditional for the same reason as the menu button; CSS decides
+      {/* Unconditional for the same reason as the menu button. CSS decides
           whether this or the inline `.lw-header__search-slot` copy shows. */}
       {hasSearch && <div className="lw-header__mobile-search">{renderSearch('md')}</div>}
 

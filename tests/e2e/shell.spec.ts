@@ -36,7 +36,7 @@ const BASE_URL = 'http://localhost:4321';
  *
  * It is a narrow exclusion of one element rather than of the rule, so any other
  * contrast failure anywhere still fails. The underlying legibility question is
- * raised with the designer separately; delete this the moment the wordmark's
+ * raised with the designer separately. Delete this the moment the wordmark's
  * color changes.
  */
 const LOGOTYPE = '.lw-header__wordmark-accent';
@@ -155,7 +155,7 @@ test.describe('the application shell', () => {
  *
  * This suite runs against `astro dev`, where ENVIRONMENT is `development` - one
  * of the two environments that must not be indexed. The production case is the
- * one that matters more and cannot be exercised here; it is asserted in
+ * one that matters more and cannot be exercised here. It is asserted in
  * tests/unit/http/security-headers.test.ts, in tests/integration/api/robots.test.ts,
  * and against the deployment itself in .github/workflows/deploy-production.yml.
  *

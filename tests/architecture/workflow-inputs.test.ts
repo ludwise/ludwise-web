@@ -23,7 +23,7 @@ const WORKFLOW_DIR = '.github/workflows';
 
 /**
  * Inputs that the action rejects when empty. Extend as workflows adopt actions
- * with the same shape; an unknown action is not assumed safe, it is simply not
+ * with the same shape. An unknown action is not assumed safe, it is simply not
  * covered, which the coverage assertion below keeps honest.
  */
 const REQUIRED_INPUTS: ReadonlyMap<string, readonly string[]> = new Map([
@@ -52,7 +52,7 @@ const BLOCK_SCALAR = /^\s*[A-Za-z0-9_-]+:\s*[|>][+-]?\s*$/;
 const LIST_ITEM = /^\s*-\s/;
 
 function indentOf(line: string): number {
-  // A blank or whitespace-only line has no indent to speak of; treating it as
+  // A blank or whitespace-only line has no indent to speak of. Treating it as
   // infinitely deep keeps it inside whatever block is being read, and the
   // callers skip it before this matters.
   return INDENT.exec(line)?.[1]?.length ?? Number.MAX_SAFE_INTEGER;
@@ -110,7 +110,7 @@ function coveredInputs(): readonly CoveredInput[] {
 
         if (BLOCK_SCALAR.test(candidate)) blockScalarIndent = candidateIndent;
 
-        // Only keys directly under `with:` are inputs; `env:` keys are not.
+        // Only keys directly under `with:` are inputs. `env:` keys are not.
         if (withIndent === undefined) continue;
         if (!required.includes(key[1] ?? '')) continue;
 

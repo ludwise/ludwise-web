@@ -30,7 +30,7 @@ export default defineConfig({
   // stateful KV namespace per environment - infrastructure that would hold
   // visitor session data - because a default went unexamined. The backend
   // repository hit the same default earlier and chose to declare the binding
-  // instead, which is the right call there; here the honest answer is that we
+  // instead, which is the right call there. Here the honest answer is that we
   // do not want the store at all.
   //
   // This site is server-rendered and anonymous: no login, no cart, no

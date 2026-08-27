@@ -5,7 +5,7 @@
  * space is empty, what to do next. That order is carried by
  * title/default-slot/action, not by validation.
  *
- * `children`, `action` and `secondaryAction` are ReactNode in the reference; as
+ * `children`, `action` and `secondaryAction` are ReactNode in the reference. As
  * in InlineMessage they become the default slot and two named slots.
  *
  * `titleAs` is an addition. `/404` and `/500` compose from EmptyState, where the
@@ -21,7 +21,7 @@ interface Props {
   /** States the fact, for example "No games match these filters". */
   title: string;
   /** Element the heading text renders as. Default 'span' matches every existing
-   *  in-page use; pass a heading level only where this IS the page's
+   *  in-page use. Pass a heading level only where this IS the page's
    *  heading, for example an error page composed entirely from EmptyState. */
   titleAs?: 'span' | 'h1' | 'h2' | 'h3' | undefined;
   compact?: boolean | undefined;

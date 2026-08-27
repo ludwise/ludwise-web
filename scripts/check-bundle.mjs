@@ -1,7 +1,7 @@
 /**
  * Checks the built artifact for things a public site must not contain.
  *
- * `tests/architecture/boundaries.test.ts` checks the source; this checks what
+ * `tests/architecture/boundaries.test.ts` checks the source. This checks what
  * the build produced. A value can reach a bundle without appearing in any
  * source file - inlined by Vite's `define`, pulled in through a dependency, or
  * baked into a server chunk by a configuration mistake.

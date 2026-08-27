@@ -21,7 +21,7 @@ function pathWithQuery(next: URLSearchParams): string {
  * minus the named one and whatever else the same removal implies.
  *
  * `value` narrows a repeatable filter (only `store` today) to the one
- * instance being removed, leaving the others in place; without it the whole
+ * instance being removed, leaving the others in place. Without it the whole
  * named filter is dropped.
  */
 export function pathWithoutFilter(params: URLSearchParams, name: string, value?: string): string {

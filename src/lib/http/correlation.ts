@@ -11,7 +11,7 @@ export const TRACEPARENT_HEADER = 'traceparent';
  *
  * The character set is a superset of every identifier actually seen in the
  * wild: UUID, ULID, nanoid, Cloudflare ray id and OpenTelemetry span id. The
- * lower bound rejects degenerate values that collide across callers; the upper
+ * lower bound rejects degenerate values that collide across callers. The upper
  * bound caps log growth.
  */
 export const REQUEST_ID_PATTERN = /^[A-Za-z0-9_-]{8,64}$/;
@@ -22,7 +22,7 @@ export const REQUEST_ID_PATTERN = /^[A-Za-z0-9_-]{8,64}$/;
  * The negative lookaheads reject all-zero trace and parent ids, which the
  * specification defines as invalid and which some misconfigured proxies emit.
  * Accepting them would place every request in the system into a single trace.
- * Hex must be lowercase; the specification mandates it.
+ * Hex must be lowercase. The specification mandates it.
  */
 export const TRACEPARENT_PATTERN =
   /^00-(?!0{32})([0-9a-f]{32})-(?!0{16})([0-9a-f]{16})-([0-9a-f]{2})$/;

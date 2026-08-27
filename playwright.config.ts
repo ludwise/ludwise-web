@@ -11,7 +11,7 @@ import { defineConfig, devices } from '@playwright/test';
  * page would be an assertion about what Steam was selling that morning.
  *
  * Chromium only. A second engine doubles the slowest step in CI to re-answer a
- * question about our own markup rather than about a browser; add one when a
+ * question about our own markup rather than about a browser. Add one when a
  * real cross-browser defect justifies it.
  */
 

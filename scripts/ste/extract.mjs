@@ -343,28 +343,62 @@ const astroFrontmatter = (source) => {
  *
  * The frontmatter is JavaScript and the parser reads it. The template is not,
  * so its comments are found by shape instead.
+ *
+ * The body stops at its own close rather than at a later one. A lazy match that
+ * may cross a close reaches the next comment instead. Everything between the
+ * two, markup and script alike, then arrives as prose.
+ *
+ * The closing brace is optional for the same reason. A comment followed by the
+ * value it explains, inside one set of braces, is still a comment.
  */
-const ASTRO_TEMPLATE_COMMENT = /\{\s*\/\*([\s\S]*?)\*\/\s*\}/g;
+const ASTRO_TEMPLATE_COMMENT = /\{\s*\/\*((?:(?!\*\/)[\s\S])*)\*\//g;
+
+/**
+ * A `<style>` body, which is CSS rather than markup.
+ *
+ * A CSS rule holding a comment has the shape of a template comment without
+ * being one. These regions are excluded before that shape is looked for.
+ */
+const ASTRO_STYLE_BLOCK = /<style[^>]*>[\s\S]*?<\/style>/gi;
+
+const styleRanges = (source) => {
+  const ranges = [];
+  ASTRO_STYLE_BLOCK.lastIndex = 0;
+  let match = ASTRO_STYLE_BLOCK.exec(source);
+  while (match !== null) {
+    ranges.push([match.index, match.index + match[0].length]);
+    match = ASTRO_STYLE_BLOCK.exec(source);
+  }
+  return ranges;
+};
+
+const templateCommentMatches = (source) => {
+  const styles = styleRanges(source);
+  const matches = [];
+  ASTRO_TEMPLATE_COMMENT.lastIndex = 0;
+  let match = ASTRO_TEMPLATE_COMMENT.exec(source);
+  while (match !== null) {
+    const inStyle = styles.some(([from, to]) => match.index >= from && match.index < to);
+    if (!inStyle) matches.push(match);
+    match = ASTRO_TEMPLATE_COMMENT.exec(source);
+  }
+  return matches;
+};
 
 export const commentCoverage = (source, path) => {
   if (!path.endsWith('.astro')) return 'full';
-  ASTRO_TEMPLATE_COMMENT.lastIndex = 0;
-  const hasTemplateComment = ASTRO_TEMPLATE_COMMENT.test(source);
+  const hasTemplateComment = templateCommentMatches(source).length > 0;
   return astroFrontmatter(source) === null && !hasTemplateComment ? 'none' : 'full';
 };
 
 const astroTemplateComments = (source, from) => {
   const units = [];
-  ASTRO_TEMPLATE_COMMENT.lastIndex = 0;
-  let match = ASTRO_TEMPLATE_COMMENT.exec(source);
 
-  while (match !== null) {
-    if (match.index >= from && !DIRECTIVE.test(match[1])) {
-      const open = source.indexOf('/*', match.index);
-      const pieces = stripBlockComment(source.slice(open, open + match[1].length + 4), open);
-      if (pieces.length > 0) units.push(unit('comment', 'mixed', joined(pieces), open));
-    }
-    match = ASTRO_TEMPLATE_COMMENT.exec(source);
+  for (const match of templateCommentMatches(source)) {
+    if (match.index < from || DIRECTIVE.test(match[1])) continue;
+    const open = source.indexOf('/*', match.index);
+    const pieces = stripBlockComment(source.slice(open, open + match[1].length + 4), open);
+    if (pieces.length > 0) units.push(unit('comment', 'mixed', joined(pieces), open));
   }
 
   return units;

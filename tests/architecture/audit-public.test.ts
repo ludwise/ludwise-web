@@ -84,7 +84,7 @@ describe('the public-repository audit', () => {
   });
 
   it('still reports credentials in a lockfile resolution URL', () => {
-    // Integrity hashes on this line are suppressed; the tarball URL is not.
+    // Integrity hashes on this line are suppressed. The tarball URL is not.
     const planted = withPlanted(
       'pnpm-lock.yaml',
       '\n    resolution: {integrity: sha512-x, tarball: https://u:p@evil.example.test/a}\n', // not-a-real-secret

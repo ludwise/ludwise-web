@@ -5,13 +5,13 @@
  * "Every Worker response" is the accurate scope, not every response: under
  * Workers Assets a request matching `dist/client` is served without invoking
  * the Worker, so `/fonts/*.woff2` never passes through. Those are same-origin
- * static files; a committed `public/_headers` is the route if they ever need
+ * static files. A committed `public/_headers` is the route if they ever need
  * these.
  *
  * Deliberately absent: a `script-src` policy. Doing it properly means nonces or
  * hashes for the theme script and Astro's hydration script, and a policy
- * carrying `unsafe-inline` says nothing. Astro has first-class CSP support;
- * wiring it is its own change. That covers `script-src` only.
+ * carrying `unsafe-inline` says nothing. Astro has first-class CSP support.
+ * Wiring it is its own change. That covers `script-src` only.
  */
 
 import type { Environment } from '../config/index.js';
@@ -43,7 +43,7 @@ export const SECURITY_HEADERS = Object.freeze({
    * visitor's request id is served to somebody else - and an id quoted from a
    * cached page sends an operator to a third party's record.
    *
-   * Set rather than merged, deliberately; the security-headers test pins that
+   * Set rather than merged, deliberately. The security-headers test pins that
    * choice and says why merge logic would be unreachable today.
    */
   vary: 'cookie',

@@ -25,7 +25,7 @@ const MAX_MINOR_UNIT = 4;
  *
  * @throws {RangeError} if `amountMinor` is not a safe integer, or `minorUnit`
  * is not an integer in 0-4. Both guards are load-bearing rather than
- * defensive; tests/unit/formatting pins the corruption each one prevents.
+ * defensive. tests/unit/formatting pins the corruption each one prevents.
  */
 export function formatAmountMinor(amountMinor: number, minorUnit: number): string {
   if (!Number.isSafeInteger(amountMinor)) {

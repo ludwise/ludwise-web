@@ -10,7 +10,7 @@ import { expect, test, type Page } from '@playwright/test';
  * "No games are on sale right now" is a claim about the market, true only once
  * LUDWISE has observed prices and found none of them discounted. Before that it
  * is a fabrication, and the correct sentence is that nothing has been collected
- * yet. The backend distinguishes the two with `hasAnyOfferData`; this suite is
+ * yet. The backend distinguishes the two with `hasAnyOfferData`. This suite is
  * what proves the interface acts on it.
  */
 

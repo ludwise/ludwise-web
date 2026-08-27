@@ -2,7 +2,7 @@
  * Reading a query string the way a submitted GET form actually arrives.
  *
  * A blank control is not a filter. A GET form submits every control it holds,
- * so an empty number field sends `name=`; `Number('')` is 0 and a use case
+ * so an empty number field sends `name=`. `Number('')` is 0 and a use case
  * rightly refuses it. Without this boundary, "Apply filters" would fail the
  * request the page had just built.
  *

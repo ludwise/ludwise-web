@@ -24,8 +24,8 @@ export const ANALYTICS_EVENTS = Object.freeze({
 export interface PageViewInput {
   readonly route: string;
   /**
-   * Where the route came from. Only a framework-supplied pattern is bounded;
-   * a sanitised pathname is whatever the visitor asked for, minus four shapes.
+   * Where the route came from. Only a framework-supplied pattern is bounded.
+   * A sanitised pathname is whatever the visitor asked for, minus four shapes.
    */
   readonly source: 'pattern' | 'sanitized';
 }
@@ -40,7 +40,7 @@ export interface PageViewInput {
  * Enforced, not promised. `routeTemplate` falls back to `sanitizePathname`,
  * which collapses only digits, UUIDs and long hex - right for an operational
  * log, wrong for analytics - so a sanitised route produces no event at all.
- * Losing a count is recoverable; collecting a path is not.
+ * Losing a count is recoverable. Collecting a path is not.
  *
  * No referrer, user agent, viewport, session or visitor identifier.
  */

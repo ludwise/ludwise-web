@@ -18,7 +18,7 @@ export const prerender = false;
  * unauthenticated hit becoming a backend request. Reachability is a readiness
  * question, for whoever asks it with their own budget and alerting.
  *
- * `git_commit` is omitted because nothing reads it here; it is on every log
+ * `git_commit` is omitted because nothing reads it here. It is on every log
  * record already.
  */
 export const GET: APIRoute = ({ locals }) =>

@@ -22,10 +22,10 @@ import type { ApiErrorBody } from './contract.js';
  * Deliberately coarser than HTTP status codes, because a page makes exactly
  * four decisions and finer distinctions would be information no renderer uses.
  *
- * - `rejected`   the request was refused; show which filters and let the visitor fix them
- * - `unavailable` the backend could not answer; say so, do not say "empty"
- * - `timeout`    the backend did not answer in time; same, with a different log line
- * - `malformed`  something answered, but not with the contract; treat as unavailable
+ * - `rejected`   the request was refused. Show which filters and let the visitor fix them
+ * - `unavailable` the backend could not answer. Say so, do not say "empty"
+ * - `timeout`    the backend did not answer in time. Same, with a different log line
+ * - `malformed`  something answered, but not with the contract. Treat as unavailable
  *
  * `malformed` is separate from `unavailable` only because they need different
  * investigations - one is an outage, the other is a version skew or something
