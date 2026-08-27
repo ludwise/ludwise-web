@@ -76,8 +76,8 @@ today. [conformance.md](conformance.md) records that gap under
 
 The gap matters more here than in the backend. Almost every visitor-visible
 string is written in a template, and only `src/lib/http/filter-advice.ts` holds
-copy on its own. A phase 2 task that wants an automatic check must first decide
-where the strings should live.
+copy on its own. A phase 2 task that wants an automatic check must first choose
+a home for the strings.
 
 [content-style.md](../../design/system/guidelines/content-style.md) already
 fixes some strings and prohibits some claims. That document wins where the two

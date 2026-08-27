@@ -17,7 +17,7 @@ declare global {
       /**
        * The W3C traceparent this request will forward to the backend.
        *
-       * Formatted once in middleware rather than at each call site. The site therefore
+       * Formatted once in middleware rather than at each call site. The site thus
        * cannot report one trace to its own logs and a different one to the backend's.
        */
       traceparent: string;

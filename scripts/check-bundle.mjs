@@ -10,7 +10,7 @@
  * client bundle. That bundle is shipped to every visitor, Astro inlines any
  * `PUBLIC_`-prefixed variable into it, and this repository deliberately has
  * none - every read happens during SSR. A backend hostname appearing there
- * means somebody has started fetching from the browser, which should be a
+ * means somebody has started fetching from the browser, which must be a
  * decision rather than a surprise.
  */
 
@@ -71,8 +71,8 @@ for (const file of files) {
 /**
  * Terms that belong to the rendering side of this Worker and nowhere else.
  *
- * `dist/client` is what a browser downloads. Nothing there should know the
- * backend exists.
+ * `dist/client` is what a browser downloads. Nothing there is permitted to
+ * know the backend exists.
  */
 const SERVER_ONLY = [
   'BACKEND_DEV_URL',

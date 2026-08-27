@@ -311,7 +311,7 @@ place.
 SSR-first, deliberately. The only client-side JavaScript is the header island
 and the pre-paint theme script. There is no client-side router, no data
 fetching in the browser, and no state management library. A visitor comparing
-prices should not download the catalog to read one page.
+prices must not download the catalog to read one page.
 
 One backend request per page. A rejected filter combination is the exception. It
 costs one request, and gets its filter form rebuilt in the same response rather

@@ -67,7 +67,7 @@ function indentOf(line: string): number {
  * caught.
  *
  * Inputs are the keys directly under `with:`. The body of a block scalar is
- * skipped, since `script: |` holds JavaScript and a `key: value` line inside it
+ * skipped, because `script: |` holds JavaScript and a `key: value` line inside it
  * is program text rather than an input.
  */
 function coveredInputs(): readonly CoveredInput[] {

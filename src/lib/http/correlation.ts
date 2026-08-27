@@ -58,7 +58,7 @@ export function parseTraceparent(value: string | null | undefined): TraceParent 
 }
 
 // crypto.randomUUID is a global in Workers with no import and no flag, and in
-// Node 19 and later. The same call therefore works in production, in development, and
+// Node 19 and later. The same call thus works in production, in development, and
 // under Vitest. It returns lowercase hex, which Trace Context requires.
 export function newRequestId(): string {
   return crypto.randomUUID();

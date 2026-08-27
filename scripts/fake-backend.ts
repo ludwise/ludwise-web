@@ -28,12 +28,12 @@ const CORPUS = resolve(root, 'tests', 'fixtures', 'corpus');
  * A file is used as well as stderr. Under Playwright the fake's output is
  * interleaved with the site's and the runner's. That makes it effectively
  * unreadable. "Which requests does the corpus not cover" is the one question a
- * missing recording raises. It should be answerable in one look. Gitignored.
+ * missing recording raises. It must be answerable in one look. Gitignored.
  */
 const MISSES = resolve(root, 'corpus-misses.log');
 
 /**
- * How this instance should behave.
+ * How this instance behaves.
  *
  * This is chosen by an environment variable rather than by a control endpoint.
  * The reason is that a control endpoint is a way for one test to change another
@@ -82,7 +82,7 @@ function keyFor(path: string, params: URLSearchParams): string {
  * The request a recording answers, recovered from the backend's own case list.
  *
  * The corpus filenames encode the case name rather than the URL. The URLs
- * therefore live here, copied from the backend's `CASES`. That case list is the
+ * thus live here, copied from the backend's `CASES`. That case list is the
  * only place they are authoritative. A name here with no file, or a file with
  * no name here, fails at startup rather than at the first request that needs it.
  */

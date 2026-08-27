@@ -70,7 +70,7 @@ A mixed unit then emits `LW-STE-PROSE-KIND-UNRESOLVED`.
 Part 2 is normative.
 The repository does not copy or vendor the dictionary.
 The local checker has no complete machine-readable dictionary source.
-Lexical conformance therefore remains a semantic review obligation.
+Lexical conformance thus remains a semantic review obligation.
 
 ## What a green check means
 

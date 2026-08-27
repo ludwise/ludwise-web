@@ -49,6 +49,16 @@ gates on it and it records the scope to fall back to.
 The deterministic continuous integration check remains `Verify / Language`.
 Full conformance also needs the required semantic review mechanism.
 
-Enforcement covers the deterministic rules. The semantic review stays a
-requirement of the merge workflow until the follow-up compliance migration is
-complete.
+Enforcement covers the deterministic rules. The semantic review is a permanent
+requirement of the merge workflow, not a temporary rollout allowance.
+
+Some conformance rules cannot be made deterministic here. Part 2 is the
+normative dictionary, and the repository holds no machine-readable copy of it.
+[conformance.json](conformance.json) records which rules those are. Every rule
+marked `enforcement: semantic` needs a reader.
+
+A later compliance migration can move a rule from semantic to deterministic.
+Rule 1.3 moved that way in phase 2, and `LW-STE-CAUSAL-SINCE` now checks it.
+Such a migration narrows the review, and never ends it. The obligation stops
+only for a named rule, and only when `conformance.json` records the checker
+that replaced it.

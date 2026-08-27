@@ -73,7 +73,7 @@ export function serializeThemeCookie(theme: Theme, options: { secure: boolean })
     'Path=/',
     `Max-Age=${String(ONE_YEAR_SECONDS)}`,
     // Lax rather than Strict. A visitor following a link to a game page from a search engine
-    // should see their own theme. They should not see a one-navigation flash of the other one.
+    // must see their own theme. They must not see a one-navigation flash of the other one.
     'SameSite=Lax',
     ...(options.secure ? ['Secure'] : []),
   ].join('; ');

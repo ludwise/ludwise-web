@@ -40,7 +40,7 @@ describe('loadConfig', () => {
   });
 
   it('reports every problem at once rather than the first', () => {
-    // An operator fixing a bad deployment should see the whole list once, not
+    // An operator fixing a bad deployment must see the whole list once, not
     // discover the next one after each redeploy.
     const error = (() => {
       try {
@@ -104,7 +104,7 @@ describe('loadConfig', () => {
       return null;
     })();
 
-    // SITE_URL is valid there, so nothing should throw at all - which is the
+    // SITE_URL is valid there, so nothing throws at all - which is the
     // point: the assertion below is about the case that does.
     expect(error).toBeNull();
 

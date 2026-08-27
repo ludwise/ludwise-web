@@ -338,6 +338,23 @@
       "expression": "etc.",
       "suggestion": "name the remaining items",
       "reason": "The reader cannot know what the list holds."
+    },
+    {
+      "expression": "therefore",
+      "suggestion": "thus, or as a result",
+      "reason": "Not an approved word in the Issue 9 dictionary."
+    },
+    {
+      "expression": "should",
+      "suggestion": "must, or a plain statement of what happens",
+      "reason": "Not an approved word in the Issue 9 dictionary, and it hides whether a thing is required. The capitalised SHOULD is the requirement level that PRODUCT.md defines.",
+      "unlessExactly": ["SHOULD"]
+    },
+    {
+      "expression": "using",
+      "suggestion": "use, or with",
+      "reason": "The approved form of this verb is use.",
+      "unless": ["Using the code"]
     }
   ],
   "abbreviations": [

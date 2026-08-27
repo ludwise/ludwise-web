@@ -19,7 +19,7 @@ import { defineConfig, devices } from '@playwright/test';
  *
  * The mode is chosen by `LUDWISE_FAKE_BACKEND_MODE`, and each suite is run
  * separately by its own script. Both servers set `reuseExistingServer: false`.
- * This configuration therefore always brings up its own pair. It never attaches
+ * This configuration thus always brings up its own pair. It never attaches
  * to whatever the main configuration happens to have left running, which would
  * produce a green suite testing the wrong thing.
  */
@@ -65,7 +65,7 @@ export default defineConfig({
       // destroys every connection to a `/v1` path. Playwright would then poll
       // a server that is up and working exactly as intended until it timed
       // out. `/__ready` is answered in every mode, and it is the one thing
-      // this fake will always say. Readiness therefore means "the process is
+      // this fake will always say. Readiness thus means "the process is
       // listening" rather than "the backend is healthy". That is the correct
       // question when the whole point is that the backend is not.
       url: `http://localhost:${BACKEND_PORT}/__ready`,

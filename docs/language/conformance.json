@@ -827,6 +827,23 @@
       "humanReview": "none"
     },
     {
+      "ludwiseRule": "LW-STE-CAUSAL-SINCE",
+      "title": "Do not use since to give a reason.",
+      "steReference": {
+        "section": 1,
+        "sectionName": "Words",
+        "ruleNumber": "1.3",
+        "sourceVerification": "verified"
+      },
+      "appliesToLudwise": true,
+      "contentClasses": ["STE-STRICT", "STE-DERIVED"],
+      "enforcement": "deterministic",
+      "implementationStatus": "implemented",
+      "checkerSupport": "partial",
+      "limitations": "The rule reads clause shape, not meaning. A causal since that is neither sentence-initial nor after a comma is not reported.",
+      "humanReview": "required-for-unrecorded-forms"
+    },
+    {
       "ludwiseRule": "LW-STE-PUNCTUATION-ALTERNATIVE-SLASH",
       "title": "Do not use a configured slash form to join alternatives.",
       "steReference": {
@@ -1054,9 +1071,9 @@
     "standardRuleMapRows": 53,
     "mappedWritingRules": 53,
     "completeRuleMap": true,
-    "rowsCitingASection": 8,
+    "rowsCitingASection": 9,
     "ludwiseExtensionRows": 17,
-    "totalRows": 25,
+    "totalRows": 26,
     "note": "The normative map is complete. Machine enforcement remains intentionally partial where safe deterministic checking is not possible."
   }
 }

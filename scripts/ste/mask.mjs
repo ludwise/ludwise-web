@@ -114,7 +114,7 @@ const maskPhrases = (characters, text, phrases) => {
  * The exemption is "file path and file name". English writes alternatives with
  * a slash too, and `read/write` or `catalogue/ingestion` are prose that the
  * word rules must see. Treating every slash as a path hid a prohibited synonym
- * from the term rule. A path therefore has to look like one. It carries a file
+ * from the term rule. A path thus has to look like one. It carries a file
  * extension, a dot segment, a root, a drive, or three or more segments.
  *
  * A module specifier is exempt for the same reason a path is. `vitest/config`

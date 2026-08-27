@@ -205,7 +205,7 @@ interface RequestSpec {
  * Split out so the retry loop reads as a loop rather than as control flow
  * threaded through error handling. It also makes the timeout unambiguously
  * per-attempt. Two attempts each get the full budget. That is what "the
- * backend has N milliseconds to answer" should mean.
+ * backend has N milliseconds to answer" means.
  */
 async function attempt<T>(
   options: ClientOptions,

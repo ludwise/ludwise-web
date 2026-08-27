@@ -87,7 +87,7 @@ test.describe('the backend is unavailable', () => {
 
   test('the shell still renders, so the site is navigable', async ({ page }) => {
     // A failed read must not take the header and navigation down with it. A
-    // visitor who lands on a broken page should be able to leave it.
+    // visitor who lands on a broken page must be able to leave it.
     await page.goto('/games');
 
     await expect(page.getByRole('banner')).toBeVisible();

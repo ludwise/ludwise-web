@@ -182,7 +182,7 @@ export interface AppHeaderProps {
   activeId?: string | undefined;
   /** Called with the item id when a nav link is clicked. The default anchor
    *  navigation is prevented. Omit for a real multi-page app, where the href
-   *  should navigate normally. */
+   *  navigates normally. */
   onNavigate?: ((id: string) => void) | undefined;
   searchValue?: string | undefined;
   /** Native GET destination for the server-rendered search form. */
@@ -245,7 +245,7 @@ function useMenuPanel(onMenu: ((open: boolean) => void) | undefined) {
   const viewportIsCompact = useIsCompactHeader();
 
   // The panel's own state, not the layout. CSS already hides the panel at
-  // desktop width. But React state should not disagree with what is on screen
+  // desktop width. But React state must not disagree with what is on screen
   // once a real resize has passed the breakpoint.
   useEffect(() => {
     if (!viewportIsCompact) setMenuOpen(false);

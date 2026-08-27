@@ -14,7 +14,7 @@ import type { LogRecord } from '../../../src/lib/logging/types.js';
  * process.env is typed from wrangler's generated bindings, and that generation
  * is environment-dependent. Locally .dev.vars supplies SITE_URL, so it widens
  * to string. CI has no .dev.vars and gets a literal union of the three values
- * configured in wrangler.jsonc. A test assigning a synthetic hostname therefore
+ * configured in wrangler.jsonc. A test assigning a synthetic hostname thus
  * type-checks locally and fails in CI, which is how this was found. Writing
  * through one widened alias keeps the tests honest about setting arbitrary
  * values, and keeps the two environments agreeing.

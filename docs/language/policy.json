@@ -554,5 +554,9 @@
     "reason": "LUDWISE holds no permission to a machine-readable copy of the controlled dictionary, and will not scrape one. Until a licensed source exists, LW-STE-WORD-APPROVED and LW-STE-WORD-PART-OF-SPEECH are not run.",
     "contract": ["approves(word)", "partsOfSpeech(word)"],
     "attachment": "scripts/ste/lexicon.mjs, through registerLexiconAdapter"
+  },
+  "causalSince": {
+    "reason": "Issue 9 approves since for time. A clause that gives a reason must read because. No word list separates the two, so the checker reports the shape a reason takes: since opening a sentence, or since after a comma. Since with a date or an event is untouched.",
+    "patterns": ["sentence-initial", "after-comma"]
   }
 }

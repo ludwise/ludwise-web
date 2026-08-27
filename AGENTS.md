@@ -50,7 +50,7 @@ green run never proves conformance with the standard.
 
 ## Code clarity and comments
 
-Code should explain itself through names, types, structure, and tests. Prefer
+Code must explain itself through names, types, structure, and tests. Prefer
 refactoring over explanatory comments.
 
 - Comments explain **why**, not **what** the next lines do.

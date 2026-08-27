@@ -46,7 +46,7 @@ const HEALTH_ROUTE = '/api/health';
  * bound script and ignores the host entirely, but `fetch` still requires an
  * absolute URL. So this exists to satisfy the URL parser. The name uses
  * `.invalid`, which RFC 2606 reserves and which is guaranteed never to resolve.
- * A bug that somehow sent this over the network therefore fails immediately and
+ * A bug that somehow sent this over the network thus fails immediately and
  * loudly rather than reaching something real.
  */
 const BINDING_ORIGIN = 'https://backend.invalid';
@@ -264,7 +264,7 @@ const backend = defineMiddleware((context, next) => {
  *
  * Locally, `wrangler dev` provides that binding whether or not anything runs behind it. So a request
  * over it fails with a 503 from Wrangler that looks exactly like a backend outage.
- * `BACKEND_DEV_URL` therefore wins in development, pointing at a local backend or
+ * `BACKEND_DEV_URL` thus wins in development, pointing at a local backend or
  * `scripts/fake-backend.ts`.
  *
  * The environment check is load-bearing and comes first. Honoured outside development, this would

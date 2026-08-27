@@ -99,7 +99,7 @@ when it genuinely needs browser state, and the handoff tabulates which ones do.
 Server-rendered HTML is a product requirement — pages must be readable
 without JavaScript and fast on a slow connection. The split is a performance
 decision, not a style preference. `AppHeader` is the only island on a page, and the only
-`client:` directive in the tree. Anything below the fold that needs one should
+`client:` directive in the tree. Anything below the fold that needs one must
 use `client:visible`.
 
 Built so far — only primitives with a consumer in the current product:
@@ -118,8 +118,8 @@ raw — 55 KB over the wire — of React and its runtime. That is 59% of the
 weight of a page. That buys a theme toggle and a menu disclosure.
 
 That ratio is stated here rather than left to be discovered. This is because the second
-island is the decision that matters and it should be a decision. Adding one
-costs nothing extra in framework bytes, since React already ships. Adding the
+island is the decision that matters and it must be a decision. Adding one
+costs nothing extra in framework bytes, because React already ships. Adding the
 _first_ one to a page that had none costs all of it. So the question for any new
 island is not "is this component interactive" but "does this page need to load a
 framework at all".
@@ -185,10 +185,10 @@ These are additions, recorded here rather than invented silently:
   bundle. It clips itself rather than reusing `.lw-visually-hidden`, because it
   has to become visible on `:focus` and that utility has no focus state.
 - **404 and 500 page compositions** — the bundle documents four product screens
-  and no error pages. Composed from `EmptyState` and `InlineMessage` using the
+  and no error pages. Composed from `EmptyState` and `InlineMessage` with the
   error-wording patterns in `guidelines/content-style.md`.
 - **A favicon** — the bundle ships `assets/logo-mark.svg` and never says what
-  a browser tab should show. `public/favicon.svg` is that file copied
+  a browser tab shows. `public/favicon.svg` is that file copied
   verbatim, pinned to it by `tests/integration/design/asset-parity.test.ts`
   the same way the token layer is pinned. It is the color mark rather than the
   mono one. The reason is that `logo-mark-mono.svg` fills itself with

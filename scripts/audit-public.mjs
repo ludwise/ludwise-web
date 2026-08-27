@@ -112,7 +112,7 @@ const NOT_A_SECRET = [
 ];
 
 /**
- * Subresource-integrity hashes, which are base64 and therefore contain
+ * Subresource-integrity hashes, which are base64 and thus contain
  * 40-character windows indistinguishable from a Cloudflare API token. Forty-five
  * of them occur in `pnpm-lock.yaml`.
  *
@@ -226,7 +226,7 @@ for (const file of tracked) {
 
 // --- Third-party network origins -------------------------------------------
 
-// Nothing here should ask a third party for anything: fonts are self-hosted,
+// Nothing here must ask a third party for anything: fonts are self-hosted,
 // there is no analytics vendor, no script comes from a CDN.
 
 // `xmlns=` is excluded rather than allowlisted - it is an identifier, not an

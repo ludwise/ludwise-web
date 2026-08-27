@@ -45,7 +45,7 @@ export interface AppConfig {
    *
    * Configurable because the right value differs by environment rather than by
    * opinion. A local backend running under `wrangler dev` with a cold isolate
-   * is legitimately slower than a deployed one. A developer should not have
+   * is legitimately slower than a deployed one. A developer must not have
    * to see timeout pages because of it.
    */
   readonly backendTimeoutMs: number;
@@ -61,7 +61,8 @@ function isEnvironment(value: string): value is Environment {
  * Reads and validates configuration, collecting every problem before failing.
  *
  * Every problem rather than the first. An operator fixing a bad deployment
- * should see the whole list once, not discover the next one after each redeploy.
+ * sees the whole list once, and does not discover the next one after each
+ * redeploy.
  *
  * Nothing is defaulted where a wrong guess would be silent. `ENVIRONMENT` has
  * no default at all. Guessing `development` would disable protections.

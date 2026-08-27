@@ -19,7 +19,7 @@ import { THEME_COOKIE_NAME } from '../../src/lib/http/theme.js';
 const THEMES = ['light', 'dark'] as const;
 
 // Imported rather than retyped: Architecture decision record 0013 makes the point that the cookie name
-// should be defined once. A test hard-coding 'theme' is a third place for
+// must be defined once. A test hard-coding 'theme' is a third place for
 // it to drift.
 const THEME_COOKIE = THEME_COOKIE_NAME;
 const BASE_URL = 'http://localhost:4321';
@@ -197,7 +197,7 @@ test.describe('theme', () => {
     const page = await context.newPage();
     await page.goto('/');
 
-    // Set before first paint by the inline script, since this Worker had no
+    // Set before first paint by the inline script, because this Worker had no
     // preference to render.
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
     await context.close();

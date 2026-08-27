@@ -39,7 +39,7 @@ const sourceFiles = listSourceFiles('src');
  *
  * Rewording the comments is the wrong fix twice over. It makes them worse to
  * protect the test, and leaves the next accurate comment about a forbidden
- * thing failing the build. A rule about code should read code.
+ * thing failing the build. A rule about code must read code.
  */
 const codeOf = (file: string): string => stripComments(readFileSync(file, 'utf8'));
 
@@ -193,7 +193,7 @@ describe('the backend is reached only through the API client', () => {
   it('the client exposes named operations and no caller-supplied path', () => {
     const source = codeOf(CLIENT);
     // The three reads this site makes. A fourth is a deliberate decision and
-    // should fail here until this list is updated to acknowledge it.
+    // must fail here until this list is updated to acknowledge it.
     expect(source).toContain("path: '/v1/games'");
     expect(source).toContain("path: '/v1/sales'");
     expect(source).toContain('path: `/v1/games/${encodeURIComponent(slug)}`');

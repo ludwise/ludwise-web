@@ -22,6 +22,7 @@ export const PROSE_RULE_IDS = [
   'LW-STE-PUNCTUATION-SEMICOLON',
   'LW-STE-ABBREVIATION-PROHIBITED',
   'LW-STE-ABBREVIATION-EXPANSION',
+  'LW-STE-CAUSAL-SINCE',
   'LW-STE-PUNCTUATION-ALTERNATIVE-SLASH',
 ];
 
@@ -242,6 +243,11 @@ export const runRules = (units, context) => {
     for (const entry of terminology.prohibited ?? []) {
       const isPhrasalVerb = /phrasal verb/i.test(entry.reason ?? '');
       for (const found of matchesOf(masked, phrasePattern(entry.expression))) {
+        if (coveredBy(masked, found.index, found.text.length, entry.unless ?? [])) continue;
+        // An exact-case exemption. "SHOULD" is the requirement level that
+        // PRODUCT.md defines, and it is a different token from the ordinary
+        // word. The unless list cannot say this, because it is case-blind.
+        if ((entry.unlessExactly ?? []).includes(found.text)) continue;
         report(
           unit,
           found.index,
@@ -296,6 +302,26 @@ export const runRules = (units, context) => {
           'expand-on-first-use',
         );
         break;
+      }
+    }
+
+    /**
+     * Causal "since" only. Issue 9 keeps "since" for time. A clause that
+     * gives a reason must read "because". No word list separates the two.
+     * The rule reads the shape a reason takes. It matches "since" that
+     * opens a sentence, and "since" after a comma. A date phrase such as
+     * "observed since May 2026" is time. That phrase stays.
+     */
+    if ((policy.causalSince?.patterns ?? []).length > 0) {
+      for (const found of matchesOf(masked, /(?:^|[.!?]\s+|,\s*)(since)\b/giu)) {
+        const at = found.index + found.text.toLowerCase().lastIndexOf('since');
+        report(
+          unit,
+          at,
+          'LW-STE-CAUSAL-SINCE',
+          'This "since" gives a reason. Write "because", and keep "since" for time.',
+          'write-because',
+        );
       }
     }
 

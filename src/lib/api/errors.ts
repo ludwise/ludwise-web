@@ -9,7 +9,7 @@
  * read throws rather than returning an empty view.
  *
  * A `LudwiseApiError` carries a closed-set `code` and a `requestId`, and
- * nothing else off the wire. Should a message ever appear there it must not be
+ * nothing else off the wire. If a message ever appears there it must not be
  * rendered: the response may have come from something in front of the backend.
  * `cause` exists for logs, and `toLogContext` is the only sanctioned way out.
  */
