@@ -197,7 +197,7 @@ These are additions, recorded here rather than invented silently:
   SVG only, with no `.ico` or apple-touch variant, because producing those
   needs a rasterisation step and an image dependency. A browser that cannot
   read an SVG icon shows the same default glyph it showed before.
-- **No footer** — the bundle specifies none, only an unfilled region in a
+- **No footer** — the bundle specifies none, only an unfilled surface in a
   layout diagram. Inventing one would be redesigning the product.
 - **`game/GameCard` renders one variant and four fewer props.** The handoff's
   card carries artwork, a rating summary and a price signal. None of those

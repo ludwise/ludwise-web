@@ -108,9 +108,41 @@ const maskPhrases = (characters, text, phrases) => {
   }
 };
 
+/**
+ * A slash alone does not make a path.
+ *
+ * The exemption is "file path and file name". English writes alternatives with
+ * a slash too, and `read/write` or `catalogue/ingestion` are prose that the
+ * word rules must see. Treating every slash as a path hid a prohibited synonym
+ * from the term rule. A path therefore has to look like one. It carries a file
+ * extension, a dot segment, a root, a drive, or three or more segments.
+ *
+ * A module specifier is exempt for the same reason a path is. `vitest/config`
+ * and `@astrojs/cloudflare` are names that a reader types, not two words that
+ * a slash joins.
+ */
+const SCOPED_PACKAGE = /^@[a-z0-9][\w.-]*\/[a-z0-9][\w.-]*$/i;
+
+const BARE_MODULE_ROOTS = ['astro', 'vitest', 'node'];
+
+const isModuleSpecifier = (token) => {
+  if (SCOPED_PACKAGE.test(token)) return true;
+  const [root, ...rest] = token.split('/');
+  return rest.length === 1 && BARE_MODULE_ROOTS.includes(root.toLowerCase());
+};
+
+const PATH_SHAPES = [/^[~.]{0,2}\//, /^[A-Za-z]:[\\/]/, /^[^/\\]+[\\/][^/\\]+[\\/]/, /\/$/];
+
+const isPathLike = (token) => {
+  if (token.includes('\\')) return true;
+  if (!token.includes('/')) return false;
+  if (isModuleSpecifier(token)) return true;
+  if (PATH_SHAPES.some((shape) => shape.test(token))) return true;
+  return token.split('/').some((segment) => FILE_EXTENSION.test(segment));
+};
+
 const isExemptToken = (token) =>
-  token.includes('/') ||
-  token.includes('\\') ||
+  isPathLike(token) ||
   FILE_EXTENSION.test(token) ||
   IDENTIFIER_SHAPES.some((shape) => shape.test(token));
 

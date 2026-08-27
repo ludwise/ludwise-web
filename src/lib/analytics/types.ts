@@ -32,6 +32,6 @@ export interface AnalyticsProvider {
    * not throw.
    */
   track(event: AnalyticsEvent): void;
-  /** Optional, for providers that batch. Must not reject. */
+  /** Optional, for transports that batch. Must not reject. */
   flush?(): Promise<void>;
 }

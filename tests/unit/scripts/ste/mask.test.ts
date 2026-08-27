@@ -55,6 +55,29 @@ describe('maskSpans', () => {
     expect(mask('Open policy.json now.')).not.toContain('policy.json');
   });
 
+  it('masks a path that a slash alone identifies', () => {
+    expect(mask('Read ./docs/language now.')).not.toContain('docs/language');
+    expect(mask('Read ../docs now.')).not.toContain('../docs');
+    expect(mask('Read /etc/hosts now.')).not.toContain('/etc/hosts');
+    expect(mask('Read src/lib/ now.')).not.toContain('src/lib/');
+    expect(mask('Read a/b/c now.')).not.toContain('a/b/c');
+    expect(mask('Read docs/profile.md now.')).not.toContain('profile.md');
+  });
+
+  it('masks a module specifier', () => {
+    expect(mask('Import vitest/config here.')).not.toContain('vitest/config');
+    expect(mask('Import @astrojs/cloudflare here.')).not.toContain('@astrojs/cloudflare');
+  });
+
+  it('does not mask an alternative that a slash joins', () => {
+    // The exemption is a file path, not any token holding a slash. Masking
+    // these hid a prohibited synonym from the term rule.
+    expect(mask('The read/write split.')).toContain('read/write');
+    expect(mask('A catalogue/ingestion summary.')).toContain('catalogue/ingestion');
+    expect(mask('The provider/store pair.')).toContain('provider/store');
+    expect(mask('Use light/dark here.')).toContain('light/dark');
+  });
+
   it('masks an identifier in every shape a source file uses', () => {
     expect(mask('Call loadPolicy soon.')).not.toContain('loadPolicy');
     expect(mask('The StoreOffer type.')).not.toContain('StoreOffer');

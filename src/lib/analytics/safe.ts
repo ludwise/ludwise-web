@@ -15,7 +15,8 @@ function isThenable(value: unknown): value is PromiseLike<unknown> {
 }
 
 /**
- * Wraps a provider so that analytics failure can never become request failure.
+ * Wraps an analytics transport so that analytics failure can never become
+ * request failure.
  *
  * PRODUCT.md treats analytics as strictly optional: an outage in a measurement
  * transport must not make the product unavailable.

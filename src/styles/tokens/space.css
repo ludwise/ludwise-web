@@ -16,7 +16,7 @@
 --space-20:80px;
 --space-24:96px;
 
-/* Density. Set --density-scale on a region to switch a whole subtree.
+/* Density. Set --density-scale on a surface to switch a whole subtree.
    comfortable = default reading and discovery. compact = comparison tables,
    offer lists, dense result grids. */
 --density-row-height-comfortable:56px; /* @kind spacing */

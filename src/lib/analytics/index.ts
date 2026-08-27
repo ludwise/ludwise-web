@@ -16,7 +16,7 @@ export type {
 } from './types.js';
 
 /**
- * Builds the analytics provider for this environment.
+ * Builds the analytics transport for this environment.
  *
  * Returns a no-op today in every case. No analytics vendor has been chosen, and
  * choosing one is a deliberate decision rather than a bootstrap side effect. The

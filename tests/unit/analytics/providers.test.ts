@@ -52,7 +52,7 @@ describe('TestAnalyticsProvider', () => {
 });
 
 describe('createSafeAnalytics', () => {
-  it('swallows a throwing provider and reports it once', () => {
+  it('swallows a throwing analytics transport and reports it once', () => {
     const onError = vi.fn();
     const inner = new TestAnalyticsProvider();
     inner.failNext(1);
@@ -82,7 +82,7 @@ describe('createSafeAnalytics', () => {
 
   // On Workers an unhandled rejection is raised against the request context and
   // can fail a response that had already succeeded.
-  it('attaches a handler to a provider that returns a rejected promise', async () => {
+  it('attaches a handler to an analytics transport that returns a rejected promise', async () => {
     const unhandled = vi.fn();
     process.on('unhandledRejection', unhandled);
 
@@ -100,7 +100,7 @@ describe('createSafeAnalytics', () => {
 });
 
 describe('createAnalytics', () => {
-  it('returns a no-op provider while analytics is disabled', () => {
+  it('returns a no-op analytics transport while analytics is disabled', () => {
     const memory = createMemorySink();
     const logger = createLogger({ sink: memory.sink });
     expect(createAnalytics(CONFIG, logger).name).toBe('noop');
