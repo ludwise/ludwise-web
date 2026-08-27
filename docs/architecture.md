@@ -111,9 +111,9 @@ database binding, which the same test asserts.
 **A service binding bypasses Cloudflare Access.** Access is an edge control and
 a binding dispatches straight to the target script. So a request arriving over
 the binding has been authenticated by nothing. That is why `/ops` authorization
-lives in the backend's own middleware and must never move to the edge — and why
-the API client in this repository exposes three named operations and no path
-parameter. A client that could be handed a path would be a proxy into a service
+lives in the backend's own middleware and must never move to the edge. It is
+also why the API client in this repository exposes three named operations and
+no path parameter. A client that could be handed a path would be a proxy into a service
 with no other public surface.
 
 ### Consequences
@@ -136,8 +136,9 @@ with no other public surface.
 `src/lib/api/` is the only place this site talks to the backend, and
 [`tests/architecture/boundaries.test.ts`](../tests/architecture/boundaries.test.ts)
 enforces it rather than leaving it to convention. A scattered `fetch` is a place
-where a timeout is forgotten, a correlation header is not forwarded, a malformed
-response is trusted, or a backend error message ends up in a page.
+where things go wrong. A timeout is forgotten, a correlation header is not
+forwarded, a malformed response is trusted, or a backend error message ends up
+in a page.
 
 | File          | What it is                                              |
 | ------------- | ------------------------------------------------------- |
@@ -154,9 +155,9 @@ response is trusted, or a backend error message ends up in a page.
 | `timeout`     | Backend did not answer in time      | Once                       | The same                                        |
 | `malformed`   | Answered, but not with the contract | Never                      | The same                                        |
 
-Two attempts at most, with a short fixed pause. The bound is the point: an
+Two attempts at most, with a short fixed pause. The bound is the point. An
 unbounded retry chain turns one slow backend into a queue of Workers all
-waiting, which converts a degraded dependency into an outage of this site too.
+waiting. That converts a degraded dependency into an outage of this site too.
 
 A rejection is never retried — the request was refused for what it contained.
 A 5xx carrying a backend error code is never retried either. It means the
@@ -220,18 +221,18 @@ contracts exist for a while.
 
 `tests/fixtures/corpus/` holds responses the backend really produced, written by
 its `tests/contract/corpus.test.ts` and copied here byte for byte. The fake
-backend replays them, which is what makes the end-to-end suites evidence about
-the real contract rather than about shapes invented to match the code under
-test.
+backend replays them. That replay is what makes the end-to-end suites evidence
+about the real contract, rather than about shapes invented to match the code
+under test.
 
 To change one: add or edit the case in the backend's `CASES`, run its
 `pnpm run contract:corpus` to re-record, then copy the files across unmodified.
 
-Do not edit these files here, and do not format them — `.prettierignore`
-excludes the directory, because collapsing one short array is enough to break
+Do not edit these files here, and do not format them. `.prettierignore` excludes
+the directory. The reason is that collapsing one short array is enough to break
 the backend's byte comparison against a response it really does emit.
 `tests/integration/corpus-integrity.test.ts` re-serialises every file the way
-the recorder did and fails if the bytes have moved, which is the strongest
+the recorder did, and fails if the bytes have moved. That is the strongest
 check available from a repository that cannot see the backend.
 
 ## Environments
@@ -242,9 +243,9 @@ check available from a repository that cannot see the backend.
 | staging    | `ludwise-web-staging`    | `ludwise-staging`    | `staging.ludwise.com` |
 | production | `ludwise-web-production` | `ludwise-production` | `ludwise.com`         |
 
-Each environment names its own backend in `wrangler.jsonc`, written out in full
-rather than inherited — inheritance would make the most dangerous possible
-mistake invisible in the file where it happens.
+Each environment names its own backend in `wrangler.jsonc`. The name is written
+out in full rather than inherited. Inheritance would make the most dangerous
+possible mistake invisible in the file where it happens.
 
 A service binding names a Worker script, so there is no URL a mistyped variable
 could redirect. `assertEnvironmentsMatch` in `src/lib/config/index.ts` is the
@@ -278,8 +279,8 @@ rendered.
 
 The event carries a route **template** and nothing else. No referrer, no visitor
 agent, no viewport, no session identifier, no visitor identifier. A route that
-was sanitised rather than matched produces no event at all: losing a count is
-recoverable, collecting a path a visitor typed is not.
+was sanitised rather than matched produces no event at all. Losing a count is
+recoverable. Collecting a path a visitor typed is not.
 
 No third-party analytics, no fingerprinting, no session replay, no cross-site
 identifiers. Splitting the repositories must not become the moment any of those
@@ -293,8 +294,8 @@ before the split, so the migration is provably behavior-preserving.
 That is a starting point rather than a conclusion. Adding a short cache later is
 unusually safe here because every price carries `observedAtMs` and the interface
 renders freshness from it. A cached response is honest about its own age. When
-it happens, two rules are non-negotiable: never cache across different
-market/currency inputs, and never let a shared cache hold a response carrying a
+it happens, two rules are non-negotiable. Never cache across different
+market/currency inputs. Never let a shared cache hold a response carrying a
 request id.
 
 Static assets are the exception and always were. `public/_headers` marks the
@@ -308,6 +309,6 @@ and the pre-paint theme script. There is no client-side router, no data
 fetching in the browser, and no state management library. A visitor comparing
 prices should not download the catalog to read one page.
 
-One backend request per page, except a rejected filter combination, which costs
-one and gets its filter form rebuilt in the same response rather than making a
-second round trip.
+One backend request per page. A rejected filter combination is the exception. It
+costs one request, and gets its filter form rebuilt in the same response rather
+than in a second round trip.

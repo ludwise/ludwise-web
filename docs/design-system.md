@@ -39,7 +39,7 @@ silently diverge.
 
 `tests/integration/design/token-parity.test.ts` pins every token name and value
 in source order. If you change a token here, that test fails and tells you
-which one — which is the point, because two copies of the same file drift the
+which one. That is the point. Two copies of the same file drift the
 moment someone tunes a color in whichever one they had open.
 
 Exactly one file differs: `tokens/fonts.css` serves Geist from this origin
@@ -76,11 +76,13 @@ script in `<head>` resolves `prefers-color-scheme` before anything is drawn.
 the wrong theme over a price comparison is a defect, not a polish item.
 
 Read and write the cookie through `src/lib/http/theme.ts`. `readThemeCookie` is
-a sanitiser: the value is caller-controlled and lands in an HTML attribute, so
+a sanitiser. The value is caller-controlled and lands in an HTML attribute, so
 it answers only with a member of a closed set or `null`.
 
 Check both themes before you call a component done. `design/system/guidelines/governance.md`
-has the full review checklist. The short version asks four questions. Does it
+has the full review checklist.
+
+The short version asks four questions. Does it
 work in both themes? Does it survive greyscale? Does it survive a 35% longer
 string? Does it hold at 200% zoom and 375px wide?
 
@@ -91,8 +93,8 @@ string? Does it hold at 200% zoom and 375px wide?
 **Static `.astro` is the default.** A component becomes a React island only
 when it genuinely needs browser state, and the handoff tabulates which ones do.
 Server-rendered HTML is a product requirement — pages must be readable
-without JavaScript and fast on a slow connection — and
-the split is a performance decision, not a style preference. `AppHeader` is the only island on a page, and the only
+without JavaScript and fast on a slow connection. The split is a performance
+decision, not a style preference. `AppHeader` is the only island on a page, and the only
 `client:` directive in the tree. Anything below the fold that needs one should
 use `client:visible`.
 
@@ -107,8 +109,8 @@ price and freshness semantics and have no data to display yet.
 
 ### The client JavaScript budget
 
-**One island per page.** Today that is `AppHeader`, and it costs about 205 KB
-raw — 55 KB over the wire — of React and its runtime, which is 59% of the
+**One island per page.** Today that is `AppHeader`. It costs about 205 KB
+raw — 55 KB over the wire — of React and its runtime. That is 59% of the
 weight of a page. That buys a theme toggle and a menu disclosure.
 
 That ratio is stated here rather than left to be discovered. This is because the second
@@ -119,9 +121,9 @@ island is not "is this component interactive" but "does this page need to load a
 framework at all".
 
 A component becomes an island when it needs browser state that no server render
-can supply. It does not become one because it would be tidier, because the
-reference implementation used `useState` for a hover, or because a form would
-be nicer without a round trip.
+can supply. It does not become one because it would be tidier. It does not
+become one because the reference implementation used `useState` for a hover, or
+because a form would be nicer without a round trip.
 
 ### Rules that look like styling and are not
 
@@ -184,8 +186,9 @@ These are additions, recorded here rather than invented silently:
 - **A favicon** — the bundle ships `assets/logo-mark.svg` and never says what
   a browser tab should show. `public/favicon.svg` is that file copied
   verbatim, pinned to it by `tests/integration/design/asset-parity.test.ts`
-  the same way the token layer is pinned. The color mark rather than the mono
-  one: `logo-mark-mono.svg` fills itself with `currentColor`, which resolves
+  the same way the token layer is pinned. It is the color mark rather than the
+  mono one. The reason is that `logo-mark-mono.svg` fills itself with
+  `currentColor`, which resolves
   against nothing when a browser fetches an icon outside any document.
   SVG only, with no `.ico` or apple-touch variant, because producing those
   needs a rasterisation step and an image dependency. A browser that cannot
@@ -200,11 +203,11 @@ These are additions, recorded here rather than invented silently:
   exactly three exist and a fourth needs a system change. The other two arrive
   with a surface that renders them. It adds two things: freshness, which the
   handoff puts on `GameRow` and not on `GameCard`. This is because every number on a
-  sale card is commercial data and §55 requires that a visitor is not misled
+  sale card is commercial data. Rule §55 requires that a visitor is not misled
   into thinking stale data was freshly verified. It also adds an edition label,
   because one game can carry several offers and the card shows one of them (§37).
   Its quiet lines use `--color-text-secondary` rather than the tertiary the
-  handoff's mock uses: at caption size, tertiary on the default surface
+  handoff's mock uses. At caption size, tertiary on the default surface
   measures 4.19:1, below WCAG 1.4.3's 4.5:1.
 - **No `PromoSlot` and no affiliate disclosure on `/sales`.** The handoff's
   sales design has an ad unit in its aside. There is no advertising integration
@@ -214,21 +217,23 @@ These are additions, recorded here rather than invented silently:
   which is a claim the data actually supports.
 - **No grid and list density toggle on `/sales`.** The handoff's design has one.
   It needs either a second React island on a page that otherwise loads no
-  framework, or a full page load per toggle, and it changes nothing factual.
+  framework, or a full page load per toggle. It also changes nothing factual.
 
 ## When a new token or component is justified
 
 `design/system/guidelines/governance.md` is the authority. Summarised:
 
-A **new token** needs a role no existing semantic token covers, at least two
-uses, a name describing role rather than appearance, and both a light and a
-dark value, both contrast-checked. A new shade of an existing role does not
-count.
+A **new token** needs a role no existing semantic token covers. It needs at
+least two uses, and a name describing role rather than appearance. It also needs
+both a light and a dark value, both contrast-checked. A new shade of an existing
+role does not count.
 
-A **new component** needs the pattern to appear on at least two surfaces, to be
-impossible to compose from existing ones without duplicating logic that must
-stay consistent, or to encode a product rule that would otherwise be re-argued
-each time.
+A **new component** needs one of three things:
+
+- the pattern appears on at least two surfaces
+- it is impossible to compose from existing ones without duplicating logic that
+  must stay consistent
+- it encodes a product rule that would otherwise be re-argued each time
 
 A fourth variant added to dodge a layout problem needs a system change, not a
 prop.

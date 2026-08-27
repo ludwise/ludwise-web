@@ -1,16 +1,16 @@
 /**
  * A stand-in for the backend, replaying its recorded responses from
  * `tests/fixtures/corpus/`. The site cannot render `/games` or `/sales` without
- * something answering `/v1`. The real backend is a private repository this
+ * something answering `/v1`, and the real backend is a private repository this
  * one is built not to need.
  *
- * The recordings are real - the backend's own `tests/contract/corpus.test.ts`
- * fails if its routes stop producing exactly those bytes (architecture decision record 0025) - and they
- * are deterministic, they reproduce the unavailable and malformed cases a
- * working service cannot produce on demand. They need no credentials in CI.
+ * The recordings are real: the backend's own `tests/contract/corpus.test.ts`
+ * fails if its routes stop producing exactly those bytes (architecture decision
+ * record 0025). They are deterministic, need no credentials in CI, and cover
+ * the unavailable and malformed cases a working service cannot produce.
  *
- * Not a second implementation: it matches a request to a recording and replays
- * it, and answers 501 where there is none. A fake that improvised would let a
+ * Not a second implementation: it replays the recording matching a request and
+ * answers 501 where there is none, because a fake that improvised would let a
  * suite pass against behavior the real backend does not have.
  */
 
@@ -25,19 +25,19 @@ const CORPUS = resolve(root, 'tests', 'fixtures', 'corpus');
 /**
  * Where unmatched requests are recorded.
  *
- * A file as well as stderr, because under Playwright the fake's output is
- * interleaved with the site's and the runner's and is effectively unreadable.
+ * A file is used as well as stderr. Under Playwright the fake's output is
+ * interleaved with the site's and the runner's, and is effectively unreadable.
  * "Which requests does the corpus not cover" is the one question a missing
- * recording raises, and it should be answerable in one look. Gitignored.
+ * recording raises. It should be answerable in one look. Gitignored.
  */
 const MISSES = resolve(root, 'corpus-misses.log');
 
 /**
  * How this instance should behave.
  *
- * Chosen by an environment variable rather than by a control endpoint, because
- * a control endpoint is a way for one test to change another test's backend
- * halfway through a parallel run.
+ * This is chosen by an environment variable rather than by a control endpoint.
+ * The reason is that a control endpoint is a way for one test to change another
+ * test's backend halfway through a parallel run.
  */
 const MODE = process.env['LUDWISE_FAKE_BACKEND_MODE'] ?? 'populated';
 const PORT = Number(process.env['LUDWISE_FAKE_BACKEND_PORT'] ?? '8788');
@@ -51,9 +51,9 @@ interface Recorded {
  * Which recording answers which request.
  *
  * The key is the request itself - path plus normalized query - so adding a
- * corpus case makes it reachable without editing a routing table. That matters:
- * a table would be a third place the set of covered requests lives, after the
- * backend's `CASES` and the files themselves, and the two would drift.
+ * corpus case makes it reachable without editing a routing table. That matters.
+ * A table would be a third place the set of covered requests lives, after the
+ * backend's `CASES` and the files themselves. The two would drift.
  *
  * `game-detail` cases key on their slug, which is read from the recording
  * rather than from the filename. The backend chose that slug. Parsing it out of
@@ -81,10 +81,10 @@ function keyFor(path: string, params: URLSearchParams): string {
 /**
  * The request a recording answers, recovered from the backend's own case list.
  *
- * The corpus filenames encode the case name rather than the URL, so the URLs
- * live here - copied from the backend's `CASES`, which is the only place they
- * are authoritative. A name here with no file, or a file with no name here,
- * fails at startup rather than at the first request that needs it.
+ * The corpus filenames encode the case name rather than the URL. The URLs
+ * therefore live here, copied from the backend's `CASES`. That case list is the
+ * only place they are authoritative. A name here with no file, or a file with
+ * no name here, fails at startup rather than at the first request that needs it.
  */
 const CASE_URLS: Readonly<Record<string, string>> = {
   games: '/v1/games',

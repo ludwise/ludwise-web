@@ -6,10 +6,10 @@
  * message ends up in a page.
  *
  * It reaches the backend over a service binding to a named `WorkerEntrypoint`
- * (architecture decision record (ADR) 0028), not a hostname - so no CORS handling, API key or rate limiter
- * here, none of which defends an unroutable surface. Binding the *default*
- * entrypoint, as ADR 0024 did, leaves `/v1` reachable on the custom domain and
- * refused by the backend's Access guard.
+ * (architecture decision record (ADR) 0028), not a hostname. So there is no
+ * CORS handling, API key or rate limiter here, because none of those defends
+ * an unroutable surface. Binding the *default* entrypoint, as ADR 0024 did,
+ * leaves `/v1` reachable on the custom domain and refused by Access.
  *
  * `fetch` is injected, and every read happens during SSR.
  */
@@ -27,9 +27,9 @@ import { apiErrorFromBody, LudwiseApiError } from './errors.js';
 /**
  * The correlation identifiers this request already has.
  *
- * Forwarded rather than regenerated. Each Worker writes its own log record, so
- * without these the site's record and the backend's record are two halves of a
- * trace that cannot be joined - and joining them is the entire point of
+ * Forwarded rather than regenerated. Each Worker writes its own log record.
+ * Without these, the site's record and the backend's record are two halves of a
+ * trace that cannot be joined. Joining them is the entire point of
  * spending the logging budget twice (ADR 0024).
  */
 export interface Correlation {
@@ -55,7 +55,7 @@ export interface ClientOptions {
    *
    * A ceiling rather than a target. Without one, a backend that accepts a
    * connection and then stalls holds this Worker's request open until the
-   * platform kills it - and the visitor sees a browser timeout rather than the
+   * platform kills it. The visitor then sees a browser timeout rather than the
    * "we could not load this" page this site is able to render. A page that says
    * so quickly is better than a page that eventually says nothing.
    */
@@ -70,10 +70,10 @@ const DEFAULT_TIMEOUT_MS = 5_000;
  * How many times a read may be attempted in total, and how long to pause.
  *
  * Two attempts, not more, and only for a genuinely transient failure. The
- * bound is the point: an unbounded or long retry chain turns one slow backend
- * into a queue of Workers all waiting, which converts a degraded dependency
+ * bound is the point. An unbounded or long retry chain turns one slow backend
+ * into a queue of Workers all waiting. That converts a degraded dependency
  * into an outage of this site as well. One extra attempt covers the case worth
- * covering - a single isolate that went away mid-dispatch - and nothing else.
+ * covering, a single isolate that went away mid-dispatch, and nothing else.
  *
  * The pause is short and fixed rather than exponential. There is only ever one
  * retry, so a growth factor would be describing a schedule that never runs.
@@ -121,8 +121,8 @@ function put(params: URLSearchParams, name: string, value: string | number | und
  *
  * The parameter names are the contract, not the field names. A visitor sees
  * exactly these in their address bar, and the backend route reads exactly
- * these. `minPriceMinor` becoming `min` is the mapping, and it is written out
- * here rather than derived so that reading this function tells you what goes on
+ * these. `minPriceMinor` becoming `min` is the mapping. It is written out
+ * here rather than derived. Reading this function then tells you what goes on
  * the wire.
  */
 function searchParams(input: GameSearchInput): URLSearchParams {
@@ -153,7 +153,7 @@ function searchParams(input: GameSearchInput): URLSearchParams {
  * The `/v1/sales` query string.
  *
  * `min` and `max` are whole major units here and minor units on `/v1/games`.
- * The input field names carry the unit for exactly this reason: reusing the
+ * The input field names carry the unit for exactly this reason. Reusing the
  * parameter name for a different unit would be a hundredfold error in a
  * visitor-facing filter. The field name is what stops the two being
  * confused at a call site.
@@ -193,8 +193,8 @@ interface RequestSpec {
    * Whether a 404 is an answer rather than a failure.
    *
    * True only for game detail, where the backend answers 404 for a slug nothing
-   * was seeded under. That is "no such game", which is a fact a page renders as
-   * a 404 of its own - not a fault to be caught and reported as breakage.
+   * was seeded under. That is "no such game". It is a fact a page renders as
+   * a 404 of its own, not a fault to be caught and reported as breakage.
    */
   readonly notFoundIsNull?: boolean | undefined;
 }
@@ -203,8 +203,8 @@ interface RequestSpec {
  * One attempt. Everything about retrying is in `request`, above this.
  *
  * Split out so the retry loop reads as a loop rather than as control flow
- * threaded through error handling, and so the timeout is unambiguously
- * per-attempt. Two attempts each get the full budget, which is what "the
+ * threaded through error handling. It also makes the timeout unambiguously
+ * per-attempt. Two attempts each get the full budget. That is what "the
  * backend has N milliseconds to answer" should mean.
  */
 async function attempt<T>(
@@ -230,8 +230,8 @@ async function attempt<T>(
       signal: composed,
     });
   } catch (cause) {
-    // Distinguished by which signal fired rather than by inspecting the error,
-    // because the thrown value's shape is the runtime's business and matching
+    // Distinguished by which signal fired rather than by inspecting the error.
+    // The thrown value's shape is the runtime's business. Matching
     // on its name or message would couple this to one platform's wording.
     const kind = timeout.aborted ? 'timeout' : 'unavailable';
     throw new LudwiseApiError(kind, spec.operation, { cause });
@@ -264,8 +264,8 @@ async function attempt<T>(
 /**
  * Reads a failure body without ever trusting it.
  *
- * Returns `undefined` rather than throwing when the body is unreadable: the
- * response is already a failure, and failing to parse the explanation of a
+ * Returns `undefined` rather than throwing when the body is unreadable. The
+ * response is already a failure. Failing to parse the explanation of a
  * failure must not replace it with a different failure. The caller then reports
  * an unclassified backend error, which is the honest answer.
  *
@@ -320,8 +320,8 @@ async function requireOne<T>(
 ): Promise<T> {
   const answer = await request<T>(options, { ...spec, notFoundIsNull: false }, signal);
   if (answer === null) {
-    // Unreachable while `notFoundIsNull` is false, and asserted rather than
-    // cast away so that a future change which sets it cannot silently hand a
+    // Unreachable while `notFoundIsNull` is false. It is asserted rather than
+    // cast away. A future change which sets it then cannot silently hand a
     // page a null it does not expect.
     throw new LudwiseApiError('malformed', spec.operation);
   }
