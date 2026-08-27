@@ -69,7 +69,7 @@ for (const file of files) {
 }
 
 /**
- * Terms that belong to the server side of this Worker and nowhere else.
+ * Terms that belong to the rendering side of this Worker and nowhere else.
  *
  * `dist/client` is what a browser downloads. Nothing there should know the
  * backend exists.

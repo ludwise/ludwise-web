@@ -12,7 +12,7 @@ import { describe, expect, it } from 'vitest';
  * keep the `@import` structure, change only the font loading" and "Do not
  * rename a token. If a name is wrong, raise it; do not silently diverge." Two
  * copies of one file drift the moment someone tunes a color in whichever they
- * have open, and the divergence is invisible until a designer reviews a screen
+ * have open, and the divergence is invisible until a designer reviews a page
  * and cannot say why it does not match.
  *
  * So this pins the whole custom-property surface - every name and value, in

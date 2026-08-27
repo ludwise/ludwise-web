@@ -1,6 +1,6 @@
 /**
  * The wire shapes LUDWISE's backend answers with, and the authoritative
- * statement of that contract (ADR 0025).
+ * statement of that contract (architecture decision record 0025).
  *
  * It lives here, not in the backend, because the public repository must build
  * without the private one. The backend vendors it into `tests/contract/` and

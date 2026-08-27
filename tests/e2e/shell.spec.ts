@@ -18,7 +18,7 @@ import { THEME_COOKIE_NAME } from '../../src/lib/http/theme.js';
 
 const THEMES = ['light', 'dark'] as const;
 
-// Imported rather than retyped: ADR 0013 makes the point that the cookie name
+// Imported rather than retyped: Architecture decision record 0013 makes the point that the cookie name
 // should be defined once, and a test hard-coding 'theme' is a third place for
 // it to drift.
 const THEME_COOKIE = THEME_COOKIE_NAME;
@@ -197,7 +197,7 @@ test.describe('theme', () => {
     const page = await context.newPage();
     await page.goto('/');
 
-    // Set before first paint by the inline script, since the server had no
+    // Set before first paint by the inline script, since this Worker had no
     // preference to render.
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
     await context.close();
@@ -260,7 +260,7 @@ test.describe('theme', () => {
     browser,
   }) => {
     // JavaScript off, so the pre-paint script cannot supply a valid value and
-    // what remains is exactly what the server chose to emit. This is the
+    // what remains is exactly what this Worker chose to emit. This is the
     // sanitiser under test, with nothing standing in front of it.
     const context = await browser.newContext({ javaScriptEnabled: false });
     await context.addCookies([

@@ -5,7 +5,7 @@
  * one is built not to need.
  *
  * The recordings are real - the backend's own `tests/contract/corpus.test.ts`
- * fails if its routes stop producing exactly those bytes (ADR 0025) - and they
+ * fails if its routes stop producing exactly those bytes (architecture decision record 0025) - and they
  * are deterministic, they reproduce the unavailable and malformed cases a
  * working service cannot produce on demand, and they need no credentials in CI.
  *

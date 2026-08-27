@@ -6,7 +6,7 @@
  * message ends up in a page.
  *
  * It reaches the backend over a service binding to a named `WorkerEntrypoint`
- * (ADR 0028), not a hostname - so no CORS handling, API key or rate limiter
+ * (architecture decision record (ADR) 0028), not a hostname - so no CORS handling, API key or rate limiter
  * here, none of which defends an unroutable surface. Binding the *default*
  * entrypoint, as ADR 0024 did, leaves `/v1` reachable on the custom domain and
  * refused by the backend's Access guard.
@@ -158,7 +158,7 @@ function searchParams(input: GameSearchInput): URLSearchParams {
  * visitor-facing filter, and the field name is what stops the two being
  * confused at a call site.
  *
- * There is no `q` and no `discounted`, because sales has no title search and
+ * There is no `q` and no `discounted`, because sales has no name search and
  * the whole page is discounts.
  */
 function salesParams(input: BrowseSalesInput): URLSearchParams {

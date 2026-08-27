@@ -199,7 +199,7 @@ describe('the backend is reached only through the API client', () => {
     expect(source).toContain('path: `/v1/games/${encodeURIComponent(slug)}`');
     // No route outside /v1 is reachable, which is what keeps /ops and the
     // backend's internal surfaces unreachable from here even though a service
-    // binding bypasses Cloudflare Access entirely (ADR 0024).
+    // binding bypasses Cloudflare Access entirely (architecture decision record 0024).
     expect(source).not.toContain('/ops');
   });
 

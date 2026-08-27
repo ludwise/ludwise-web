@@ -173,7 +173,7 @@ export default tseslint.config(
   // --- The API boundary -----------------------------------------------------
   //
   // The contract is the innermost thing here. It states the wire shapes and is
-  // authoritative about them (ADR 0025), so it must not depend on the client
+  // authoritative about them (architecture decision record (ADR) 0025), so it must not depend on the client
   // that happens to use them - the backend vendors this one file and nothing
   // else, and an import would drag the whole tree along with it.
   {

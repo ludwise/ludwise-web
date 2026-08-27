@@ -1,6 +1,6 @@
 /**
  * Rendering an amount, and the one function this repository copies from the
- * backend on purpose (ADR 0023).
+ * backend on purpose (architecture decision record 0023).
  *
  * `formatAmountMinor` is presentation, but it lives in the backend's domain
  * layer because that is where the rules about money are, and that layer is not

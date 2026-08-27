@@ -1,7 +1,7 @@
 /**
  * The visitor's color-scheme preference, carried in a cookie.
  *
- * A cookie rather than local storage because the server has to render the
+ * A cookie rather than local storage because this Worker has to render the
  * right `data-theme` on the first response: a flash of the light theme over a
  * price comparison is a defect, not a polish item, and anything read after
  * first paint is too late by definition.
@@ -61,7 +61,7 @@ export function readThemeCookie(cookieHeader: string | null | undefined): Theme 
  * Deliberately not `HttpOnly`: the theme toggle writes it from the client, in
  * the same handler that sets `data-theme` on the document. The pre-paint script
  * deliberately does not write it - storing a value with no act by the visitor is
- * outside ePrivacy's strictly-necessary exemption, see ADR 0013 - so the toggle
+ * outside ePrivacy's strictly-necessary exemption, see architecture decision record 0013 - so the toggle
  * is the only writer, and a writer inside the page has to be able to reach the
  * cookie. That is safe because the value carries no authority and
  * `readThemeCookie` treats it as untrusted whatever wrote it.

@@ -278,8 +278,8 @@ function useMenuPanel(onMenu: ((open: boolean) => void) | undefined) {
  * Resolved here rather than round-tripped through the host, so the glyph
  * changes on click rather than on the next render the host happens to cause.
  *
- * `initial` is the cookie value the server resolved (src/lib/http/theme.ts),
- * which is all the server can know. A first-time visitor has no cookie, so
+ * `initial` is the cookie value this Worker resolved (src/lib/http/theme.ts),
+ * which is all this Worker can know. A first-time visitor has no cookie, so
  * what is actually on `<html>` was decided before paint by the head script
  * from prefers-color-scheme — the effect below adopts that, or the toggle
  * would offer to switch to the theme already showing.
@@ -307,7 +307,7 @@ function useHeaderTheme(initial: Theme, onThemeToggle: (() => void) | undefined)
  * The `data-compact` attribute value, or `undefined` to leave it off.
  *
  * Which layout renders is CSS's job, never this component's: `useIsCompactHeader`
- * resolves in an effect, so it answers `false` on the server and through the
+ * resolves in an effect, so it answers `false` during rendering and through the
  * whole pre-hydration window, and a layout only correct after hydration would
  * break the server-rendered HTML PRODUCT.md §83 and §89 require.
  *
@@ -414,7 +414,7 @@ export function AppHeader({
         {renderNav('bar')}
 
         {/* CSS chooses the desktop copy; the native GET form remains usable
-            before the island hydrates. */}
+            before the island finishes hydration. */}
         {hasSearch && <div className="lw-header__search-slot">{renderSearch('sm')}</div>}
 
         <div className="lw-header__utilities-slot">

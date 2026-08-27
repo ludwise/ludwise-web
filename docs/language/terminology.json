@@ -163,7 +163,7 @@
         },
         {
           "term": "screen",
-          "unless": []
+          "unless": ["screen reader", "screen readers", "on screen"]
         }
       ],
       "approvedAbbreviation": null,
@@ -223,7 +223,7 @@
       "prohibitedSynonyms": [
         {
           "term": "the server",
-          "unless": []
+          "unless": ["the server-rendered"]
         },
         {
           "term": "the API server",

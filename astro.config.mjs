@@ -54,7 +54,7 @@ export default defineConfig({
   },
   vite: {
     define: {
-      // Already JSON.stringify'd by buildDefines: `define` is raw text
+      // Already passed through `JSON.stringify` by buildDefines: `define` is raw text
       // substitution, so a bare identifier would be injected and fail to parse.
       ...buildDefines(buildIdentity(new URL('./package.json', import.meta.url))),
     },

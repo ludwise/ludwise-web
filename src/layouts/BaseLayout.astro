@@ -80,7 +80,7 @@ const indexable = Astro.locals.config.environment === 'production';
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
 
     {
-      /* Runs before first paint, and only when the server had no preference to
+      /* Runs before first paint, and only when this Worker had no preference to
          render. Inline rather than a file because an external script would need
          the round trip that a render-blocking script in <head> exists to avoid,
          and after that round trip the flash has already happened.

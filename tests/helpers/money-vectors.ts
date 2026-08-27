@@ -1,7 +1,7 @@
 /**
  * Shared test vectors for `formatAmountMinor`.
  *
- * ADR 0023 accepts that this one function exists twice - once in the backend's
+ * Architecture decision record 0023 accepts that this one function exists twice - once in the backend's
  * private domain layer, once in the public web client that cannot import it.
  * This is the mitigation: both repositories drive their own implementation over
  * this exact table, so the two agree because each was checked against one

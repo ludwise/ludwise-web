@@ -59,7 +59,7 @@ refactoring over explanatory comments.
 - **A doc comment states the contract; it does not argue for it.** Do not
   enumerate worked examples: a list of inputs and the wrong output each would
   produce is a set of test cases written as prose, and belongs in the test that
-  asserts them. Cite that test, an ADR, or ARCHITECTURE.md in one line instead.
+  asserts them. Cite that test, an architecture decision record, or ARCHITECTURE.md in one line instead.
 - Treat an inline comment longer than about 80 characters as a readability smell.
   First improve naming, types, decomposition, or control flow; then decide whether
   the comment is still necessary.

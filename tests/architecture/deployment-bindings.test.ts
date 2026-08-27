@@ -30,7 +30,7 @@ interface Route {
 interface ServiceBinding {
   readonly binding: string;
   readonly service: string;
-  /** Absent means the target Worker's default entrypoint. See ADR 0028. */
+  /** Absent means the target Worker's default entrypoint. See architecture decision record (ADR) 0028. */
   readonly entrypoint?: string;
 }
 

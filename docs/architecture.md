@@ -150,7 +150,7 @@ response is trusted, or a backend error message ends up in a page.
 | Kind          | Cause                               | Retried?                   | What a visitor sees                             |
 | ------------- | ----------------------------------- | -------------------------- | ----------------------------------------------- |
 | `rejected`    | 400, the request was refused        | Never                      | Which filters were wrong, with the form redrawn |
-| `unavailable` | Binding failed, or a 5xx            | Only when nothing answered | "We couldn't load this right now"               |
+| `unavailable` | Binding failed, or a 5xx            | Only when nothing answered | "We could not load this right now"              |
 | `timeout`     | Backend did not answer in time      | Once                       | The same                                        |
 | `malformed`   | Answered, but not with the contract | Never                      | The same                                        |
 

@@ -110,7 +110,7 @@ describe('the request it sends', () => {
   it('forwards the correlation identifiers it was given', async () => {
     // Without these the site's log record and the backend's are two halves of
     // a trace that cannot be joined, which spends the logging budget twice for
-    // less than it buys (ADR 0024).
+    // less than it buys (architecture decision record (ADR) 0024).
     const { calls, fetchImpl } = recording(json(SEARCH_VIEW));
 
     await createApiClient({
@@ -452,7 +452,7 @@ describe('browseSales', () => {
     expect(url.searchParams.get('sort')).toBe('price');
     expect(url.searchParams.get('page')).toBe('2');
     expect(url.searchParams.getAll('store')).toEqual(['orbit']);
-    // /v1/sales has no title search and no discounted toggle: the whole page
+    // /v1/sales has no name search and no discounted toggle: the whole page
     // is discounts.
     expect(url.searchParams.has('q')).toBe(false);
     expect(url.searchParams.has('discounted')).toBe(false);

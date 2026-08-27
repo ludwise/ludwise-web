@@ -261,7 +261,7 @@ const backend = defineMiddleware((context, next) => {
  * How this request reaches the backend, which differs in development alone.
  *
  * Deployed it is always the service binding: `BACKEND` names a Worker script,
- * not a URL, so nothing a mistyped variable could redirect (ADR 0024).
+ * not a URL, so nothing a mistyped variable could redirect (architecture decision record 0024).
  *
  * Locally, `wrangler dev` provides that binding whether or not anything runs
  * behind it, so a request over it fails with a 503 from Wrangler that looks

@@ -9,8 +9,8 @@
  * in InlineMessage they become the default slot and two named slots.
  *
  * `titleAs` is an addition. `/404` and `/500` compose from EmptyState, where the
- * the title is the only heading-styled text on the page, and a bare `<span>` leaves
- * a screen-reader visitor navigating by heading with nothing to land on
+ * the heading text is the only heading-styled text on the page, and a bare `<span>` leaves
+ * a visitor with a screen reader navigating by heading with nothing to land on
  * (WCAG 1.3.1). Defaults to `'span'`, so in-page uses gain no stray heading.
  */
 import Icon from '../foundation/Icon.astro';
@@ -20,7 +20,7 @@ interface Props {
   icon?: IconName | undefined;
   /** States the fact, for example "No games match these filters". */
   title: string;
-  /** Element the title renders as. Default 'span' matches every existing
+  /** Element the heading text renders as. Default 'span' matches every existing
    *  in-page use; pass a heading level only where this IS the page's
    *  heading, for example an error page composed entirely from EmptyState. */
   titleAs?: 'span' | 'h1' | 'h2' | 'h3' | undefined;

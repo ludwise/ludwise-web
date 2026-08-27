@@ -2,7 +2,7 @@
 
 How to build UI here, and what is not yours to decide.
 
-The reasoning is in [ADR 0012](../adr/0012-design-tokens-and-component-layer.md)
+The reasoning is in [architecture decision record (ADR) 0012](../adr/0012-design-tokens-and-component-layer.md)
 and [ADR 0013](../adr/0013-theme-resolution-without-a-flash.md).
 
 ## Source of truth
@@ -207,12 +207,12 @@ These are additions, recorded here rather than invented silently:
   handoff's mock uses: at caption size, tertiary on the default surface
   measures 4.19:1, below WCAG 1.4.3's 4.5:1.
 - **No `PromoSlot` and no affiliate disclosure on `/sales`.** The handoff's
-  sales page has an ad unit in its aside. There is no advertising integration
+  sales design has an ad unit in its aside. There is no advertising integration
   and there are no affiliate links, so an empty promo box would be decoration
   and a disclosure describing a relationship that does not exist would be a
   false statement. The aside keeps only the "Legitimate stores only" note,
   which is a claim the data actually supports.
-- **No grid and list density toggle on `/sales`.** The handoff's page has one.
+- **No grid and list density toggle on `/sales`.** The handoff's design has one.
   It needs either a second React island on a page that otherwise loads no
   framework, or a full page load per toggle, and it changes nothing factual.
 

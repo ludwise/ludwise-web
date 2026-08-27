@@ -6,7 +6,7 @@
  * minor units on `/games`, whole major units here, which
  * `BrowseSalesInput.minPriceMajor` carries in its own name.
  *
- * No `q` - title search lives at `/games`, and answering it here would mean a
+ * No `q` - name search lives at `/games`, and answering it here would mean a
  * second relevance ranking. No `discounted`, because the page is discounts.
  * Nothing here corrects a value; see query-params.ts on blank versus malformed.
  */

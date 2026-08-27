@@ -50,7 +50,7 @@ try {
 
     rejectedFilters = adviseGameSearch(error.fields);
 
-    // The form comes back with the rejection at no extra round trip (ADR 0025).
+    // The form comes back with the rejection at no extra round trip (architecture decision record 0025).
     // Cast narrowly: `data` is `unknown` on the contract, and this is the call
     // site that knows which view it holds.
     view = (error.data as GameSearchView | undefined) ?? null;
