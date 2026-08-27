@@ -47,7 +47,7 @@ try {
     rejectedFilters = adviseSales(error.fields);
 
     // The form comes back with the rejection, reusing the pair enumeration the
-    // failed read already did - the most expensive query the product issues, on a
+    // failed read already did. The most expensive query the product issues, on a
     // path anyone reaches by editing the address bar (architecture decision record 0025).
     view = (error.data as BrowseSalesView | undefined) ?? null;
 

@@ -7,7 +7,7 @@
  * The recordings are real - the backend's own `tests/contract/corpus.test.ts`
  * fails if its routes stop producing exactly those bytes (architecture decision record 0025) - and they
  * are deterministic, they reproduce the unavailable and malformed cases a
- * working service cannot produce on demand, and they need no credentials in CI.
+ * working service cannot produce on demand. They need no credentials in CI.
  *
  * Not a second implementation: it matches a request to a recording and replays
  * it, and answers 501 where there is none. A fake that improvised would let a

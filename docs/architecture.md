@@ -55,7 +55,7 @@ ordered for the same reason.
 The one thing deliberately duplicated is `formatAmountMinor`
 (`src/lib/formatting/money.ts`), which turns a stored integer into digits. It is
 presentation, but it lives in the backend's domain layer because that is where
-money rules live, and a private module cannot be imported from a public
+money rules live. A private module cannot be imported from a public
 repository. The mitigation is
 [`tests/helpers/money-vectors.ts`](../tests/helpers/money-vectors.ts): a corpus
 checked in to **both** repositories, byte-identical, that each side drives its
@@ -188,7 +188,7 @@ conformance at compile time. A view type there that stops satisfying a type here
 fails **that** build with TS2344.
 
 So the direction is: the backend is authoritative about behavior, this file is
-authoritative about the shape that behavior must keep, and the conformance test
+authoritative about the shape that behavior must keep. The conformance test
 is the joint. A hand-written type is only as true as the test that checks it,
 which is why that test is not optional.
 

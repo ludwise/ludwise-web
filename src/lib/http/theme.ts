@@ -3,7 +3,7 @@
  *
  * A cookie rather than local storage because this Worker has to render the
  * right `data-theme` on the first response: a flash of the light theme over a
- * price comparison is a defect, not a polish item, and anything read after
+ * price comparison is a defect, not a polish item. Anything read after
  * first paint is too late by definition.
  *
  * `readThemeCookie` is a sanitiser rather than a convenience. The value is
@@ -62,7 +62,7 @@ export function readThemeCookie(cookieHeader: string | null | undefined): Theme 
  * the same handler that sets `data-theme` on the document. The pre-paint script
  * deliberately does not write it - storing a value with no act by the visitor is
  * outside ePrivacy's strictly-necessary exemption, see architecture decision record 0013 - so the toggle
- * is the only writer, and a writer inside the page has to be able to reach the
+ * is the only writer. A writer inside the page has to be able to reach the
  * cookie. That is safe because the value carries no authority and
  * `readThemeCookie` treats it as untrusted whatever wrote it.
  *

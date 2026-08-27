@@ -28,7 +28,7 @@ import type { ApiErrorBody } from './contract.js';
  * - `malformed`  something answered, but not with the contract. Treat as unavailable
  *
  * `malformed` is separate from `unavailable` only because they need different
- * investigations - one is an outage, the other is a version skew or something
+ * investigations. One is an outage, the other is a version skew or something
  * in front of the backend answering. A visitor sees the same page for both.
  */
 export type ApiFailureKind = 'rejected' | 'unavailable' | 'timeout' | 'malformed';

@@ -30,7 +30,7 @@ const requestId: string | undefined = Astro.locals.requestId;
      Deliberately NOT built from InlineMessage. That component is an assertive
      live region, which is right for a failure appearing *into* a page the
      visitor is already reading and wrong for a failure that *is* the page:
-     it would announce the entire document as an alert, and its heading would be
+     it would announce the entire document as an alert. Its heading would be
      a span, leaving this page with no heading for anyone navigating by one. */
 }
 <BaseLayout title="Something failed — LUDWISE">

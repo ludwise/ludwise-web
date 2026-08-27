@@ -66,7 +66,7 @@ export interface MoneyFormatInput {
  * not the price.
  *
  * The locale defaults to `en-US` and is a parameter rather than a constant so
- * that adding a locale is configuration rather than a refactor - the site is
+ * that adding a locale is configuration rather than a refactor. The site is
  * already routed locale-aware for exactly that reason.
  */
 export function formatMoney(money: MoneyFormatInput, locale = 'en-US'): string {

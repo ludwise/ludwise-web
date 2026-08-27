@@ -108,7 +108,7 @@ do not exist:
 There are none in this repository, which is the point rather than a claim: it is
 public, so a committed secret could not be unpublished. `tests/architecture/`
 fails the build on anything matching a credential shape, `.gitignore` covers
-`.env` and `.dev.vars`, and the deployment needs no secret beyond a Cloudflare
+`.env` and `.dev.vars`. The deployment needs no secret beyond a Cloudflare
 API token held in GitHub Actions.
 
 If you believe something in the history is a secret, report it privately rather

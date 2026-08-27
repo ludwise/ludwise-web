@@ -114,7 +114,7 @@ const correlation = defineMiddleware(async (context, next) => {
  *
  * The response names no field. `ConfigError.fields` names the settings of this
  * deployment, which is exactly the material that belongs in a log and not in a
- * response - the request id is what connects the two.
+ * response. The request id is what connects the two.
  */
 const configuration = defineMiddleware(async (context, next) => {
   try {

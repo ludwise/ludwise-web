@@ -2,7 +2,7 @@ import type { APIRoute } from 'astro';
 
 // A route, not a file in public/: the answer differs by environment. Workers
 // Assets serves public/ without invoking the Worker, so a robots.txt there would
-// be identical on staging and production - the one thing it must not be.
+// be identical on staging and production. The one thing it must not be.
 export const prerender = false;
 
 // Written out rather than assembled: robots.txt has no formal grammar, crawlers

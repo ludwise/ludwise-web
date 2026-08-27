@@ -295,7 +295,7 @@ export interface ApiErrorBody {
    * without a second round trip.
    *
    * Typed as `unknown` rather than a union of the view types, because which
-   * view it is depends on which endpoint answered, and a client already knows
+   * view it is depends on which endpoint answered. A client already knows
    * that from the call it made. Narrowing happens at the call site, where the
    * expected type is known, rather than through a discriminant nobody would
    * read twice.
