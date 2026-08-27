@@ -2,8 +2,8 @@
  * The response headers that are the same on every response the Worker produces,
  * and why each one is here.
  *
- * The accurate scope is every Worker response, not every response. Under
- * Workers Assets a request matching `dist/client` is served without invoking
+ * The accurate scope is every Worker response, not every response. Workers
+ * Assets serves a request that matches `dist/client` without invoking
  * the Worker, so `/fonts/*.woff2` never passes through. Those are same-origin
  * static files. A committed `public/_headers` is the route if they ever need
  * these.

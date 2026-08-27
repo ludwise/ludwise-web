@@ -44,7 +44,7 @@ export interface AppConfig {
    * How long the backend has to answer, in milliseconds.
    *
    * Configurable because the right value differs by environment rather than by
-   * opinion. A local backend running under `wrangler dev` with a cold isolate
+   * opinion. A local backend running in `wrangler dev` with a cold isolate
    * is legitimately slower than a deployed one. A developer must not have
    * to see timeout pages because of it.
    */

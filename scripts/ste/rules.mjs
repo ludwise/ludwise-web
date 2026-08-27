@@ -42,11 +42,37 @@ export const IMPLEMENTED_RULE_IDS = [...PROSE_RULE_IDS, ...CONFIGURATION_RULE_ID
 
 const escapeRegExp = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
+/**
+ * The clause shapes `policy.causalSince.patterns` can name. Each name maps to
+ * one pattern, so the policy selects shapes rather than switching the whole
+ * rule on. A name the policy does not list is never matched.
+ */
+const CAUSAL_SINCE_PATTERNS = {
+  'sentence-initial':
+    /(?:^|[.!?][)\]"'\u2019\u201d]*\s+|\n[ \t]*\n[ \t]*)[>#*+-]*[ \t]*(since)\b/giu,
+  'after-comma': /,\s*(since)\b/giu,
+};
+
+/**
+ * What makes the word mean time rather than a reason. Issue 9 approves "since"
+ * for "from a time in the past until now". That meaning takes a date, a clock
+ * time, or a named past event. "Since May 2026" sits in the same position a
+ * reason would. The rule has to step around it.
+ */
+const TIME_EXPRESSION =
+  /^\s*(?:the\s+)?(?:then\b|now\b|\d{1,4}\b|january|february|march|april|may|june|july|august|september|october|november|december|mon|tue|wed|thu|fri|sat|sun|last\b|previous\b|first\b|earliest\b|launch\b|release\b|start\b|beginning\b|migration\b|that\s+(?:date|time|day|release|commit|point|moment)\b)/i;
+
 const apostrophes = (value) => escapeRegExp(value).replace(/'/g, "['’]");
 
+/**
+ * The boundary treats a hyphen as part of the word. `\b` matches at a hyphen,
+ * so `\bunder\b` matched inside "under-matching", which is a different word
+ * from the preposition. A hyphen on either side means a compound, and a
+ * compound is not the listed expression.
+ */
 const phrasePattern = (expression) => {
-  const left = /^[\w]/.test(expression) ? '\\b' : '';
-  const right = /[\w]$/.test(expression) ? '\\b' : '';
+  const left = /^[\w]/.test(expression) ? '(?<![\\w-])' : '';
+  const right = /[\w]$/.test(expression) ? '(?![\\w-])' : '';
   return new RegExp(`${left}${apostrophes(expression)}${right}`, 'gi');
 };
 
@@ -243,10 +269,9 @@ export const runRules = (units, context) => {
     for (const entry of terminology.prohibited ?? []) {
       const isPhrasalVerb = /phrasal verb/i.test(entry.reason ?? '');
       for (const found of matchesOf(masked, phrasePattern(entry.expression))) {
-        if (coveredBy(masked, found.index, found.text.length, entry.unless ?? [])) continue;
-        // An exact-case exemption. "SHOULD" is the requirement level that
-        // PRODUCT.md defines, and it is a different token from the ordinary
-        // word. The unless list cannot say this, because it is case-blind.
+        // The only exemption this list allows, and it is exact-case. "SHOULD"
+        // is the requirement level PRODUCT.md defines, so it is a different
+        // token. A case-blind list would be a general escape hatch.
         if ((entry.unlessExactly ?? []).includes(found.text)) continue;
         report(
           unit,
@@ -306,20 +331,28 @@ export const runRules = (units, context) => {
     }
 
     /**
-     * Causal "since" only. Issue 9 keeps "since" for time. A clause that
-     * gives a reason must read "because". No word list separates the two.
-     * The rule reads the shape a reason takes. It matches "since" that
-     * opens a sentence, and "since" after a comma. A date phrase such as
-     * "observed since May 2026" is time. That phrase stays.
+     * Causal "since". Issue 9 approves "since" as a conjunction of time, and
+     * requires "because" for a reason. Nothing in the text marks which meaning
+     * an author had, so this rule reads the shape a reason takes and reports
+     * only that. Each configured pattern is matched on its own.
+     *
+     * A time expression after the word is excluded. "Since May 2026" is the
+     * approved meaning in the same position a reason takes. That leaves the
+     * rule silent on a reason it cannot see. `conformance.json` thus keeps
+     * rule 1.3 semantic, and cites this as an aid rather than proof.
      */
-    if ((policy.causalSince?.patterns ?? []).length > 0) {
-      for (const found of matchesOf(masked, /(?:^|[.!?]\s+|,\s*)(since)\b/giu)) {
+    for (const pattern of policy.causalSince?.patterns ?? []) {
+      const opener = CAUSAL_SINCE_PATTERNS[pattern];
+      if (opener === undefined) continue;
+
+      for (const found of matchesOf(masked, opener)) {
         const at = found.index + found.text.toLowerCase().lastIndexOf('since');
+        if (TIME_EXPRESSION.test(masked.slice(at + 'since'.length))) continue;
         report(
           unit,
           at,
           'LW-STE-CAUSAL-SINCE',
-          'This "since" gives a reason. Write "because", and keep "since" for time.',
+          'This "since" reads as a reason. Write "because", and keep "since" for time.',
           'write-because',
         );
       }

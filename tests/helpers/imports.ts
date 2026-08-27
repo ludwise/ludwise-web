@@ -20,7 +20,7 @@ const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..');
  * the ones currently in use.
  *
  * `.js`, `.mjs`, `.cjs` and `.jsx` are here because their absence was a
- * complete bypass. A plain `.js` file under `src/lib/` importing
+ * complete bypass. A plain `.js` file in `src/lib/` importing
  * `cloudflare:workers` was invisible to every rule. Nothing in the tree is
  * written in `.js` today, which is exactly why nobody would have noticed.
  */
@@ -77,7 +77,7 @@ export function importsInFile(file: string): string[] {
 }
 
 /**
- * Every source file under a repository-relative directory, as POSIX paths.
+ * Every source file in a repository-relative directory, as POSIX paths.
  *
  * Sorted, so a failure lists the same files in the same order on every
  * machine and a diff of two runs is readable.

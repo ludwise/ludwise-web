@@ -126,7 +126,7 @@ which `commitlint` enforces.
 Apache-2.0. See [`LICENSE`](LICENSE) and [`NOTICE`](NOTICE).
 
 The LUDWISE name, wordmark and logo marks are reserved separately — see
-[`TRADEMARKS.md`](TRADEMARKS.md). Using the code does not grant permission to
+[`TRADEMARKS.md`](TRADEMARKS.md). Use of the code does not grant permission to
 use the brand, and a fork must be renamed.
 
 ## Security

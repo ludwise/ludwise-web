@@ -227,7 +227,7 @@ contracts exist for a while.
 its `tests/contract/corpus.test.ts` and copied here byte for byte. The fake
 backend replays them. That replay is what makes the end-to-end suites evidence
 about the real contract, rather than about shapes invented to match the code
-under test.
+these tests exercise.
 
 To change one: add or edit the case in the backend's `CASES`, run its
 `pnpm run contract:corpus` to re-record, then copy the files across unmodified.

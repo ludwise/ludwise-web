@@ -11,7 +11,7 @@
  * Removing any filter resets the page.
  *
  * Pure functions over a `URLSearchParams`, with no Astro dependency, so they
- * run under plain Vitest.
+ * run in plain Vitest.
  */
 
 function pathWithQuery(next: URLSearchParams): string {

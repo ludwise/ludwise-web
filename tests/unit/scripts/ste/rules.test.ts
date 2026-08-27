@@ -28,6 +28,7 @@ const terminology = {
   prohibited: [
     { expression: 'wire up', suggestion: 'connect', reason: 'A phrasal verb.' },
     { expression: 'leverage', suggestion: 'use', reason: 'A longer word.' },
+    { expression: 'under', suggestion: 'below, or in', reason: 'Not an approved preposition.' },
     {
       expression: 'should',
       suggestion: 'must',
@@ -172,9 +173,10 @@ describe('punctuation', () => {
 
 describe('the causal since rule', () => {
   /**
-   * Issue 9 approves "since" for time and asks for "because" when the clause
-   * gives a reason. The rule reads clause shape, because no word list tells
-   * the two meanings apart.
+   * Issue 9 approves "since" as a conjunction of time and asks for "because"
+   * when the clause gives a reason. Nothing in the text marks the meaning, so
+   * the rule reports a probable error from clause shape. It never decides
+   * rule 1.3, which stays a semantic review obligation.
    */
   it('reports a reason that opens a sentence', () => {
     expect(check('Since the file is missing, the check fails.')).toEqual(['LW-STE-CAUSAL-SINCE']);
@@ -184,9 +186,64 @@ describe('the causal since rule', () => {
     expect(check('The check fails, since the file is missing.')).toEqual(['LW-STE-CAUSAL-SINCE']);
   });
 
-  it('leaves the approved temporal meaning alone', () => {
+  it('leaves a sentence-initial temporal conjunction alone', () => {
+    // The approved conjunction takes the same position a reason does, so
+    // position alone would report these. A following time expression is what
+    // separates them.
+    expect(check('Since May 2026, the price has fallen twice.')).toEqual([]);
+    expect(check('Since the last release, three faults were repaired.')).toEqual([]);
+    expect(check('Since then, the job has run nightly.')).toEqual([]);
+  });
+
+  it('leaves non-conjunction since alone', () => {
+    // Here "since" is a preposition, not the approved conjunction. The rule
+    // does not check the part of speech, and conformance.json says so.
     expect(check('Lowest price observed by LUDWISE since May 2026.')).toEqual([]);
     expect(check('It reads every commit since the last release.')).toEqual([]);
+  });
+
+  it('leaves a wrapped line alone', () => {
+    // Prose and comments wrap at a column limit, and a wrapped line is not a
+    // new sentence. Treating every newline as a sentence start reported the
+    // middle of a sentence, which is a plain false positive.
+    expect(check('If this number has changed\nsince a previous call, the price moved.')).toEqual(
+      [],
+    );
+    expect(check('Every claim of a lowest price observed\n * since launch rests on this.')).toEqual(
+      [],
+    );
+    expect(check('A quoted line wraps here\n> since the last call it changed.')).toEqual([]);
+  });
+
+  it('reports a reason that opens a paragraph or a list item', () => {
+    // A blank line does start a sentence, and so does a list marker.
+    expect(check('The check runs.\n\nSince the file is missing, it fails.')).toEqual([
+      'LW-STE-CAUSAL-SINCE',
+    ]);
+    expect(check('The check runs.\n\n- Since the file is missing, it fails.')).toEqual([
+      'LW-STE-CAUSAL-SINCE',
+    ]);
+  });
+
+  it('matches each configured pattern on its own', () => {
+    const opening = 'Since the file is missing, the check fails.';
+    const trailing = 'The check fails, since the file is missing.';
+    const withPatterns = (patterns: string[], text: string): string[] =>
+      runRules([unit(text)], {
+        policy: { ...policy, causalSince: { patterns } },
+        terminology,
+        defaultProse: 'mixed',
+      }).map((one) => one.rule);
+
+    expect(withPatterns(['sentence-initial'], opening)).toEqual(['LW-STE-CAUSAL-SINCE']);
+    expect(withPatterns(['sentence-initial'], trailing)).toEqual([]);
+    expect(withPatterns(['after-comma'], trailing)).toEqual(['LW-STE-CAUSAL-SINCE']);
+    expect(withPatterns(['after-comma'], opening)).toEqual([]);
+    expect(withPatterns([], opening)).toEqual([]);
+
+    // A name the rule does not implement matches nothing, rather than
+    // switching the whole rule on.
+    expect(withPatterns(['mid-clause'], opening)).toEqual([]);
   });
 });
 
@@ -196,6 +253,24 @@ describe('an exact-case exemption', () => {
     // is ordinary prose and Issue 9 does not approve it.
     expect(check('A SHOULD requirement is strongly preferred.')).toEqual([]);
     expect(check('The value should be stable.')).toEqual(['LW-STE-TERM-PROHIBITED']);
+  });
+});
+
+describe('the word boundary of a prohibited expression', () => {
+  it('does not match inside a hyphenated compound', () => {
+    // A hyphen joins a compound into one word. "under-matching" is not the
+    // preposition. The regex boundary \b matches at a hyphen, so it reported
+    // the compound as the listed word.
+    expect(check('The cost of under-matching is a live credential in a log.')).toEqual([]);
+    expect(check('It under-counts during an incident.')).toEqual([]);
+  });
+
+  it('still matches the bare word beside ordinary punctuation', () => {
+    // The compound must not become a way to hide the real word.
+    expect(check('The label sits under the chart.')).toEqual(['LW-STE-TERM-PROHIBITED']);
+    expect(check('It is stored under, and read from, the same key.')).toEqual([
+      'LW-STE-TERM-PROHIBITED',
+    ]);
   });
 });
 

@@ -353,8 +353,12 @@
     {
       "expression": "using",
       "suggestion": "use, or with",
-      "reason": "The approved form of this verb is use.",
-      "unless": ["Using the code"]
+      "reason": "The approved form of this verb is use."
+    },
+    {
+      "expression": "under",
+      "suggestion": "below, in, during, or less than",
+      "reason": "The preposition is not approved in the Issue 9 dictionary. Issue 9 gives below for position, and less than for quantity. In or during carries the other senses."
     }
   ],
   "abbreviations": [

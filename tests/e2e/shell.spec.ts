@@ -261,7 +261,7 @@ test.describe('theme', () => {
   }) => {
     // JavaScript off, so the pre-paint script cannot supply a valid value and
     // what remains is exactly what this Worker chose to emit. This is the
-    // sanitiser under test, with nothing standing in front of it.
+    // sanitiser these tests exercise, with nothing standing in front of it.
     const context = await browser.newContext({ javaScriptEnabled: false });
     await context.addCookies([
       { name: THEME_COOKIE, value: 'dark"><script>alert(1)</script>', url: BASE_URL },

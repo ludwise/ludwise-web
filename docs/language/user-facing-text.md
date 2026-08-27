@@ -54,7 +54,7 @@ question: does the final text still say what the baseline said? A reviewer who
 cannot answer it sends the text back.
 
 Wording that changes what LUDWISE claims about itself is a product decision. It
-escalates under the rule in `CLAUDE.md`, and it is not settled by whoever has
+escalates by the rule in `CLAUDE.md`, and it is not settled by whoever has
 the file open.
 
 ## When the humanizer is not available
@@ -71,7 +71,7 @@ Silence is not an option. A commit that skipped the step says so in its body.
 
 This phase does not rewrite the visitor-facing copy that already exists. The
 checker never reads a string literal, so no deterministic rule covers this class
-today. [conformance.md](conformance.md) records that gap under
+today. [conformance.md](conformance.md) records that gap in
 `LW-STE-DERIVED-PIPELINE`.
 
 The gap matters more here than in the backend. Almost every visitor-visible

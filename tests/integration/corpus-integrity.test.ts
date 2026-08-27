@@ -27,8 +27,8 @@ const FILES = readdirSync(CORPUS)
 describe('the recorded corpus', () => {
   it('has recordings to check', () => {
     // An empty directory would make every `it.each` below vacuous. The floor is
-    // under the count at the time of writing (27), so a deliberate removal does
-    // not fail but deleting the corpus does.
+    // less than the count at the time of writing (27), so a deliberate removal
+    // does not fail but deleting the corpus does.
     expect(FILES.length).toBeGreaterThanOrEqual(20);
   });
 

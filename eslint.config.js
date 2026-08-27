@@ -98,7 +98,7 @@ export default tseslint.config(
   //
   // `scripts/**/*.ts` is here rather than in the src/ block above for a
   // specific reason. Those files are run with `node --experimental-strip-types`
-  // and are not part of the build. Linting them under the type-aware configuration
+  // and are not part of the build. Linting them with the type-aware configuration
   // fails at parse time for want of a tsconfig project that includes them.
   {
     files: ['*.config.{js,mjs,ts}', 'scripts/**/*.{mjs,ts}'],
@@ -143,10 +143,10 @@ export default tseslint.config(
   },
 
   // --- The architectural boundary -------------------------------------------
-  // Nothing under src/lib/ may depend on Astro or Cloudflare module namespaces.
+  // Nothing in src/lib/ may depend on Astro or Cloudflare module namespaces.
   //
   // This buys three things at once:
-  //   1. src/lib/ unit-tests under plain Vitest with no workerd and no Astro
+  //   1. src/lib/ unit-tests in plain Vitest with no workerd and no Astro
   //      configuration load, because there are no virtual modules to resolve.
   //   2. The API client takes its `fetch` as an argument. That argument lets a
   //      test drive it without a network. It also lets production hand it a

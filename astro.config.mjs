@@ -6,7 +6,7 @@ import { defineConfig } from 'astro/config';
 import { buildDefines, buildIdentity } from './scripts/build-identity.mjs';
 
 // This file is evaluated by Node during `astro dev|build`, so Node built-ins are
-// available here. That is NOT true of anything under src/, which runs in
+// available here. That is NOT true of anything in src/, which runs in
 // workerd. Do not carry this assumption across that boundary.
 
 // `environment` is deliberately NOT injected here. Baking it into the artifact

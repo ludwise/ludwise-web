@@ -250,7 +250,7 @@ describe('the generated deployment configuration', () => {
     else if (name.endsWith('-production')) expect(backend).toBe('ludwise-production');
     else expect(backend).toBe('ludwise');
 
-    // Never, under any name: a production backend behind a non-production site.
+    // Never, for any name: a production backend behind a non-production site.
     if (!name.endsWith('-production')) {
       expect(backend).not.toBe('ludwise-production');
     }

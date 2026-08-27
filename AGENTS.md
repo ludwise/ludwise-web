@@ -57,7 +57,7 @@ refactoring over explanatory comments.
 - Keep inline comments short, precise, factual, and durable.
 - **A run of `//` comments may not exceed three lines, and a `/** */` doc
   comment fifteen.** `eslint-rules/max-comment-block-lines.js` enforces both
-  under `src/`. A fourth `//` line has one of two meanings. Either the code is not
+  in `src/`. A fourth `//` line has one of two meanings. Either the code is not
   saying what it does, or a contract is being described somewhere documentation
   tooling cannot read it. Make the code carry it, move the contract onto its
   declaration, or put the evidence in the test that pins it. Deleting the text is

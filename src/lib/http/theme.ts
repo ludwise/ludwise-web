@@ -16,7 +16,7 @@ export const THEME_COOKIE_NAME = 'theme';
 /**
  * Both themes are authored. Neither is an inversion of the other. See
  * src/styles/tokens/color-semantic.css, which declares a full value set per
- * theme under `:root,[data-theme="light"]` and `[data-theme="dark"]`.
+ * theme in `:root,[data-theme="light"]` and `[data-theme="dark"]`.
  */
 export const THEMES = ['light', 'dark'] as const;
 export type Theme = (typeof THEMES)[number];

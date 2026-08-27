@@ -66,9 +66,9 @@
       "title": "Use an approved word only with its approved meaning.",
       "sourceVerification": "verified",
       "enforcement": "semantic",
-      "checkerSupport": "none",
+      "checkerSupport": "partial",
       "humanReview": "required",
-      "limitation": "Dictionary and semantic review are required."
+      "limitation": "Dictionary and semantic review are required. LW-STE-CAUSAL-SINCE reports one probable error in this rule, a since that reads as a reason, and it does not decide the rule."
     },
     {
       "ruleNumber": "1.4",
@@ -828,7 +828,7 @@
     },
     {
       "ludwiseRule": "LW-STE-CAUSAL-SINCE",
-      "title": "Do not use since to give a reason.",
+      "title": "Review a since that reads as a reason rather than as time.",
       "steReference": {
         "section": 1,
         "sectionName": "Words",
@@ -837,11 +837,11 @@
       },
       "appliesToLudwise": true,
       "contentClasses": ["STE-STRICT", "STE-DERIVED"],
-      "enforcement": "deterministic",
+      "enforcement": "heuristic",
       "implementationStatus": "implemented",
       "checkerSupport": "partial",
-      "limitations": "The rule reads clause shape, not meaning. A causal since that is neither sentence-initial nor after a comma is not reported.",
-      "humanReview": "required-for-unrecorded-forms"
+      "limitations": "Issue 9 approves since as a conjunction of time and requires because for a reason. Nothing in the text marks the meaning, so this rule reads clause shape and excludes a following time expression. It cannot see a reason in another position, and it does not check the part of speech. Rule 1.3 stays a semantic review obligation, and this rule is an aid to that review rather than proof of it.",
+      "humanReview": "required"
     },
     {
       "ludwiseRule": "LW-STE-PUNCTUATION-ALTERNATIVE-SLASH",

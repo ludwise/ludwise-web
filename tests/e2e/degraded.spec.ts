@@ -9,7 +9,7 @@ import { expect, test, type Page } from '@playwright/test';
  * visitor there are no games on sale. The truth is that we failed to ask. That is a false claim
  * about the market rather than a cosmetic slip.
  *
- * Run under `playwright.states.config.ts` with the backend in `unavailable` mode. The socket is
+ * `playwright.states.config.ts` runs this with the backend in `unavailable` mode. The socket is
  * destroyed rather than answered with a 503. A 503 is the backend telling us something, and
  * this is the backend not being there, a different path through the client.
  */

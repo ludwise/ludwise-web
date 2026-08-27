@@ -55,7 +55,7 @@ describe('formatMoney', () => {
 
   it('does not round an amount away', () => {
     // This pins one failure. With maximumFractionDigits left to Intl, a
-    // three-decimal amount under a currency Intl thinks has two would render
+    // three-decimal amount in a currency Intl thinks has two would render
     // as a different number from the one stored.
     const rendered = formatMoney({ amountMinor: 1999, currencyCode: 'USD', minorUnit: 3 }, 'en-US');
     expect(rendered).toContain('1.999');

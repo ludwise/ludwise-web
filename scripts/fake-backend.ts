@@ -25,7 +25,7 @@ const CORPUS = resolve(root, 'tests', 'fixtures', 'corpus');
 /**
  * Where unmatched requests are recorded.
  *
- * A file is used as well as stderr. Under Playwright the fake's output is
+ * A file is used as well as stderr. In Playwright the fake's output is
  * interleaved with the site's and the runner's. That makes it effectively
  * unreadable. "Which requests does the corpus not cover" is the one question a
  * missing recording raises. It must be answerable in one look. Gitignored.
@@ -234,7 +234,7 @@ const server = createServer((request, response) => {
 
   // Answered in every mode, including the ones that refuse everything else: a
   // runner asking whether the process is listening, not whether the backend is
-  // healthy. Under `/__` so it can never collide with a `/v1` path.
+  // healthy. In the `/__` prefix so it can never collide with a `/v1` path.
   if (url.pathname === '/__ready') {
     response.writeHead(200, { 'content-type': 'application/json' });
     response.end(JSON.stringify({ mode: MODE }));
@@ -274,7 +274,7 @@ const server = createServer((request, response) => {
         }),
       );
 
-      // Appended to a file as well. Under Playwright the fake's stderr is interleaved
+      // Appended to a file as well. In Playwright the fake's stderr is interleaved
       // with two other processes. "Which requests does the corpus not cover" has to be
       // answerable in one look.
       process.stderr.write(`no recording for ${request_}\n`);

@@ -115,7 +115,7 @@ describe('redact', () => {
     expect(output['big']).toBe('42');
   });
 
-  // Credentials routinely arrive under innocent key names.
+  // Credentials routinely arrive with innocent key names.
   it('redacts values that look like credentials regardless of their key', () => {
     const output = redact({
       value: 'Bearer abc123def456',

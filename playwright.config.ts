@@ -22,7 +22,7 @@ const BACKEND_PORT = process.env.LUDWISE_FAKE_BACKEND_PORT ?? '8788';
 /**
  * Which fixtures the backend serves, and whether it answers at all.
  *
- * `degraded.spec.ts` runs under its own configuration with this set to `unavailable`. The reason
+ * `degraded.spec.ts` runs with its own configuration with this set to `unavailable`. The reason
  * is that "the backend is not there" is a property of the whole process rather than of one
  * request. It cannot be toggled mid-suite without one test changing another's world.
  */
@@ -34,7 +34,7 @@ export default defineConfig({
   // neither runner ever tries to execute the other's files.
   testMatch: '**/*.spec.ts',
   // Two suites need the backend answering something other than the catalog,
-  // and each runs under playwright.states.config.ts with its own pair of
+  // and each runs with playwright.states.config.ts with its own pair of
   // servers. That is not a convenience: "the backend has nothing" and "the
   // backend is not there" are properties of the whole process, and toggling
   // either mid-suite would let one test change another's world.

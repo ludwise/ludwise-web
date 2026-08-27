@@ -19,7 +19,7 @@ import { join, resolve } from 'node:path';
 
 const DIST = resolve(process.cwd(), 'dist');
 
-/** Everything under a directory, as absolute paths. */
+/** Everything in a directory, as absolute paths. */
 function walk(directory) {
   const found = [];
   for (const entry of readdirSync(directory, { withFileTypes: true })) {

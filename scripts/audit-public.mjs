@@ -241,7 +241,7 @@ const ALLOWED_ORIGINS = new Set([
   'github.com',
   'www.conventionalcommits.org',
   'developers.cloudflare.com',
-  // Fixture storefronts, under the reserved .test TLD, which never resolves.
+  // Fixture storefronts, in the reserved .test TLD, which never resolves.
   'orbit-market.example.test',
   'copper-shop.example.test',
   'aurora-market.example.test',

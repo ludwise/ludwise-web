@@ -22,11 +22,11 @@ It states how LUDWISE applies the standard to software documentation.
 Procedural prose tells a reader what action to do.
 Apply section 5 to procedural sentences.
 
-1. Keep each procedural sentence to 20 words or fewer under rule 5.1.
+1. Keep each procedural sentence to 20 words or fewer as rule 5.1 requires.
 2. Give one instruction per sentence, except for simultaneous actions allowed by rule 5.2.
-3. Use the imperative form for instructions under rule 5.3.
-4. Put a necessary condition before its command under rule 5.4.
-5. Use notes for information only under rule 5.5.
+3. Use the imperative form for instructions as rule 5.3 requires.
+4. Put a necessary condition before its command as rule 5.4 requires.
+5. Use notes for information only as rule 5.5 requires.
 
 Rule 5.4 is not the sentence-length rule.
 The 20-word limit is rule 5.1.
@@ -34,15 +34,16 @@ The 20-word limit is rule 5.1.
 ## Descriptive writing
 
 Apply section 6 to descriptive prose.
-Keep each descriptive sentence to 25 words or fewer under rule 6.3.
-Keep one topic in each paragraph under rule 6.5.
-Keep each paragraph to six sentences or fewer under rule 6.6.
+Keep each descriptive sentence to 25 words or fewer as rule 6.3 requires.
+Keep one topic in each paragraph as rule 6.5 requires.
+Keep each paragraph to six sentences or fewer as rule 6.6 requires.
 
 ## Words and technical terms
 
 Apply section 1 and the controlled dictionary to word selection.
-Use one technical noun consistently for one item under rule 1.11.
-Use American English spelling under rule 1.14 unless an official directive requires another spelling.
+Use one technical noun consistently for one item as rule 1.11 requires.
+Rule 1.14 asks for American English spelling, unless an official directive
+names another spelling.
 Project terminology is recorded in [terminology.json](terminology.json).
 
 ## Multi-word nouns
@@ -55,14 +56,14 @@ Rule 2.2 defines how to handle a longer approved technical noun.
 
 Apply section 3 to verb forms, tenses, voice, and action wording.
 Rule 4.2 prohibits contractions and also prohibits omitting necessary words.
-Use active voice under rule 3.6.
+Use active voice as rule 3.6 requires.
 Descriptive passive voice is permitted only when the agent is unknown.
 
 ## Punctuation and word count
 
 Rule 8.1 prohibits semicolons.
 Rules 8.4 through 8.7 define sentence word count.
-Parenthetical text counts once in its containing sentence under rule 8.5.
+Parenthetical text counts once in its containing sentence as rule 8.5 requires.
 Its own sentence must also satisfy the applicable sentence limit.
 Rule 8.7 makes a hyphenated word count as one word.
 

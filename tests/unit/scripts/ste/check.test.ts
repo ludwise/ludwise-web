@@ -11,7 +11,7 @@ import { loadLanguageDocuments } from '../../../../scripts/ste/policy.mjs';
  * The whole pipeline over real files.
  *
  * The fixtures are ordinary files in the repository, so the classification
- * table has to be replaced here. Under the real table they are exempt, which
+ * table has to be replaced here. In the real table they are exempt, which
  * is what keeps a deliberate violation out of the repository audit.
  */
 

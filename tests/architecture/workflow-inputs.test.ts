@@ -66,7 +66,7 @@ function indentOf(line: string): number {
  * sibling would stop at `env:` and find nothing, which is what the coverage assertion below
  * caught.
  *
- * Inputs are the keys directly under `with:`. The body of a block scalar is
+ * Inputs are the keys directly below `with:`. The body of a block scalar is
  * skipped, because `script: |` holds JavaScript and a `key: value` line inside it
  * is program text rather than an input.
  */
@@ -110,7 +110,7 @@ function coveredInputs(): readonly CoveredInput[] {
 
         if (BLOCK_SCALAR.test(candidate)) blockScalarIndent = candidateIndent;
 
-        // Only keys directly under `with:` are inputs. `env:` keys are not.
+        // Only keys directly below `with:` are inputs. `env:` keys are not.
         if (withIndent === undefined) continue;
         if (!required.includes(key[1] ?? '')) continue;
 

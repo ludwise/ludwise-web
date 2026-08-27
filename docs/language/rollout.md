@@ -19,7 +19,7 @@ There is no legacy baseline that permanently forgives current violations.
 
 Run `pnpm run check:ste:audit` to inspect the whole repository.
 The audit reports deterministic findings without failing the command.
-Under enforce mode `pnpm run check:ste` reads every classified file, so the two
+In enforce mode `pnpm run check:ste` reads every classified file, so the two
 now cover the same scope and differ only in whether a finding blocks.
 Audit mode can estimate prose kind from Markdown list shape for reporting only.
 

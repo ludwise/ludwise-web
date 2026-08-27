@@ -193,7 +193,7 @@ interface RequestSpec {
    * Whether a 404 is an answer rather than a failure.
    *
    * True only for game detail, where the backend answers 404 for a slug nothing
-   * was seeded under. That is "no such game". It is a fact a page renders as
+   * was seeded with. That is "no such game". It is a fact a page renders as
    * a 404 of its own, not a fault to be caught and reported as breakage.
    */
   readonly notFoundIsNull?: boolean | undefined;

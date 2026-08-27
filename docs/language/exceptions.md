@@ -31,10 +31,10 @@ An exception lives in [exceptions.json](exceptions.json) and holds:
 
 ## What the checker does with it
 
-- A missing field fails the build under `LW-STE-EXCEPTION-INVALID`.
-- An unknown rule identifier fails the build under the same rule.
-- A date in the past fails the build under `LW-STE-EXCEPTION-EXPIRED`.
-- An exception that matches no file fails the build under
+- A missing field fails the build, and `LW-STE-EXCEPTION-INVALID` reports it.
+- An unknown rule identifier fails the build with the same report.
+- A date in the past fails the build, and `LW-STE-EXCEPTION-EXPIRED` reports it.
+- An exception that matches no file fails the build, and the report is
   `LW-STE-EXCEPTION-UNUSED`.
 
 The last one is what keeps the set small. An exception that stopped being needed
