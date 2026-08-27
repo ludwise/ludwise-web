@@ -70,7 +70,9 @@ describe('the recorded terminology conflicts', () => {
     // picked up the field reference above, which names JSON keys rather than
     // conflicts.
     const section = prose.slice(prose.indexOf('## Recorded conflicts'));
-    const tabulated = [...section.matchAll(/^\|\s*`([a-z-]+)`\s*\|/gmu)].map((row) => row[1]);
+    const tabulated = [...section.matchAll(/^\|\s*`([a-z-]+)`\s*\|/gmu)].flatMap((row) =>
+      row[1] === undefined ? [] : [row[1]],
+    );
     const recorded = new Set(conflicts.map((conflict) => conflict.id));
 
     expect(tabulated.length, 'the conflict table was not found').toBeGreaterThan(0);

@@ -23,7 +23,7 @@
     ]
   },
   "rollout": {
-    "mode": "audit",
+    "mode": "enforce",
     "modes": ["audit", "enforce"],
     "enforcedPaths": ["docs/language/**", "scripts/ste/**", "tests/unit/scripts/ste/**"],
     "enforcementCheckName": "Language"

@@ -94,7 +94,10 @@ describe('the command line entry point', () => {
     () => {
       const result = run(['audit']);
       expect(result.status).toBe(0);
-      expect(result.output).toContain('audit');
+      // The audit command reports and exits zero. This test used to look for
+      // the word "audit" in the claim. That word appears only in the branch
+      // that reports violations, so a clean repository stopped matching it.
+      expect(result.output).toContain('The checker ran and found');
       expect(result.output).not.toContain('STE compliant');
     },
     AUDIT_TIMEOUT,
