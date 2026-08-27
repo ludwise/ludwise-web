@@ -1,11 +1,10 @@
 /**
  * This repository's copy of `formatAmountMinor`, driven over the shared corpus.
  *
- * The backend runs the identical file against its own implementation. That is
- * what makes two copies of one function an acceptable cost rather than a
- * liability: they agree because each was checked against one statement of the
- * answer, not because somebody compared them at the time of the split and
- * assumed they would stay that way.
+ * The backend runs the identical file against its own implementation. That is what makes
+ * two copies of one function an acceptable cost rather than a liability. They agree because
+ * each was checked against one statement of the answer. They do not agree because somebody
+ * compared them at the time of the split and assumed they would stay that way.
  */
 
 import { describe, expect, it } from 'vitest';
@@ -46,16 +45,16 @@ describe('formatMoney', () => {
     expect(formatMoney({ amountMinor: 500, currencyCode: 'JPY', minorUnit: 0 }, 'en-US')).toBe(
       '¥500',
     );
-    // Asserted on the parts rather than the whole string: Intl separates a
-    // currency code from its amount with U+00A0, so an assertion written with an
-    // ordinary space fails against output that is correct and looks identical.
+    // Asserted on the parts rather than the whole string. Intl separates a currency
+    // code from its amount with U+00A0. An assertion written with an ordinary space
+    // fails against output that is correct and looks identical.
     const kwd = formatMoney({ amountMinor: 1999, currencyCode: 'KWD', minorUnit: 3 }, 'en-US');
     expect(kwd).toContain('KWD');
     expect(kwd).toContain('1.999');
   });
 
   it('does not round an amount away', () => {
-    // The failure this pins: with maximumFractionDigits left to Intl, a
+    // This pins one failure. With maximumFractionDigits left to Intl, a
     // three-decimal amount under a currency Intl thinks has two would render
     // as a different number from the one stored.
     const rendered = formatMoney({ amountMinor: 1999, currencyCode: 'USD', minorUnit: 3 }, 'en-US');

@@ -48,9 +48,9 @@ export interface LogError {
    *
    * Load-bearing rather than convenience. `ApplicationError` deliberately
    * keeps the cause out of its own message, out of `toLogContext()` and out of
-   * every response, on the promise that an operator holding the request id can
-   * still find what actually failed. This field is where that promise is kept:
-   * without it a rejected D1 call is reported as
+   * every response. It does so on the promise that an operator holding the
+   * request id can still find what actually failed. This field is where that
+   * promise is kept. Without it a rejected D1 call is reported as
    * `ERR_APP_INFRASTRUCTURE: games.list failed` and nothing anywhere records
    * which column was misspelled.
    */

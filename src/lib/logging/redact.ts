@@ -70,11 +70,11 @@ function looksSecret(value: string): boolean {
 }
 
 /**
- * Exported so a boundary that only ever sees one string at a time - a
- * projected log field rather than a whole context object - can apply the same
- * secret-detection and truncation rule without walking a full object through
- * `redact()`. Both paths share one rule for what counts as a credential and
- * how long a value survives. So no caller quietly ends up with a second,
+ * Exported for a boundary that only ever sees one string at a time, a projected
+ * log field rather than a whole context object. Such a boundary can apply the
+ * same secret-detection and truncation rule without walking a full object
+ * through `redact()`. Both paths share one rule for what counts as a credential
+ * and how long a value survives. So no caller quietly ends up with a second,
  * looser one.
  */
 export function redactString(value: string, maxLength: number): string {

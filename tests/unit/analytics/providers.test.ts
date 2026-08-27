@@ -19,7 +19,7 @@ const EVENT: AnalyticsEvent = { name: 'example_action_completed', version: 1 };
  *
  * Typed as `AppConfig` rather than cast, so a field added to the configuration
  * fails here until this fixture acknowledges it. That has already paid for
- * itself once: this file arrived from the backend still carrying its `access`
+ * itself once. This file arrived from the backend still carrying its `access`
  * settings, which do not exist in this repository, and the compiler said so.
  */
 const CONFIG: AppConfig = Object.freeze({

@@ -27,9 +27,9 @@ const tracked = execSync('git ls-files', { encoding: 'utf8' })
  * credential. Also excluded were `.gitattributes`, `.npmrc`, and anything a future `.sh`, `.tf` or
  * `.toml` would add.
  *
- * A scanner that decides what to look at by listing the formats someone remembered stops covering
- * the repository the moment it grows a new kind of file. It also fails silently, which is the worst
- * way for a security check to fail.
+ * A scanner that decides what to look at by listing the formats someone remembered has a problem.
+ * It stops covering the repository the moment it grows a new kind of file. It also fails silently.
+ * That is the worst way for a security check to fail.
  *
  * Inverting it means a new file type is scanned by default and the only way to escape review is to
  * be unreadable as text.
@@ -274,8 +274,8 @@ for (const { severity, file, message } of findings) {
 }
 
 // Only BLOCKING fails the build. An IMPORTANT finding is a judgement call. A
-// check that failed on every one of them would be switched off within a week,
-// which proves less than a narrow check that still runs.
+// check that failed on every one of them would be switched off within a week.
+// That proves less than a narrow check that still runs.
 const blocking = findings.filter((finding) => finding.severity === 'BLOCKING');
 if (blocking.length > 0) {
   console.error(`\n${String(blocking.length)} blocking finding(s). This repository is public.`);

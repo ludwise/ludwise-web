@@ -52,14 +52,15 @@ refactoring over explanatory comments.
 - Keep inline comments short, precise, factual, and durable.
 - **A run of `//` comments may not exceed three lines, and a `/** */` doc
   comment fifteen.** `eslint-rules/max-comment-block-lines.js` enforces both
-  under `src/`. A fourth `//` line means either the code is not saying what it
-  does, or a contract is being described somewhere documentation tooling cannot
-  read it. Make the code carry it, move the contract onto its declaration, or
-  put the evidence in the test that pins it — deleting the text is not the fix.
+  under `src/`. A fourth `//` line has one of two meanings. Either the code is not
+  saying what it does, or a contract is being described somewhere documentation
+  tooling cannot read it. Make the code carry it, move the contract onto its
+  declaration, or put the evidence in the test that pins it. Deleting the text is
+  not the fix.
 - **A doc comment states the contract. It does not argue for it.** Do not
-  enumerate worked examples: a list of inputs and the wrong output each would
-  produce is a set of test cases written as prose, and belongs in the test that
-  asserts them. Cite that test, an architecture decision record, or ARCHITECTURE.md in one line instead.
+  enumerate worked examples. A list of inputs and the wrong output each would
+  produce is a set of test cases written as prose. Such a list belongs in the test
+  that asserts them. Cite that test, an architecture decision record, or ARCHITECTURE.md in one line instead.
 - Treat an inline comment longer than about 80 characters as a readability smell.
   First improve naming, types, decomposition, or control flow. Then decide
   whether the comment is still necessary.
@@ -83,6 +84,6 @@ compatibility constraints. Do not describe implementation steps.
 The 80-character heuristic applies to explanatory inline comments, not to a
 structured API contract that genuinely requires multiple concise lines.
 
-During review, a long explanatory comment triggers a readability check: prefer
+During review, a long explanatory comment triggers a readability check. Prefer
 clearer names, stronger types, a smaller function, an extracted concept, or
 simpler control flow whenever those can make the comment unnecessary.

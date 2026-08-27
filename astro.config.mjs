@@ -37,8 +37,8 @@ export default defineConfig({
   // per-visitor state. The one preference it keeps (theme) is a cookie read in
   // middleware. Sessions would be a store nothing ever writes to.
   //
-  // If sessions are ever genuinely needed, turning this back on is one line -
-  // and it will then be a deliberate decision with a namespace behind it.
+  // If sessions are ever genuinely needed, turning this back on is one line.
+  // It will then be a deliberate decision with a namespace behind it.
   session: false,
   // Spread rather than assign: Astro types `site` as string, and an explicit
   // undefined fails typecheck. Absent locally, set from SITE_URL in CI/deploy.

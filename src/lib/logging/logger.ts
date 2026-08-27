@@ -160,7 +160,7 @@ export function createLogger(options: LoggerOptions = {}): Logger {
       emit('fatal', event, message, context);
     },
     // Returns a new logger rather than mutating this one. Workers isolates are
-    // reused across requests from different users, so mutating a shared logger
+    // reused across requests from different users. Mutating a shared logger
     // would leak the correlation id of one visitor into the records of another.
     child: (extra) =>
       createLogger({

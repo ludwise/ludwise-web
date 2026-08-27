@@ -12,11 +12,12 @@ import { failureKindForCode } from '../../../src/lib/api/errors.js';
 
 /**
  * `contract.ts` is mostly interfaces, which the type checker verifies and a
- * unit test cannot add anything to. What it also exports are runtime values -
+ * unit test cannot add anything to. It also exports runtime values. Those are
  * the error code set, the refusable field allowlist, sort names and page
- * sizes - and those are real contract surface: other modules key behavior on
- * them, and a value drifting out of step with the backend is exactly the kind
- * of change that must fail a build rather than degrade silently in production.
+ * sizes. Those values are real contract surface, because other modules key
+ * behavior on them. A value can drift out of step with the backend. That is
+ * exactly the kind of change that must fail a build rather than degrade
+ * silently in production.
  */
 
 describe('API_ERROR_CODES', () => {

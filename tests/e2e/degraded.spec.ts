@@ -4,16 +4,14 @@ import { expect, test, type Page } from '@playwright/test';
 /**
  * What a visitor sees when the backend does not answer.
  *
- * The rule it exists to enforce: **unavailable is not empty**. The two arrive at
- * a page as similar-looking absences and mean opposite things. Rendering the
- * first as the second tells a visitor there are no games on sale when the truth
- * is that we failed to ask, which is a false claim about the market rather than
- * a cosmetic slip.
+ * The rule it exists to enforce: **unavailable is not empty**. The two arrive at a page as
+ * similar-looking absences and mean opposite things. Rendering the first as the second tells a
+ * visitor there are no games on sale. The truth is that we failed to ask. That is a false claim
+ * about the market rather than a cosmetic slip.
  *
- * Run under `playwright.states.config.ts` with the backend in `unavailable`
- * mode. The socket is destroyed rather than answered with a 503, because a 503
- * is the backend telling us something and this is the backend not being there,
- * a different path through the client.
+ * Run under `playwright.states.config.ts` with the backend in `unavailable` mode. The socket is
+ * destroyed rather than answered with a 503. A 503 is the backend telling us something, and
+ * this is the backend not being there, a different path through the client.
  */
 
 const LOGOTYPE = '.lw-header__wordmark-accent';

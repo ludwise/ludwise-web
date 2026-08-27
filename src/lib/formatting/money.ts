@@ -2,15 +2,14 @@
  * Rendering an amount, and the one function this repository copies from the
  * backend on purpose (architecture decision record 0023).
  *
- * `formatAmountMinor` is presentation, but it lives in the backend's domain
- * layer because that is where the rules about money are, and that layer is not
- * publishable. A shared package would be a registry and a release train for one
- * function.
+ * `formatAmountMinor` is presentation, but it lives in the backend's domain layer. The reason is
+ * that the domain layer is where the rules about money are, and that layer is not publishable.
+ * A shared package would be a registry and a release train for one function.
  *
- * So there are two implementations, and the mitigation is not "they look the
- * same": `tests/unit/formatting/money-vectors.test.ts` drives this copy over a
- * vector file the backend drives its own copy over. The arithmetic is by hand
- * because `amountMinor / 10 ** minorUnit` is an inexact binary float.
+ * So there are two implementations, and the mitigation is not "they look the same".
+ * `tests/unit/formatting/money-vectors.test.ts` drives this copy over a vector file the backend
+ * drives its own copy over. The arithmetic is by hand because `amountMinor / 10 ** minorUnit`
+ * is an inexact binary float.
  */
 
 const MIN_MINOR_UNIT = 0;
@@ -61,9 +60,9 @@ export interface MoneyFormatInput {
  * currency's own exponent rather than left to `Intl`'s default. `Intl` knows
  * the conventional exponent for a currency code. The backend knows the one
  * the price was actually recorded in - and where those disagree, the recorded
- * one is the fact. Pinning both bounds to the same value also stops `Intl`
- * rounding a three-decimal amount to two, which would display a price that is
- * not the price.
+ * one is the fact. Pinning both bounds to the same value also stops `Intl` from
+ * rounding a three-decimal amount to two. Such rounding would display a price
+ * that is not the price.
  *
  * The locale defaults to `en-US` and is a parameter rather than a constant so
  * that adding a locale is configuration rather than a refactor. The site is

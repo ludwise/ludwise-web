@@ -14,7 +14,7 @@ export interface AnalyticsEvent {
   readonly name: string;
   /**
    * Schema version for this event only. Increase it when a property is added or its
-   * meaning changes, so downstream analysis can separate the two shapes instead
+   * meaning changes. Downstream analysis can then separate the two shapes instead
    * of silently averaging across a redefinition.
    */
   readonly version: number;

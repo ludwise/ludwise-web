@@ -5,8 +5,8 @@ export const TRACEPARENT_HEADER = 'traceparent';
  * Accepted shape for an inbound request id.
  *
  * This is a security control, not a style preference. The value is echoed into
- * a response header and embedded into JSON log records, so an unvalidated value
- * permits header splitting via CRLF and log forging via escaped quotes, which
+ * a response header and embedded into JSON log records. So an unvalidated value
+ * permits header splitting via CRLF and log forging via escaped quotes. That
  * would let a caller fabricate entries in the record used to investigate them.
  *
  * The character set is a superset of every identifier actually seen in the

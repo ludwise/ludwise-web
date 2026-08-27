@@ -6,7 +6,7 @@
  * rightly refuses it. Without this boundary, "Apply filters" would fail the
  * request the page had just built.
  *
- * A present-but-malformed value is carried through and refused out loud: a
+ * A present-but-malformed value is carried through and refused out loud. A
  * filter a visitor can see in the address bar and not in the results is worse
  * than one that is rejected. Shared rather than copied, because a second copy
  * turns `''` into a `0` nobody asked for and nobody can see.

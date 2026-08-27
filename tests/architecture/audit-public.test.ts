@@ -10,8 +10,8 @@ import { readFileSync, writeFileSync } from 'node:fs';
  * a synthetic secret in a real tracked file and checking the audit fails.
  *
  * Written against an audit that reported a clean tree, this found two ways it
- * was blind - `RULE_FILES` skipping whole files rather than the one rule they
- * needed skipped, and lockfile integrity hashes suppressed by line rather than
+ * was blind. `RULE_FILES` skipped whole files rather than the one rule they
+ * needed skipped. Lockfile integrity hashes were suppressed by line rather than
  * by span. These tests exist so neither can come back quietly.
  *
  * The payloads carry a `not-a-real-secret` marker, typed deliberately at each
@@ -64,8 +64,8 @@ describe('the public-repository audit', () => {
   });
 
   // The files an extension allowlist used to skip in silence. `.dev.vars.example`
-  // is the likeliest place for a real credential to be pasted by accident, since
-  // its whole job is to look like the file that holds them.
+  // is the likeliest place for a real credential to be pasted by accident. The
+  // reason is that its whole job is to look like the file that holds them.
   it.each(['.dev.vars.example', '.gitattributes'])(
     'reads %s, which an extension allowlist would skip',
     (file) => {

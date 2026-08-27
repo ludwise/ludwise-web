@@ -2,7 +2,7 @@
  * Starts the fake backend and the site together, so a suite can just run.
  *
  * Two processes rather than one, because that is genuinely the shape of the
- * system now: this repository is a site that talks to a backend, and a suite
+ * system now. This repository is a site that talks to a backend. A suite
  * that did not exercise the boundary would be testing something other than what
  * is deployed.
  *

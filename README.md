@@ -3,11 +3,11 @@
 The public website for [LUDWISE](https://ludwise.com), a transparent PC game
 store comparison and discovery platform.
 
-This repository holds the **interface**: the pages a visitor sees, the design
-system they are built from, and the client that asks the backend for data. It
-holds no catalog logic, no database, and no provider integrations. Those live
-in a separate private repository, and this one is built to be readable and
-runnable without it.
+This repository holds the **interface**. That means the pages a visitor sees,
+the design system they are built from, and the client that asks the backend for
+data. It holds no catalog logic, no database, and no provider integrations.
+Those live in a separate private repository. This one is built to be readable
+and runnable without it.
 
 > **Status:** staging only. Production has not been launched.
 

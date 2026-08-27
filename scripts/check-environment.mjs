@@ -1,10 +1,10 @@
 /**
  * Refuses a deployment whose backend binding names the wrong environment.
  *
- * The worst configuration mistake available here: a staging site reading
- * production data publishes production prices on a hostname not meant to be
- * public, and leaves staging's own data untrustworthy for the testing it exists
- * to do.
+ * The worst configuration mistake available here is a staging site reading
+ * production data. That publishes production prices on a hostname not meant to
+ * be public. It also leaves staging's own data untrustworthy for the testing it
+ * exists to do.
  *
  * Cloudflare makes this mostly structural - a service binding names a Worker
  * script, not a URL, so there is no hostname a mistyped variable could
@@ -26,9 +26,9 @@ import { readFileSync } from 'node:fs';
  *
  * Wrangler refuses to deploy a binding naming an entrypoint the target Worker
  * does not export. So a missing one is a failed deploy rather than a broken
- * site. This check moves that failure earlier, and catches the other direction
- * too: a binding that quietly lost its `entrypoint` would deploy happily and
- * 404 every page.
+ * site. This check moves that failure earlier. It also catches the other
+ * direction: a binding that quietly lost its `entrypoint` would deploy happily
+ * and 404 every page.
  */
 const ENTRYPOINT = 'VisitorRead';
 
@@ -124,8 +124,8 @@ const bindings = environment.services ?? [];
 const backend = bindings.find((service) => service.binding === 'BACKEND');
 
 if (backend === undefined) {
-  // Not inherited from the top level, and this is where that matters: wrangler
-  // does not inherit bindings into named environments, so an absent one here
+  // Not inherited from the top level, and this is where that matters. Wrangler
+  // does not inherit bindings into named environments. So an absent one here
   // means the deployed Worker would have no backend at all.
   console.error(
     `::error::The "${target}" environment declares no BACKEND service binding.\n` +
@@ -153,7 +153,7 @@ if (backend.entrypoint !== ENTRYPOINT) {
   process.exit(1);
 }
 
-// The other environments too, so a change that swapped two blocks fails here
+// The other environments too. A change that swapped two blocks then fails here
 // rather than on the next deploy of whichever one was not being checked.
 for (const [name, expected] of Object.entries(EXPECTED)) {
   const other = config.env?.[name]?.services?.find((service) => service.binding === 'BACKEND');

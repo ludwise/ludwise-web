@@ -2,9 +2,9 @@
 
 The Apache-2.0 licence in `LICENSE` covers **code**. It says nothing useful
 about a name, a wordmark or a logo, and section 6 of that licence says so
-explicitly. This file is where the rest is stated, because a permissive code
-licence that stayed silent about the brand would imply by omission that the
-brand came with it.
+explicitly. This file is where the rest is stated. The reason is that a
+permissive code licence that stayed silent about the brand would imply by
+omission that the brand came with it.
 
 ## What is reserved
 
@@ -26,10 +26,11 @@ Concretely:
 - **A fork must be renamed.** Change the name in `package.json`, in the
   `<title>` and header, and replace the favicon and logo marks. A build that
   keeps them is holding itself out as this project.
-- **Describing origin is fine and expected.** "Based on LUDWISE", "a fork of
-  LUDWISE", or a line in a README saying where the code came from is nominative
-  use and needs no permission. Apache-2.0 section 6 already carves this out, and
-  removing attribution would be worse rather than safer.
+- **Describing origin is fine and expected.**
+  "Based on LUDWISE", "a fork of LUDWISE", or a line in a README saying where
+  the code came from is nominative use. It needs no permission. Apache-2.0
+  section 6 already carves this out. Removing attribution would be worse rather
+  than safer.
 - **The marks may be reproduced where the licence requires it** - `NOTICE` names
   them, and carrying `NOTICE` forward is an obligation rather than a violation.
 - **Screenshots, articles, talks and comparisons** are ordinary referential use
@@ -53,4 +54,4 @@ them. No affiliation or endorsement is implied by their appearance.
 ## Questions
 
 Open an issue. A question about whether a particular use is acceptable is
-better asked than guessed at, and the answer usually turns out to be yes.
+better asked than guessed at. The answer usually turns out to be yes.

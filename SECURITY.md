@@ -22,10 +22,12 @@ Please include:
 ### What to expect
 
 This project is maintained by one person, so there is no staffed response rota
-and no guaranteed response time. In practice: an acknowledgement when the report
-is read, an assessment of severity and a plan once it has been reproduced,
-progress updates while a fix is in preparation, and credit for the reporter
-unless anonymity is preferred.
+and no guaranteed response time. In practice, you can expect:
+
+- An acknowledgement when the report is read.
+- An assessment of severity and a plan once it has been reproduced.
+- Progress updates while a fix is in preparation.
+- Credit for the reporter unless anonymity is preferred.
 
 If you do not hear back within a couple of weeks, send a follow-up — a missed
 message is far more likely than a deliberate silence.
@@ -56,9 +58,11 @@ not published here. A finding in the backend reached _through_ this site is
 firmly in scope and worth reporting. A finding you inferred about the backend
 in isolation is better reported the same way, and will be routed.
 
-Also out of scope: vulnerabilities in Cloudflare, GitHub or third-party services
-themselves, findings requiring a compromised developer machine, and reports
-produced solely by an automated scanner with no demonstrated impact.
+These are also out of scope:
+
+- Vulnerabilities in Cloudflare, GitHub or third-party services themselves.
+- Findings requiring a compromised developer machine.
+- Reports produced solely by an automated scanner with no demonstrated impact.
 
 ## What this repository can and cannot reach
 

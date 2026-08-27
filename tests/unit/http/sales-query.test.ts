@@ -29,9 +29,9 @@ describe('toBrowseSalesInput', () => {
 
   /**
    * The whole form submitted untouched. Every control is blank, which means the
-   * visitor asked for nothing - not that they asked for zero. `Number('')` is
-   * 0, and a parser that let that through would turn "Apply filters" on an
-   * empty form into a request the page itself had just made impossible.
+   * visitor asked for nothing - not that they asked for zero. `Number('')` is 0.
+   * A parser that let that through would turn "Apply filters" on an empty form
+   * into a request the page itself had just made impossible.
    */
   it('treats an untouched form as no filters at all', () => {
     expect(
@@ -87,8 +87,8 @@ describe('toBrowseSalesInput', () => {
   });
 
   it('does not upper-case a market a visitor typed in lower case', () => {
-    // Correcting it here would hide a malformed link rather than report it,
-    // and the use case is where the shape of a market code is decided.
+    // Correcting it here would hide a malformed link rather than report it.
+    // The use case is where the shape of a market code is decided.
     expect(read('market=de&currency=eur')).toMatchObject({
       marketCode: 'de',
       currencyCode: 'eur',
@@ -102,10 +102,10 @@ describe('toBrowseSalesInput', () => {
   /**
    * The market/currency select the filter form renders is one control
    * offering only the pairs that actually hold a sale (#2's fix for a
-   * visitor being able to submit an impossible pair), so its one submitted
+   * visitor being able to submit an impossible pair). So its one submitted
    * value carries both codes together, joined by `|`. `market`/`currency`
-   * stay readable separately - a direct link still names them that way,
-   * and `pair` is this parser's problem to translate, not a second public
+   * stay readable separately. A direct link still names them that way.
+   * `pair` is this parser's problem to translate, not a second public
    * contract.
    */
   it('reads a combined market/currency pair as both codes', () => {

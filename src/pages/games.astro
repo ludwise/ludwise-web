@@ -20,9 +20,9 @@ const input: GameSearchInput = toGameSearchInput(params);
  * Three outcomes, and they are deliberately not two.
  *
  * `view === null` with `failureCode` set means we could not find out what the
- * catalog holds. That is not the same as a catalog holding nothing, and
- * rendering it as an empty result would tell a visitor there are no games when
- * the truth is that we failed to ask. The template keeps them apart and this
+ * catalog holds. That is not the same as a catalog holding nothing. Rendering
+ * it as an empty result would tell a visitor there are no games when the truth
+ * is that we failed to ask. The template keeps them apart and this
  * frontmatter has to give it the information to do so.
  *
  * A rejection is the third: the request was refused for what it contained, the

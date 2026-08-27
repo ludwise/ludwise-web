@@ -1,11 +1,12 @@
 /**
  * Shared test vectors for `formatAmountMinor`.
  *
- * Architecture decision record 0023 accepts that this one function exists twice - once in the backend's
- * private domain layer, once in the public web client that cannot import it.
- * This is the mitigation: both repositories drive their own implementation over
- * this exact table. So the two agree because each was checked against one
- * statement of the answer rather than because somebody diffed them once.
+ * Architecture decision record 0023 accepts that this one function exists twice.
+ * One copy is in the backend's private domain layer. The other is in the public
+ * web client that cannot import it. This is the mitigation: both repositories
+ * drive their own implementation over this exact table. So the two agree because
+ * each was checked against one statement of the answer rather than because
+ * somebody diffed them once.
  *
  * Checked in to both repositories and must stay byte-identical. Changing it in
  * one place only is the failure this exists to prevent. Several cases are
@@ -33,7 +34,7 @@ export const MONEY_VECTORS: readonly MoneyVector[] = [
   { amountMinor: 5, minorUnit: 3, expected: '0.005', why: 'padding past the decimal point' },
 
   // Amounts smaller than one major unit must keep a leading zero. '.05' is not
-  // a number a person reads, and it is what an unpadded implementation emits.
+  // a number a person reads. It is what an unpadded implementation emits.
   { amountMinor: 5, minorUnit: 2, expected: '0.05', why: 'leading zero, not ".05"' },
   { amountMinor: 50, minorUnit: 2, expected: '0.50', why: 'trailing zero is significant' },
   { amountMinor: 0, minorUnit: 2, expected: '0.00', why: 'free is 0.00, never empty' },
@@ -66,8 +67,8 @@ export const MONEY_VECTORS: readonly MoneyVector[] = [
  *
  * Each produced a corrupt string before it was a guard. The corruption is
  * recorded so a future reader can see these are not defensive decoration. The
- * two repositories throw different error types - the backend raises its own
- * `DomainError`, the web client a plain `RangeError` - so the shared assertion
+ * two repositories throw different error types. The backend raises its own
+ * `DomainError`, the web client a plain `RangeError`. So the shared assertion
  * is that something is thrown, not what.
  */
 export const REJECTED_MONEY_VECTORS: readonly Omit<MoneyVector, 'expected'>[] = [

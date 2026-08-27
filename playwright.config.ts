@@ -22,10 +22,9 @@ const BACKEND_PORT = process.env.LUDWISE_FAKE_BACKEND_PORT ?? '8788';
 /**
  * Which fixtures the backend serves, and whether it answers at all.
  *
- * `degraded.spec.ts` runs under its own configuration with this set to `unavailable`,
- * because "the backend is not there" is a property of the whole process rather
- * than of one request, and cannot be toggled mid-suite without one test
- * changing another's world.
+ * `degraded.spec.ts` runs under its own configuration with this set to `unavailable`. The reason
+ * is that "the backend is not there" is a property of the whole process rather than of one
+ * request. It cannot be toggled mid-suite without one test changing another's world.
  */
 const MODE = process.env.LUDWISE_FAKE_BACKEND_MODE ?? 'populated';
 
@@ -62,9 +61,8 @@ export default defineConfig({
     },
     {
       command: 'pnpm exec astro dev --port 4321',
-      // The health endpoint cannot answer until configuration has validated,
-      // so waiting on it means the site is genuinely ready rather than merely
-      // bound to a port.
+      // The health endpoint cannot answer until configuration has validated. So waiting on it
+      // means the site is genuinely ready rather than merely bound to a port.
       url: `${BASE_URL}/api/health`,
       reuseExistingServer: !process.env.CI,
       timeout: 120_000,

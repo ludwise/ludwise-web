@@ -4,10 +4,12 @@ import { adviseGameSearch, adviseSales } from '../../../src/lib/http/filter-advi
 
 /**
  * These tables turn the backend's field names into sentences a visitor can
- * act on. The backend's own `reason` string is deliberately not shown - see
- * the module header - so what matters here is that every refusable field maps
- * to something, that shared causes are deduplicated, and that a field this
- * build does not recognize is dropped rather than leaking an internal name.
+ * act on. The backend's own `reason` string is deliberately not shown, as the
+ * module header explains. Three things matter here.
+ * Every refusable field maps to something.
+ * Shared causes are deduplicated.
+ * A field this build does not recognize is dropped rather than leaking an
+ * internal name.
  */
 
 describe('adviseGameSearch', () => {

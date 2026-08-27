@@ -15,10 +15,10 @@ import { optionalInteger, optionalText, repeatedText } from './query-params.js';
 import type { BrowseSalesInput } from '../api/contract.js';
 
 /**
- * Joins a combined `pair` value's two sides. Kept out of query-params.ts: no
- * other boundary needs it. Exported so the page builds an option value with
- * the identical separator this function splits on, rather than a second
- * literal that could drift from this one.
+ * Joins a combined `pair` value's two sides. Kept out of query-params.ts,
+ * because no other boundary needs it. Exported so the page builds an option
+ * value with the identical separator this function splits on. A second
+ * literal could drift from this one.
  */
 export const PAIR_SEPARATOR = '|';
 
@@ -26,9 +26,9 @@ export const PAIR_SEPARATOR = '|';
  * Reads a combined `market|currency` value, as the filter form's one
  * market/currency control submits it (#2: a single control offering only
  * the pairs that hold a sale. So a visitor cannot submit a market and a
- * currency that were never paired). `undefined` for anything that is not
- * exactly two non-empty sides - not a value to guess at a meaning for -
- * which falls the caller back to `market` / `currency` read separately.
+ * currency that were never paired). It returns `undefined` for anything that
+ * is not exactly two non-empty sides. That is not a value to guess at a
+ * meaning for. It falls the caller back to `market` / `currency` read separately.
  */
 function readPair(
   params: URLSearchParams,

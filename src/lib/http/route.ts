@@ -13,8 +13,8 @@ export interface RouteInfo {
  * Collapses high-cardinality path segments.
  *
  * Without this a crawler walking fifty thousand URLs produces fifty thousand
- * distinct route values, which makes every dashboard grouped by route useless
- * and inflates metric cardinality without adding information.
+ * distinct route values. That makes every dashboard grouped by route useless.
+ * It also inflates metric cardinality without adding information.
  */
 export function sanitizePathname(pathname: string): string {
   const segments = pathname.split('/').filter((segment) => segment.length > 0);

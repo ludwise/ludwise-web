@@ -2,8 +2,8 @@
  * Configuration validation, and the guardrail that keeps environments apart.
  *
  * The validation half is ordinary. The `assertEnvironmentsMatch` half is the
- * reason this file matters: a staging site reading production data publishes
- * production prices on a hostname that is not meant to be public, and makes
+ * reason this file matters. A staging site reading production data publishes
+ * production prices on a hostname that is not meant to be public. It also makes
  * staging's own data untrustworthy for the testing it exists to do. It is the
  * single worst configuration mistake available in this architecture. So it is
  * the one with a test naming every combination rather than a representative
@@ -84,7 +84,7 @@ describe('loadConfig', () => {
 
   it('refuses a timeout that would disable itself', () => {
     // Zero and negative values are the shapes that would silently mean "no
-    // ceiling" in a naive implementation, which is the one thing the timeout
+    // ceiling" in a naive implementation. That is the one thing the timeout
     // exists to prevent.
     for (const value of ['0', '-1', 'soon', '1.5', 'Infinity']) {
       expect(() => loadConfig({ ...VALID, BACKEND_TIMEOUT_MS: value }), value).toThrow(ConfigError);
@@ -132,7 +132,7 @@ describe('assertEnvironmentsMatch', () => {
   /**
    * Every crossing, named individually rather than sampled.
    *
-   * The table is small enough to write out, and writing it out is what makes
+   * The table is small enough to write out. Writing it out is what makes
    * the one permitted exception visible as an exception rather than as a gap.
    */
   const CROSSINGS: readonly [Environment, string, 'allowed' | 'refused'][] = [
@@ -141,9 +141,9 @@ describe('assertEnvironmentsMatch', () => {
     // data that is already disposable.
     ['development', 'staging', 'allowed'],
 
-    // development -> production is refused as firmly as staging -> production: a
-    // developer's experiment reading real data over an unaudited binding is the
-    // accident this function exists to prevent.
+    // development -> production is refused as firmly as staging -> production.
+    // A developer's experiment reading real data over an unaudited binding is
+    // the accident this function exists to prevent.
     ['development', 'production', 'refused'],
     ['staging', 'production', 'refused'],
     ['staging', 'development', 'refused'],

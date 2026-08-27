@@ -341,9 +341,9 @@ export interface LudwiseApi {
  *
  * An explicit allowlist of three operations rather than a general "call the
  * backend" function, and that is a security boundary rather than an interface
- * preference. A client that could be handed a path would be a proxy, and a
- * proxy reachable from a page is how `/ops` and internal routes become
- * publicly reachable through the front door. There is no path parameter here
+ * preference. A client that could be handed a path would be a proxy. A proxy
+ * reachable from a page is how `/ops` and internal routes become publicly
+ * reachable through the front door. There is no path parameter here
  * and there must never be one.
  *
  * Constructing it costs nothing and touches nothing, so middleware can install

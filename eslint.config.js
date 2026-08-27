@@ -8,11 +8,10 @@ import ludwise from './eslint-rules/max-comment-block-lines.js';
 //
 // Every zone below is a `no-restricted-imports` configuration on a `files` scope.
 // Flat configuration does NOT merge a rule's options across objects: the last matching
-// object wins outright. A zone that switches off whatever a broader one
-// installed unless it repeats it - which is why the platform group is a shared
-// constant spread into each zone rather than retyped, and why
-// tests/architecture/boundaries.test.ts asserts the platform ban independently
-// of this file.
+// object wins outright. A zone switches off whatever a broader one installed unless it repeats
+// it. That is why the platform group is a shared constant spread into each zone rather than
+// retyped. It is also why tests/architecture/boundaries.test.ts asserts the platform ban
+// independently of this file.
 //
 // This repository's layering is much simpler than the backend's, and
 // deliberately so: there is no domain, no persistence and no provider layer
@@ -31,9 +30,8 @@ const platformNeutral = {
 // The one restriction helper. There is no directory-zone list here as there is
 // in the backend. That absence is the split working: the layers a zone list
 // would separate - domain, persistence, providers - are exactly what moved to
-// the private repository. The rules that remain are scoped by `files` because
-// what they constrain is which *files* may import a thing, not which
-// directories may import each other.
+// the private repository. The rules that remain are scoped by `files`. The reason is that they
+// constrain which *files* may import a thing, not which directories may import each other.
 const restrictImports = (...patterns) => ({
   'no-restricted-imports': ['error', { patterns }],
 });
@@ -49,9 +47,9 @@ export default tseslint.config(
       'test-results/**',
       'playwright-report/**',
       'worker-configuration.d.ts',
-      // The vendored design-system handoff. Reference material, not source:
-      // its component examples are inline-styled React written for the design
-      // tooling, and linting them would report on code that is never built.
+      // The vendored design-system handoff. Reference material, not source.
+      // Its component examples are inline-styled React written for the design
+      // tooling. Linting them would report on code that is never built.
       'design/**',
       // Recorded backend responses. Data, not source.
       'tests/fixtures/corpus/**',
@@ -150,8 +148,8 @@ export default tseslint.config(
   // This buys three things at once:
   //   1. src/lib/ unit-tests under plain Vitest with no workerd and no Astro
   //      configuration load, because there are no virtual modules to resolve.
-  //   2. The API client takes its `fetch` as an argument, which is what lets a
-  //      test drive it without a network and what lets production hand it a
+  //   2. The API client takes its `fetch` as an argument. That argument lets a
+  //      test drive it without a network. It also lets production hand it a
   //      service binding.
   //   3. Platform portability stays cheap rather than becoming a rewrite.
   //

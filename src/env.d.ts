@@ -17,9 +17,8 @@ declare global {
       /**
        * The W3C traceparent this request will forward to the backend.
        *
-       * Formatted once in middleware rather than at each call site, so the site
-       * cannot report one trace to its own logs and a different one to the
-       * backend's.
+       * Formatted once in middleware rather than at each call site. The site therefore
+       * cannot report one trace to its own logs and a different one to the backend's.
        */
       traceparent: string;
       /** Wall-clock start, used to derive request duration. */
@@ -33,15 +32,14 @@ declare global {
       /**
        * The backend client for this request.
        *
-       * A thunk for the same reason the backend's own database handle is one:
-       * most responses never ask the backend anything, and resolving the
-       * binding eagerly would make an unbound `BACKEND` fail every request
-       * including the liveness probe. Memoised per request, so the correlation
-       * identifiers are captured once.
+       * A thunk for the same reason the backend's own database handle is one. Most responses
+       * never ask the backend anything. Resolving the binding eagerly would make an unbound
+       * `BACKEND` fail every request including the liveness probe. Memoised per request, so
+       * the correlation identifiers are captured once.
        *
-       * This is the only way a page may reach data. There is no database
-       * handle, no provider client and no generic fetch here, and there must
-       * never be one - `tests/architecture/boundaries.test.ts` enforces it.
+       * This is the only way a page may reach data. There is no database handle, no provider
+       * client and no generic fetch here, and there must never be one.
+       * `tests/architecture/boundaries.test.ts` enforces it.
        */
       backend: () => LudwiseApi;
     }

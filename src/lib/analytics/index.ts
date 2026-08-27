@@ -23,9 +23,9 @@ export type {
  * signature exists so that selecting a vendor later changes this one function
  * and nothing at the call sites.
  *
- * Failures are logged on the operational channel, never as analytics: an
- * analytics transport failure is an operational fact about the system, not a
- * measurement of what a visitor did.
+ * Failures are logged on the operational channel, never as analytics. An
+ * analytics transport failure is an operational fact about the system. It is
+ * not a measurement of what a visitor did.
  */
 export function createAnalytics(config: AppConfig, logger: Logger): AnalyticsProvider {
   if (!config.analyticsEnabled) return noopAnalytics;
