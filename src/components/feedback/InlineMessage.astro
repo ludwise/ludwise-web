@@ -3,12 +3,12 @@
  * Reference: design/system/components/feedback.md § InlineMessage — prop
  * contract ported verbatim.
  *
- * Bound to the region it describes: a failed panel, a partial result, a stale
+ * Bound to the surface it describes: a failed panel, a partial result, a stale
  * section. PRODUCT.md §56 requires one provider failing to scope its warning to
  * that section rather than read as a platform outage.
  *
  * `children` and `action` are ReactNode in the reference. Astro has no
- * equivalent "arbitrary renderable" prop, so they become the default slot and a
+ * equivalent "arbitrary renderable" prop. So they become the default slot and a
  * named "action" slot — the same capability, expressed the way this framework
  * passes markup into a component.
  */
@@ -36,10 +36,11 @@ const TONE_ICON: Record<MessageTone, IconName> = {
 /**
  * The word that carries tone for a screen reader.
  *
- * `TONE_ICON` above is aria-hidden, so without this an info message and a
- * warning are indistinguishable — accessibility.md's "never colour alone",
- * applied to a channel that is not colour at all. `neutral` has no word: it is
- * the tone with no claim to make, so there is nothing true to announce.
+ * `TONE_ICON` above is aria-hidden. Without this an info message and a
+ * warning are indistinguishable. That is accessibility.md's "never color
+ * alone", applied to a channel that is not color at all. `neutral` has no
+ * word: it is the tone with no claim to make, so there is nothing true to
+ * announce.
  */
 const TONE_WORD: Partial<Record<MessageTone, string>> = {
   info: 'Information',

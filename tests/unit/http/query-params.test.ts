@@ -42,12 +42,12 @@ describe('optionalInteger', () => {
   /**
    * `Number` reads '0x10' as 16, '1e3' as 1000 and ' 12 ' as 12, none of which
    * a number input can produce. Carrying the malformed value through as NaN is
-   * what makes the use case refuse it out loud, rather than the parser quietly
-   * inventing a filter the visitor can see in the address bar and not in the
+   * what makes the use case refuse it out loud. The parser does not quietly
+   * invent a filter the visitor can see in the address bar and not in the
    * results.
    */
   // Not '%2B1': a leading sign is a decimal integer, and a bare '+' in a
-  // query string decodes to a space, so both are values a form can produce.
+  // query string decodes to a space. So both are values a form can produce.
   it.each(['one', '12.5', '1e3', '0x7e4', '1_000', '--1', '3px'])(
     'keeps %s malformed so the use case refuses it',
     (value) => {

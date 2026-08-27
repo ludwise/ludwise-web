@@ -1,3 +1,7 @@
+---
+ste-prose: descriptive
+---
+
 # Governance
 
 The system is **closed to arbitrary modification, open to deliberate extension** — the same stance `PRODUCT.md` §11.10 takes on the platform itself.

@@ -4,9 +4,9 @@ import { expect, test, type Page } from '@playwright/test';
 import { THEME_COOKIE_NAME } from '../../src/lib/http/theme.js';
 
 /**
- * The one end-to-end spec.
+ * The one end-to-end specification.
  *
- * It answers what no other layer can: that the application boots in a real
+ * It answers what no other layer can. That the application boots in a real
  * engine, that the shell renders, that navigation works, and that an
  * accessibility audit finds nothing. Everything cheaper to assert elsewhere is
  * asserted elsewhere - this is not where features get tested.
@@ -18,8 +18,8 @@ import { THEME_COOKIE_NAME } from '../../src/lib/http/theme.js';
 
 const THEMES = ['light', 'dark'] as const;
 
-// Imported rather than retyped: ADR 0013 makes the point that the cookie name
-// should be defined once, and a test hard-coding 'theme' is a third place for
+// Imported rather than retyped: Architecture decision record 0013 makes the point that the cookie name
+// must be defined once. A test hard-coding 'theme' is a third place for
 // it to drift.
 const THEME_COOKIE = THEME_COOKIE_NAME;
 const BASE_URL = 'http://localhost:4321';
@@ -29,19 +29,19 @@ const BASE_URL = 'http://localhost:4321';
  * theme: `--color-accent-primary` on the page background measures 2.06:1.
  *
  * Excluded because WCAG 1.4.3 exempts it — "text that is part of a logo or
- * brand name has no contrast requirement" — and the colour is the design
+ * brand name has no contrast requirement" — and the color is the design
  * system's own, specified in design/system/components/foundation.md. Changing
  * it here would be redesigning the brand to satisfy a rule that does not apply
  * to it.
  *
  * It is a narrow exclusion of one element rather than of the rule, so any other
  * contrast failure anywhere still fails. The underlying legibility question is
- * raised with the designer separately; delete this the moment the wordmark's
- * colour changes.
+ * raised with the designer separately. Delete this the moment the wordmark's
+ * color changes.
  */
 const LOGOTYPE = '.lw-header__wordmark-accent';
 
-/** Astro removes the `ssr` attribute from an island once it has hydrated. */
+/** Astro removes the `ssr` attribute from an island once it has filled. */
 async function waitForHydration(page: Page): Promise<void> {
   await page.waitForFunction(() => document.querySelector('astro-island[ssr]') === null);
 }
@@ -75,7 +75,7 @@ test.describe('the application shell', () => {
     await page.goto('/');
 
     // The declaration, then the file. Asserting only the tag would pass with a
-    // link pointing at nothing, which is exactly the state this replaces: the
+    // link pointing at nothing. That is exactly the state this replaces: the
     // browser probes /favicon.ico, gets a 404 and shows its default glyph.
     const href = await page.locator('link[rel="icon"]').getAttribute('href');
     expect(href).toBe('/favicon.svg');
@@ -92,7 +92,7 @@ test.describe('the application shell', () => {
     const skipLink = page.getByRole('link', { name: 'Skip to content' });
     await expect(skipLink).toBeFocused();
     // Hidden until focused, then genuinely rendered - a skip link that stays
-    // clipped is one a sighted keyboard user cannot follow.
+    // clipped is one a sighted keyboard operator cannot follow.
     await expect(skipLink).toBeVisible();
   });
 
@@ -123,8 +123,8 @@ test.describe('the application shell', () => {
 
     expect(response?.status()).toBe(404);
     // A heading, not merely the text. Styled as one but marked up as a span,
-    // this page has no structure at all for anyone navigating by heading -
-    // and no axe rule in the WCAG tag set reports it.
+    // this page has no structure at all for anyone navigating by heading.
+    // No axe rule in the WCAG tag set reports it.
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('Page not found');
   });
 
@@ -155,7 +155,7 @@ test.describe('the application shell', () => {
  *
  * This suite runs against `astro dev`, where ENVIRONMENT is `development` - one
  * of the two environments that must not be indexed. The production case is the
- * one that matters more and cannot be exercised here; it is asserted in
+ * one that matters more and cannot be exercised here. It is asserted in
  * tests/unit/http/security-headers.test.ts, in tests/integration/api/robots.test.ts,
  * and against the deployment itself in .github/workflows/deploy-production.yml.
  *
@@ -197,7 +197,7 @@ test.describe('theme', () => {
     const page = await context.newPage();
     await page.goto('/');
 
-    // Set before first paint by the inline script, since the server had no
+    // Set before first paint by the inline script, because this Worker had no
     // preference to render.
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
     await context.close();
@@ -206,7 +206,7 @@ test.describe('theme', () => {
   test('records a toggled preference and keeps it across a navigation', async ({ page }) => {
     await page.goto('/');
     // The toggle is an island. Playwright will happily click a button that is
-    // in the DOM but whose handler React has not attached yet, and the click
+    // in the DOM but whose handler React has not attached yet. The click
     // then does nothing - a flake that looks like a broken toggle.
     await waitForHydration(page);
 
@@ -248,7 +248,7 @@ test.describe('theme', () => {
     expect(dialogs).toEqual([]);
     expect(await page.locator('script').count()).toBe(scriptsWithoutAttack);
 
-    // A real theme is allowed here: the pre-paint script sets one once the
+    // A real theme is allowed here. The pre-paint script sets one once the
     // server has declined to, which is rejecting the cookie rather than
     // escaping it. What must never appear is the payload.
     const rendered = await page.locator('html').getAttribute('data-theme');
@@ -260,8 +260,8 @@ test.describe('theme', () => {
     browser,
   }) => {
     // JavaScript off, so the pre-paint script cannot supply a valid value and
-    // what remains is exactly what the server chose to emit. This is the
-    // sanitiser under test, with nothing standing in front of it.
+    // what remains is exactly what this Worker chose to emit. This is the
+    // sanitiser these tests exercise, with nothing standing in front of it.
     const context = await browser.newContext({ javaScriptEnabled: false });
     await context.addCookies([
       { name: THEME_COOKIE, value: 'dark"><script>alert(1)</script>', url: BASE_URL },
@@ -278,8 +278,8 @@ test.describe('theme', () => {
 test.describe('accessibility', () => {
   for (const theme of THEMES) {
     // The not-found route is audited too. It is composed differently from the
-    // product routes - an EmptyState standing alone rather than inside a page
-    // - and it is the route a visitor is most likely to reach by accident.
+    // product routes, as an EmptyState standing alone rather than inside a
+    // page. It is also the route a visitor is most likely to reach by accident.
     for (const path of ['/', '/games', '/sales', '/this-route-does-not-exist']) {
       test(`${path} has no violations in the ${theme} theme`, async ({ browser }) => {
         const context = await browser.newContext();
@@ -305,7 +305,7 @@ test.describe('responsive', () => {
         await page.setViewportSize({ width, height: 900 });
         await page.goto(path);
 
-        // Deliberately does not wait for hydration: the server-rendered layout
+        // Deliberately does not wait for hydration. The server-rendered layout
         // has to be correct on its own, for a slow connection and for a visitor
         // with JavaScript disabled.
 

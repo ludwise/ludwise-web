@@ -6,9 +6,9 @@ import { fileURLToPath } from 'node:url';
  * A deliberately small import scanner, used by tests/architecture/ to assert
  * the layering rules over the real source tree.
  *
- * Regex-based rather than AST-based, because the alternative is a parser
- * dependency that has to understand TypeScript, JSX and Astro frontmatter to
- * answer a question about the first token of a line. What that costs in
+ * Regex-based rather than AST-based. The alternative is a parser dependency
+ * that has to understand TypeScript, JSX and Astro frontmatter. All it would
+ * answer is a question about the first token of a line. What that costs in
  * precision is enumerated in boundaries.test.ts, which is the only consumer.
  */
 
@@ -20,9 +20,9 @@ const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..');
  * the ones currently in use.
  *
  * `.js`, `.mjs`, `.cjs` and `.jsx` are here because their absence was a
- * complete bypass: a plain `.js` file under `src/lib/` importing
- * `cloudflare:workers` was invisible to every rule, and nothing in the tree is
- * written in `.js` today - which is exactly why nobody would have noticed.
+ * complete bypass. A plain `.js` file in `src/lib/` importing
+ * `cloudflare:workers` was invisible to every rule. Nothing in the tree is
+ * written in `.js` today, which is exactly why nobody would have noticed.
  */
 export const SCANNED_EXTENSIONS = ['.ts', '.tsx', '.astro', '.js', '.mjs', '.cjs', '.jsx'];
 
@@ -77,7 +77,7 @@ export function importsInFile(file: string): string[] {
 }
 
 /**
- * Every source file under a repository-relative directory, as POSIX paths.
+ * Every source file in a repository-relative directory, as POSIX paths.
  *
  * Sorted, so a failure lists the same files in the same order on every
  * machine and a diff of two runs is readable.
@@ -103,8 +103,8 @@ export function listSourceFiles(directory: string): string[] {
  * name a file in this repository.
  *
  * The extension is left exactly as written. Callers match on directory
- * prefixes, so rewriting `.js` back to `.ts` would be work in service of
- * nothing - and getting it wrong would silently drop edges.
+ * prefixes. So rewriting `.js` back to `.ts` would be work in service of
+ * nothing, and getting it wrong would silently drop edges.
  */
 export function resolveSpecifier(fromFile: string, specifier: string): string | null {
   if (specifier.startsWith(ALIAS_PREFIX)) {

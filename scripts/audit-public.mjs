@@ -6,11 +6,11 @@ import { execSync } from 'node:child_process';
  *
  * `tests/architecture/boundaries.test.ts` checks `src/`. This checks
  * *everything tracked*, including documentation, workflows, fixtures and
- * configuration - which is where a leak would actually be, because those are
+ * configuration - which is where a leak would actually be. This is because those are
  * the files nobody thinks of as code.
  *
- * Run against `git ls-files` rather than the filesystem, so anything gitignored
- * is out of scope by construction and a `.dev.vars` sitting on disk cannot
+ * Run against `git ls-files` rather than the filesystem. Anything gitignored
+ * is out of scope by construction. A `.dev.vars` sitting on disk cannot
  * produce a false alarm about a file that will never be pushed.
  */
 
@@ -22,16 +22,17 @@ const tracked = execSync('git ls-files', { encoding: 'utf8' })
 /**
  * Which files get read, expressed as what to *skip* rather than what to allow.
  *
- * This was an allowlist of known-textual extensions, and it silently excluded
- * ten tracked files - among them `.dev.vars.example`, which is precisely the
- * file most likely to grow a real credential, and `.gitattributes`, `.npmrc`,
- * and anything a future `.sh`, `.tf` or `.toml` would add. A scanner that
- * decides what to look at by listing the formats someone remembered is one
- * that stops covering the repository the moment it grows a new kind of file,
- * and it fails silently, which is the worst way for a security check to fail.
+ * This was an allowlist of known-textual extensions, and it silently excluded ten tracked files.
+ * Among them was `.dev.vars.example`, which is precisely the file most likely to grow a real
+ * credential. Also excluded were `.gitattributes`, `.npmrc`, and anything a future `.sh`, `.tf` or
+ * `.toml` would add.
  *
- * Inverting it means a new file type is scanned by default and the only way to
- * escape review is to be unreadable as text.
+ * A scanner that decides what to look at by listing the formats someone remembered has a problem.
+ * It stops covering the repository the moment it grows a new kind of file. It also fails silently.
+ * That is the worst way for a security check to fail.
+ *
+ * Inverting it means a new file type is scanned by default and the only way to escape review is to
+ * be unreadable as text.
  */
 const BINARY =
   /\.(?:woff2?|ttf|otf|eot|png|jpe?g|gif|webp|avif|ico|pdf|zip|gz|tgz|mp4|webm|wasm)$/iu;
@@ -86,16 +87,16 @@ const PATTERNS = [
  * Matches that are structurally incapable of being the secret they resemble.
  *
  * Each of these is justified by what the value *is*, not by which file it sits
- * in, so a real credential in the same file is still caught. That distinction
+ * in. So a real credential in the same file is still caught. That distinction
  * matters: exempting `correlation.test.ts` because it trips the hex rule would
  * also exempt a genuine key pasted into it next year.
  */
 const NOT_A_SECRET = [
   // The W3C Trace Context specification's example trace id. It appears in the
-  // spec, in every tutorial, and in the tests that pin our parser against it.
+  // specification, in every tutorial, and in the tests that pin our parser against it.
   // It is a published constant, and a 32-hex rule cannot tell it from a key.
   /^4bf92f3577b34da6a3ce929d0e0e4736$/iu,
-  // All-zero and other single-character runs. The spec *requires* rejecting an
+  // All-zero and other single-character runs. The specification *requires* rejecting an
   // all-zero trace id, so the test suite is obliged to contain one. No key
   // generator emits a constant.
   /^(.)\1+$/u,
@@ -111,14 +112,14 @@ const NOT_A_SECRET = [
 ];
 
 /**
- * Subresource-integrity hashes, which are base64 and therefore contain
+ * Subresource-integrity hashes, which are base64 and thus contain
  * 40-character windows indistinguishable from a Cloudflare API token. Forty-five
  * of them occur in `pnpm-lock.yaml`.
  *
  * Matched as a *span*, and a match is suppressed only when it falls inside one.
  * The first attempt suppressed any finding on a line mentioning `integrity` or
- * `resolution`, which the mutation test immediately broke: a planted
- * tarball URL carrying basic-auth credentials, on a resolution line, went
+ * `resolution`. The mutation test immediately broke that. A planted tarball URL
+ * carrying basic authentication credentials, on a resolution line, went
  * unreported. A lockfile tarball URL is a real way for a credential to be
  * committed, so the suppression has to be narrower than the line.
  *
@@ -128,11 +129,11 @@ const NOT_A_SECRET = [
 const INTEGRITY_HASH = /\bsha(?:256|384|512)-[A-Za-z0-9+/=_-]+/gu;
 
 /**
- * Files that exist to name a forbidden thing in order to ban it. Without this,
+ * Files that exist to name a forbidden thing to ban it. Without this,
  * the audit's own pattern table reports itself for containing STEAM_API_KEY.
  *
- * The exemption is scoped to the *name* rule alone, never to the whole file: an
- * earlier version skipped these files outright, leaving all nine rules off for
+ * The exemption is scoped to the *name* rule alone, never to the whole file. An
+ * earlier version skipped these files outright. That left all nine rules off for
  * five of the most security-relevant documents in the repository. The mutation
  * test in tests/architecture/audit-public.test.ts pins that scoping.
  *
@@ -152,10 +153,10 @@ const NAME_RULE = 'a provider credential name';
 
 /**
  * An explicit, greppable marker for a value that is deliberately shaped like a
- * credential: the synthetic positives that prove a scanner can still fire, and
- * the example strings in this file's own comments.
+ * credential. It covers the synthetic positives that prove a scanner can still
+ * fire, and the example strings in this file's own comments.
  *
- * Marked at the value rather than exempted in a list at the top of a file: the
+ * Marked at the value rather than exempted in a list at the top of a file. The
  * marker has to be typed on purpose and reads in review as an admission. Some
  * of these are load-bearing - `boundaries.test.ts` plants a fake Cloudflare
  * token so its own regex cannot be silently dead.
@@ -190,9 +191,9 @@ for (const file of tracked) {
       if (inHash) continue;
       const before = source.slice(0, match.index);
       const line = before.split('\n').length;
-      // A deliberately fake value, marked on its own line or the one above it,
-      // since the natural place for the marker is the comment that explains
-      // why the value is there.
+      // A deliberately fake value, marked on its own line or the one above it.
+      // The natural place for the marker is the comment that explains why the
+      // value is there.
       const lineStart = before.lastIndexOf('\n') + 1;
       const lineEnd = source.indexOf('\n', match.index);
       const text = source.slice(lineStart, lineEnd === -1 ? source.length : lineEnd);
@@ -225,7 +226,7 @@ for (const file of tracked) {
 
 // --- Third-party network origins -------------------------------------------
 
-// Nothing here should ask a third party for anything: fonts are self-hosted,
+// Nothing here must ask a third party for anything: fonts are self-hosted,
 // there is no analytics vendor, no script comes from a CDN.
 
 // `xmlns=` is excluded rather than allowlisted - it is an identifier, not an
@@ -240,7 +241,7 @@ const ALLOWED_ORIGINS = new Set([
   'github.com',
   'www.conventionalcommits.org',
   'developers.cloudflare.com',
-  // Fixture storefronts, under the reserved .test TLD, which never resolves.
+  // Fixture storefronts, in the reserved .test TLD, which never resolves.
   'orbit-market.example.test',
   'copper-shop.example.test',
   'aurora-market.example.test',
@@ -272,9 +273,9 @@ for (const { severity, file, message } of findings) {
   console.log(`[${severity}] ${file}\n    ${message}`);
 }
 
-// Only BLOCKING fails the build. An IMPORTANT finding is a judgement call, and
-// a check that failed on every one of them would be switched off within a week
-// - which proves less than a narrow check that still runs.
+// Only BLOCKING fails the build. An IMPORTANT finding is a judgement call. A
+// check that failed on every one of them would be switched off within a week.
+// That proves less than a narrow check that still runs.
 const blocking = findings.filter((finding) => finding.severity === 'BLOCKING');
 if (blocking.length > 0) {
   console.error(`\n${String(blocking.length)} blocking finding(s). This repository is public.`);

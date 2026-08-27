@@ -10,9 +10,9 @@ import { describe, expect, it } from 'vitest';
  *
  * The handoff is explicit that the token layer is adopted verbatim: "Copy it,
  * keep the `@import` structure, change only the font loading" and "Do not
- * rename a token. If a name is wrong, raise it; do not silently diverge." Two
- * copies of one file drift the moment someone tunes a colour in whichever they
- * have open, and the divergence is invisible until a designer reviews a screen
+ * rename a token. If a name is wrong, raise it. Do not silently diverge." Two
+ * copies of one file drift the moment someone tunes a color in whichever they
+ * have open. The divergence is invisible until a designer reviews a page
  * and cannot say why it does not match.
  *
  * So this pins the whole custom-property surface - every name and value, in
@@ -32,9 +32,9 @@ const FONT_TRANSPORT_FILE = 'fonts.css';
 
 /**
  * `base.css` carries the reset, the global `:focus-visible` rule and the
- * `.lw-text-*` utilities - it consumes tokens rather than declaring any. It is
- * named here rather than skipped silently so that the emptiness is asserted:
- * a token file that lost every declaration would otherwise satisfy a
+ * `.lw-text-*` utilities. It consumes tokens rather than declaring any. It is
+ * named here rather than skipped silently so that the emptiness is asserted.
+ * A token file that lost every declaration would otherwise satisfy a
  * "declarations match" comparison by matching nothing against nothing.
  */
 const FILES_DECLARING_NO_CUSTOM_PROPERTIES = ['base.css'];
@@ -46,8 +46,8 @@ const CSS_IMPORT = /@import\s+url\(\s*["']([^"']+)["']\s*\)/g;
 /**
  * Every custom-property declaration in source order.
  *
- * Order matters and duplicates are kept: `color-semantic.css` declares each
- * token twice, once per theme, and a comparison that deduplicated them would
+ * Order matters and duplicates are kept. `color-semantic.css` declares each
+ * token twice, once per theme. A comparison that deduplicated them would
  * pass while the dark theme silently went missing.
  */
 function declarations(css: string): string[] {
@@ -107,8 +107,8 @@ describe('design token parity with the vendored bundle', () => {
       const adopted = read(join(ADOPTED_TOKENS_DIR, FONT_TRANSPORT_FILE));
 
       // PRODUCT.md section 91 makes performance a product feature. A third-party
-      // request on the critical path of every page contradicts that, and hands a
-      // font vendor the visitor's IP on a site that sets no cookies of its own.
+      // request on the critical path of every page contradicts that. It also hands
+      // a font vendor the visitor's IP on a site that sets no cookies of its own.
       expect(read(join(BUNDLE_TOKENS_DIR, FONT_TRANSPORT_FILE))).toContain('fonts.googleapis.com');
       expect(adopted).not.toContain('fonts.googleapis.com');
       expect(adopted).toContain('@font-face');
@@ -121,9 +121,9 @@ describe('design token parity with the vendored bundle', () => {
         ),
       ].map(([, url]) => url ?? '');
 
-      // A @font-face pointing at a missing file fails silently: the browser
-      // falls back and the page merely looks slightly wrong, which is exactly
-      // the kind of defect that survives review and reaches production.
+      // A @font-face pointing at a missing file fails silently. The browser falls
+      // back and the page merely looks slightly wrong. That is exactly the kind of
+      // defect that survives review and reaches production.
       expect(referenced.length).toBeGreaterThan(0);
       for (const url of referenced) {
         expect(existsSync(join(REPO_ROOT, 'public', url.slice('/'.length)))).toBe(true);

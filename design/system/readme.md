@@ -1,3 +1,7 @@
+---
+ste-prose: descriptive
+---
+
 # LUDWISE Design System
 
 **LUDWISE** is a global PC game discovery, legitimate-store price-comparison, sale-discovery and price-history platform. Its one-sentence definition, taken from the product's own canonical document:

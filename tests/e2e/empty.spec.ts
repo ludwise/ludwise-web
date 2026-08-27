@@ -4,14 +4,14 @@ import { expect, test, type Page } from '@playwright/test';
 /**
  * What the site says when LUDWISE has ingested nothing at all.
  *
- * Its own suite and its own backend mode, because this state is a property of
- * the whole catalogue rather than of one request.
+ * Its own suite and its own backend mode. The reason is that this state is a
+ * property of the whole catalog rather than of one request.
  *
- * "No games are on sale right now" is a claim about the market, true only once
- * LUDWISE has observed prices and found none of them discounted. Before that it
- * is a fabrication, and the correct sentence is that nothing has been collected
- * yet. The backend distinguishes the two with `hasAnyOfferData`; this suite is
- * what proves the interface acts on it.
+ * The line "No games are on sale right now" is a claim about the market. It is
+ * true only once LUDWISE has observed prices and found none of them discounted.
+ * Before that it is a fabrication, and the correct sentence is that nothing has
+ * been collected yet. The backend distinguishes the two with `hasAnyOfferData`.
+ * This suite is what proves the interface acts on it.
  */
 
 const LOGOTYPE = '.lw-header__wordmark-accent';
@@ -41,7 +41,7 @@ test.describe('an empty catalogue', () => {
     expect(response?.status()).toBe(200);
     // The sentence that is true here, and the one that is not. Pinning the
     // second as an absence is what stops "no game is discounted" being
-    // rendered for a catalogue that has never seen a price.
+    // rendered for a catalog that has never seen a price.
     await expect(page.getByText('LUDWISE has not collected any prices yet')).toBeVisible();
     await expect(page.getByText('No games are on sale right now')).toHaveCount(0);
     // Nothing is on sale, so there is no market to name and no filter form
@@ -60,8 +60,8 @@ test.describe('an empty catalogue', () => {
   });
 
   test('has no accessibility violations in an empty state', async ({ page }) => {
-    // Empty states are composed differently from populated ones - an EmptyState
-    // standing where a list would be - so an audit of the populated pages says
+    // Empty states are composed differently from populated ones. An EmptyState
+    // stands where a list would be. So an audit of the populated pages says
     // nothing about them.
     for (const path of ['/games', '/sales']) {
       await page.goto(path);

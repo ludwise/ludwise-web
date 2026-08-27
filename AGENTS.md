@@ -1,11 +1,16 @@
+---
+ste-prose: descriptive
+---
+
 # AGENTS.md
 
 Tool-neutral engineering guidance for this repository.
 
-## Controlled language
+## Controlled language <!-- ste-prose: procedural -->
 
 > All English prose that LUDWISE authors and controls must obey the LUDWISE
-> ASD-STE100 profile, unless its content class has an explicit exemption.
+> ASD-STE100 profile. The exception is a content class with an explicit
+> exemption.
 
 This is an architecture invariant, not a writing preference. The standard is
 pinned to ASD-STE100 Simplified Technical English, Issue 9, dated 2025-01-15.
@@ -45,24 +50,25 @@ green run never proves conformance with the standard.
 
 ## Code clarity and comments
 
-Code should explain itself through names, types, structure, and tests. Prefer
+Code must explain itself through names, types, structure, and tests. Prefer
 refactoring over explanatory comments.
 
 - Comments explain **why**, not **what** the next lines do.
 - Keep inline comments short, precise, factual, and durable.
 - **A run of `//` comments may not exceed three lines, and a `/** */` doc
   comment fifteen.** `eslint-rules/max-comment-block-lines.js` enforces both
-  under `src/`. A fourth `//` line means either the code is not saying what it
-  does, or a contract is being described somewhere documentation tooling cannot
-  read it. Make the code carry it, move the contract onto its declaration, or
-  put the evidence in the test that pins it — deleting the text is not the fix.
-- **A doc comment states the contract; it does not argue for it.** Do not
-  enumerate worked examples: a list of inputs and the wrong output each would
-  produce is a set of test cases written as prose, and belongs in the test that
-  asserts them. Cite that test, an ADR, or ARCHITECTURE.md in one line instead.
+  in `src/`. A fourth `//` line has one of two meanings. Either the code is not
+  saying what it does, or a contract is being described somewhere documentation
+  tooling cannot read it. Make the code carry it, move the contract onto its
+  declaration, or put the evidence in the test that pins it. Deleting the text is
+  not the fix.
+- **A doc comment states the contract. It does not argue for it.** Do not
+  enumerate worked examples. A list of inputs and the wrong output each would
+  produce is a set of test cases written as prose. Such a list belongs in the test
+  that asserts them. Cite that test, an architecture decision record, or ARCHITECTURE.md in one line instead.
 - Treat an inline comment longer than about 80 characters as a readability smell.
-  First improve naming, types, decomposition, or control flow; then decide whether
-  the comment is still necessary.
+  First improve naming, types, decomposition, or control flow. Then decide
+  whether the comment is still necessary.
 - Do not narrate control flow, restate types, describe obvious syntax, or leave
   implementation-history commentary.
 - Do not use comments to compensate for unclear abstractions or oversized
@@ -77,12 +83,12 @@ stable reference.
 Structured documentation comments are API contract documentation, not narrative
 implementation notes. Use the language/tooling convention in the surrounding
 code so documentation generators can treat them as a source of truth. Describe
-externally observable behaviour, invariants, errors, side effects, and
-compatibility constraints; do not describe implementation steps.
+externally observable behavior, invariants, errors, side effects, and
+compatibility constraints. Do not describe implementation steps.
 
 The 80-character heuristic applies to explanatory inline comments, not to a
 structured API contract that genuinely requires multiple concise lines.
 
-During review, a long explanatory comment triggers a readability check: prefer
+During review, a long explanatory comment triggers a readability check. Prefer
 clearer names, stronger types, a smaller function, an extracted concept, or
 simpler control flow whenever those can make the comment unnecessary.

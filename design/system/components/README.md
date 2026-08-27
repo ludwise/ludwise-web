@@ -1,3 +1,7 @@
+---
+ste-prose: descriptive
+---
+
 # Component reference
 
 44 components in 10 groups. One markdown file per group, each containing every

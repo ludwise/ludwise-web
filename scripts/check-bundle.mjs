@@ -1,16 +1,16 @@
 /**
- * Checks the built artifact for things a public site must not ship.
+ * Checks the built artifact for things a public site must not contain.
  *
- * `tests/architecture/boundaries.test.ts` checks the source; this checks what
+ * `tests/architecture/boundaries.test.ts` checks the source. This checks what
  * the build produced. A value can reach a bundle without appearing in any
- * source file - inlined by Vite's `define`, pulled in through a dependency, or
- * baked into a server chunk by a configuration mistake.
+ * source file. Vite's `define` can inline it, a dependency can pull it in, or
+ * a configuration mistake can bake it into a server chunk.
  *
  * Two rules: nothing secret anywhere, and nothing about the backend in the
  * client bundle. That bundle is shipped to every visitor, Astro inlines any
  * `PUBLIC_`-prefixed variable into it, and this repository deliberately has
  * none - every read happens during SSR. A backend hostname appearing there
- * means somebody has started fetching from the browser, which should be a
+ * means somebody has started fetching from the browser, which must be a
  * decision rather than a surprise.
  */
 
@@ -19,7 +19,7 @@ import { join, resolve } from 'node:path';
 
 const DIST = resolve(process.cwd(), 'dist');
 
-/** Everything under a directory, as absolute paths. */
+/** Everything in a directory, as absolute paths. */
 function walk(directory) {
   const found = [];
   for (const entry of readdirSync(directory, { withFileTypes: true })) {
@@ -69,10 +69,10 @@ for (const file of files) {
 }
 
 /**
- * Terms that belong to the server side of this Worker and nowhere else.
+ * Terms that belong to the rendering side of this Worker and nowhere else.
  *
- * `dist/client` is what a browser downloads. Nothing there should know the
- * backend exists.
+ * `dist/client` is what a browser downloads. Nothing there is permitted to
+ * know the backend exists.
  */
 const SERVER_ONLY = [
   'BACKEND_DEV_URL',

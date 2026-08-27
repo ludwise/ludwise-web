@@ -163,7 +163,7 @@
         },
         {
           "term": "screen",
-          "unless": []
+          "unless": ["screen reader", "screen readers", "on screen"]
         }
       ],
       "approvedAbbreviation": null,
@@ -223,7 +223,7 @@
       "prohibitedSynonyms": [
         {
           "term": "the server",
-          "unless": []
+          "unless": ["the server-rendered"]
         },
         {
           "term": "the API server",
@@ -338,6 +338,27 @@
       "expression": "etc.",
       "suggestion": "name the remaining items",
       "reason": "The reader cannot know what the list holds."
+    },
+    {
+      "expression": "therefore",
+      "suggestion": "thus, or as a result",
+      "reason": "Not an approved word in the Issue 9 dictionary."
+    },
+    {
+      "expression": "should",
+      "suggestion": "must, or a plain statement of what happens",
+      "reason": "Not an approved word in the Issue 9 dictionary, and it hides whether a thing is required. The capitalised SHOULD is the requirement level that PRODUCT.md defines.",
+      "unlessExactly": ["SHOULD"]
+    },
+    {
+      "expression": "using",
+      "suggestion": "use, or with",
+      "reason": "The approved form of this verb is use."
+    },
+    {
+      "expression": "under",
+      "suggestion": "below, in, during, or less than",
+      "reason": "The preposition is not approved in the Issue 9 dictionary. Issue 9 gives below for position, and less than for quantity. In or during carries the other senses."
     }
   ],
   "abbreviations": [
@@ -557,6 +578,7 @@
     "Cloudflare",
     "Workers",
     "Wrangler",
+    "Service Auth",
     "GitHub",
     "Astro",
     "React",
@@ -591,31 +613,31 @@
     },
     {
       "id": "provider-overload",
-      "status": "open",
+      "status": "resolved",
       "concept": "Two different things share one noun in this repository.",
       "candidates": [
         "provider (a store or price source such as Steam)",
         "provider (an analytics transport)"
       ],
-      "resolution": null,
+      "resolution": "provider",
       "evidence": [
         "docs/architecture.md uses provider for a data source that the backend reads.",
         "tests/unit/analytics/providers.test.ts uses provider for a transport implementation, and src/lib/analytics/ carries the same sense."
       ],
-      "phase2": "Rename one of the two. The analytics sense is local to this repository, so it is the cheaper one to change."
+      "phase2": "The noun provider keeps the data-source meaning, which is the one the backend contract and every architecture document use. The analytics sense becomes the analytics transport, which is what it does and which no other concept claims. It was already the word the analytics comments reached for. Identifiers keep their names: AnalyticsProvider already carries the qualifier, so the type is unambiguous where it is written, and a rename is a code change rather than a language change."
     },
     {
       "id": "surface-or-region",
-      "status": "open",
+      "status": "resolved",
       "concept": "A named area of the interface.",
       "candidates": ["surface", "region"],
-      "resolution": null,
+      "resolution": "surface",
       "evidence": [
         "docs/design-system.md writes surface for a distinct place in the interface.",
         "The vendored layout guideline writes region for an area of a page.",
         "The vendored text is exempt, so only the LUDWISE prose is in scope."
       ],
-      "phase2": "Choose one noun for the LUDWISE prose, and leave the vendored handoff alone."
+      "phase2": "LUDWISE prose writes surface for a named area of the interface. The design tokens already name it that way in color-semantic.css, which is the layer every component reads. The noun region stays only where it names the ARIA landmark role, because that name is fixed by the accessibility standard rather than by LUDWISE. The vendored handoff under design/ is exempt and is not edited."
     }
   ]
 }

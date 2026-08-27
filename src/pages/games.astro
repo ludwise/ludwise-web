@@ -20,13 +20,13 @@ const input: GameSearchInput = toGameSearchInput(params);
  * Three outcomes, and they are deliberately not two.
  *
  * `view === null` with `failureCode` set means we could not find out what the
- * catalogue holds. That is not the same as a catalogue holding nothing, and
- * rendering it as an empty result would tell a visitor there are no games when
- * the truth is that we failed to ask. The template keeps them apart and this
+ * catalog holds. That is not the same as a catalog holding nothing. Rendering
+ * it as an empty result would tell a visitor there are no games when the truth
+ * is that we failed to ask. The template keeps them apart and this
  * frontmatter has to give it the information to do so.
  *
  * A rejection is the third: the request was refused for what it contained, the
- * visitor can fix it, and the filter form has to come back so they can.
+ * visitor can fix it. The filter form has to come back so they can.
  */
 let view: GameSearchView | null = null;
 let failureCode: string | null = null;
@@ -41,7 +41,7 @@ try {
 
   if (error.isRejection) {
     // A rejected filter combination is something a visitor did, not something
-    // that broke, so it is a warning rather than an error - an alert on every
+    // that broke. So it is a warning rather than an error - an alert on every
     // mistyped year would bury the failures that matter.
     locals.logger.warn(EVENTS.APPLICATION_QUERY_FAILED, 'Game search filters were rejected', {
       error_category: 'application',
@@ -50,7 +50,7 @@ try {
 
     rejectedFilters = adviseGameSearch(error.fields);
 
-    // The form comes back with the rejection at no extra round trip (ADR 0025).
+    // The form comes back with the rejection at no extra round trip (architecture decision record 0025).
     // Cast narrowly: `data` is `unknown` on the contract, and this is the call
     // site that knows which view it holds.
     view = (error.data as GameSearchView | undefined) ?? null;

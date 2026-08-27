@@ -2,15 +2,15 @@
  * The composition root.
  *
  * This file and `src/pages/**` are the only places permitted to import
- * `cloudflare:*`; everything below receives what it needs as an argument.
+ * `cloudflare:*`. Everything below receives what it needs as an argument.
  *
- * Four middlewares, in an order that is not arbitrary:
+ * Four middlewares run in an order that is not arbitrary.
  *
- *     correlation -> configuration -> logging -> backend
+ *     `correlation -> configuration -> logging -> backend`
  *
  * Correlation runs first and cannot fail, so a configuration failure still
  * produces a response carrying a request id. Configuration precedes logging
- * because the logger's level comes from it, and the backend client is last
+ * because the logger's level comes from it. The backend client is last
  * because it needs both the timeout and the correlation identifiers.
  */
 
@@ -44,9 +44,9 @@ const HEALTH_ROUTE = '/api/health';
  *
  * Not a real address and not reachable. A service binding dispatches to the
  * bound script and ignores the host entirely, but `fetch` still requires an
- * absolute URL, so this exists to satisfy the URL parser. Written as a
- * `.invalid` name - reserved by RFC 2606 and guaranteed never to resolve - so
- * that a bug which somehow sent this over the network fails immediately and
+ * absolute URL. So this exists to satisfy the URL parser. The name uses
+ * `.invalid`, which RFC 2606 reserves and which is guaranteed never to resolve.
+ * A bug that somehow sent this over the network thus fails immediately and
  * loudly rather than reaching something real.
  */
 const BINDING_ORIGIN = 'https://backend.invalid';
@@ -83,7 +83,7 @@ function withCorrelationHeaders(
  * The environment, or `undefined` when configuration never validated.
  *
  * `locals.config` is typed as always present because every handler runs after
- * the configuration middleware sets it - but this runs after `next()` has
+ * the configuration middleware sets it. But this runs after `next()` has
  * unwound, which includes the path where configuration threw. Absent,
  * `withSecurityHeaders` withholds indexing rather than assuming production.
  */
@@ -114,7 +114,7 @@ const correlation = defineMiddleware(async (context, next) => {
  *
  * The response names no field. `ConfigError.fields` names the settings of this
  * deployment, which is exactly the material that belongs in a log and not in a
- * response - the request id is what connects the two.
+ * response. The request id is what connects the two.
  */
 const configuration = defineMiddleware(async (context, next) => {
   try {
@@ -223,16 +223,15 @@ const logging = defineMiddleware(async (context, next) => {
 /**
  * Installs the backend client for this request.
  *
- * A thunk rather than a value, and memoised. Most responses - the health probe,
- * `robots.txt`, a 404 - never ask the backend anything, and building a client
- * eagerly would make an unbound `BACKEND` fail every request including the one
- * an operator uses to check whether the Worker is alive. A thunk can check and
- * throw where the failure belongs.
+ * A thunk rather than a value, and memoised. Most responses never ask the backend anything.
+ * Examples are the health probe, `robots.txt` and a 404. Building a client eagerly would make an
+ * unbound `BACKEND` fail every request. That includes the one an operator uses to check whether the
+ * Worker is alive. A thunk can check and throw where the failure belongs.
  *
- * The correlation identifiers are captured here rather than read later, so
- * every call this request makes carries the same pair. Two calls from one page
- * that reported different request ids would make the backend's records
- * unjoinable to the site's, which is the entire reason they are forwarded.
+ * The correlation identifiers are captured here rather than read later, so every call this request
+ * makes carries the same pair. Two calls from one page that reported different request ids would
+ * make the backend's records unjoinable to the site's. That is the entire reason they are
+ * forwarded.
  */
 const backend = defineMiddleware((context, next) => {
   let client: ReturnType<typeof createApiClient> | undefined;
@@ -260,17 +259,17 @@ const backend = defineMiddleware((context, next) => {
 /**
  * How this request reaches the backend, which differs in development alone.
  *
- * Deployed it is always the service binding: `BACKEND` names a Worker script,
- * not a URL, so nothing a mistyped variable could redirect (ADR 0024).
+ * Deployed it is always the service binding: `BACKEND` names a Worker script, not a URL, so nothing
+ * a mistyped variable could redirect (architecture decision record 0024).
  *
- * Locally, `wrangler dev` provides that binding whether or not anything runs
- * behind it, so a request over it fails with a 503 from Wrangler that looks
- * exactly like a backend outage. `BACKEND_DEV_URL` therefore wins in
- * development, pointing at a local backend or `scripts/fake-backend.ts`.
+ * Locally, `wrangler dev` provides that binding whether or not anything runs behind it. So a request
+ * over it fails with a 503 from Wrangler that looks exactly like a backend outage.
+ * `BACKEND_DEV_URL` thus wins in development, pointing at a local backend or
+ * `scripts/fake-backend.ts`.
  *
- * The environment check is load-bearing and comes first: honoured outside
- * development, this would point the live site at an arbitrary origin on one
- * variable - the SSRF-shaped hole having no configurable URL avoids.
+ * The environment check is load-bearing and comes first. Honoured outside development, this would
+ * point the live site at an arbitrary origin on one variable. That is the SSRF-shaped hole which
+ * having no configurable URL avoids.
  */
 function resolveTransport(environment: Environment): { fetch: typeof fetch; baseUrl: string } {
   if (environment === 'development') {
@@ -299,15 +298,14 @@ function resolveTransport(environment: Environment): { fetch: typeof fetch; base
 /**
  * Records that a page was rendered.
  *
- * Separate from the logging middleware rather than folded into it, because
- * product analytics and operational telemetry are distinct concerns: they
- * answer different questions, they have different retention, and one of them is
- * allowed to fail silently. Both derive the route through the same
- * `routeTemplate` function, so the two cannot disagree about what a route is.
+ * Separate from the logging middleware rather than folded into it. The reason is that product
+ * analytics and operational telemetry are distinct concerns. They answer different questions, they
+ * have different retention, and one of them is allowed to fail silently. Both derive the route
+ * through the same `routeTemplate` function, so the two cannot disagree about what a route is.
  *
- * This is the layer that owns visitor analytics after the repository split. The
- * backend no longer sees a page view at all - it sees API reads - so there is
- * exactly one page-view event per page rather than two counting the same visit.
+ * This is the layer that owns visitor analytics after the repository split. The backend no longer
+ * sees a page view at all, because it sees API reads. So there is exactly one page-view event per
+ * page rather than two counting the same visit.
  */
 const analytics = defineMiddleware(async (context, next) => {
   const response = await next();
@@ -315,7 +313,7 @@ const analytics = defineMiddleware(async (context, next) => {
   if (isDocumentResponse(response)) {
     // The whole RouteInfo: `pageViewEvent` refuses a page whose route was
     // sanitised rather than matched, because a sanitised path is whatever the
-    // visitor asked for. Losing a count is recoverable; collecting a path is not.
+    // visitor asked for. Losing a count is recoverable. Collecting a path is not.
     const event = pageViewEvent(
       routeTemplate({
         routePattern: (context as { routePattern?: string }).routePattern,

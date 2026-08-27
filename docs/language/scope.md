@@ -1,3 +1,7 @@
+---
+ste-prose: descriptive
+---
+
 # Content classes
 
 Every file in this repository belongs to one of three classes for each kind of
@@ -53,7 +57,7 @@ template. Every other visitor string is written where it is rendered.
 
 [content-style.md](../../design/system/guidelines/content-style.md) fixes some
 strings exactly. A fixed string is reused word for word, and it is not a
-candidate for a rewrite under this profile. It is quoted external text, and the
+candidate for a rewrite in this profile. It is quoted external text, and the
 checker never reads a string literal in any case.
 
 ## What `STE-EXEMPT` covers
@@ -89,7 +93,7 @@ has no implementation, or if an implementation is not declared.
 | Third-party interface text   | Put it in a fenced block, or record an exception.           |
 | Code examples                | A fenced block is removed before any rule runs.             |
 
-An exemption is narrow on purpose. A block quote stays under control, because a
+An exemption is narrow on purpose. A block quote stays in control, because a
 quotation mark around a paragraph must not become a way to write uncontrolled
 prose. Exact quoted text belongs in a fenced block or in a recorded exception.
 

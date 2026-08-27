@@ -6,9 +6,9 @@ import { readFileSync } from 'node:fs';
  * Which build this is: version, commit and CI run.
  *
  * Extracted from astro.config.mjs because there are now two things to build.
- * The site gets these through Vite `define`; the ingestion Worker is bundled
+ * The site gets these through Vite `define`. The ingestion Worker is bundled
  * by Wrangler and gets them through `--define`. Two copies of "how do we work
- * out the commit" would drift, and the symptom of that drift is a log record
+ * out the commit" would drift. The symptom of that drift is a log record
  * blaming the wrong commit - which is only ever discovered while reading logs
  * during an incident.
  *
@@ -19,7 +19,7 @@ import { readFileSync } from 'node:fs';
 function localGitCommit() {
   try {
     // execFileSync (argument array, no shell) rather than execSync, so there is
-    // no shell interpolation surface and behaviour matches on Windows.
+    // no shell interpolation surface and behavior matches on Windows.
     return execFileSync('git', ['rev-parse', 'HEAD'], {
       encoding: 'utf8',
       stdio: ['ignore', 'pipe', 'ignore'],
@@ -49,7 +49,7 @@ export function buildIdentity(packageJsonUrl) {
  * The identity as bundler `define` entries.
  *
  * Every value is JSON-stringified because `define` is raw text substitution in
- * both bundlers: an unquoted value is injected as a bare identifier, which
+ * both bundlers. An unquoted value is injected as a bare identifier, which
  * esbuild rejects outright ("must be an entity name or JS literal") and Vite
  * would happily inject as a syntax error.
  *

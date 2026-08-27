@@ -11,7 +11,7 @@ import { loadLanguageDocuments } from '../../../../scripts/ste/policy.mjs';
  * The whole pipeline over real files.
  *
  * The fixtures are ordinary files in the repository, so the classification
- * table has to be replaced here. Under the real table they are exempt, which
+ * table has to be replaced here. In the real table they are exempt, which
  * is what keeps a deliberate violation out of the repository audit.
  */
 
@@ -21,6 +21,7 @@ const documents = {
   ...real,
   policy: {
     ...real.policy,
+    rollout: { ...real.policy.rollout, mode: 'audit' },
     classification: [
       {
         id: 'fixture-prose',
@@ -110,29 +111,71 @@ describe('checkFiles', () => {
     expect(result.filesChecked).toBe(0);
   });
 
-  it('never reads a string literal, so a derived unit adds no diagnostic', () => {
+  it('reads a visitor string as its own unit, under the derived rule set', () => {
+    const derived = {
+      ...documents,
+      policy: {
+        ...documents.policy,
+        classification: [
+          {
+            id: 'fixture-strings',
+            paths: ['tests/fixtures/ste/*.ts'],
+            unit: 'strings',
+            class: 'STE-DERIVED',
+            reason: 'Fixture.',
+          },
+          ...documents.policy.classification,
+        ],
+      },
+    };
     const result = checkFiles({
       rootDir: process.cwd(),
       files: ['tests/fixtures/ste/comments.ts'],
+      documents: derived,
+    });
+    expect(result.unsupportedUnits).toBe(0);
+    expect(result.diagnostics.map((one) => one.rule)).toContain('LW-STE-ABBREVIATION-PROHIBITED');
+    const spelling = result.diagnostics.filter(
+      (one) => one.unit === 'strings' && one.rule === 'LW-STE-SPELLING-VARIANT',
+    );
+    expect(spelling).toEqual([]);
+  });
+
+  it('counts runtime-composed visitor text for semantic review', () => {
+    const root = mkdtempSync(join(tmpdir(), 'ste-runtime-'));
+    writeFileSync(
+      join(root, 'dynamic.ts'),
+      'const count = 1;\nconst message = `Showing ${count} games.`;\n',
+    );
+    const result = checkFiles({
+      rootDir: root,
+      files: ['dynamic.ts'],
       documents: {
         ...documents,
         policy: {
           ...documents.policy,
           classification: [
             {
-              id: 'fixture-strings',
-              paths: ['tests/fixtures/ste/*.ts'],
+              id: 'runtime-strings',
+              paths: ['dynamic.ts'],
               unit: 'strings',
               class: 'STE-DERIVED',
               reason: 'Fixture.',
             },
-            ...documents.policy.classification,
+            {
+              id: 'unclassified',
+              paths: ['**'],
+              unit: 'prose',
+              class: 'STE-EXEMPT',
+              catchAll: true,
+              reason: 'Not ours.',
+            },
           ],
         },
       },
     });
-    expect(result.diagnostics.filter((one) => one.unit === 'strings')).toEqual([]);
-    expect(result.unsupportedUnits).toBeGreaterThan(0);
+    expect(result.unsupportedUnits).toBe(0);
+    expect(result.reviewRequiredUnits).toBe(1);
   });
 
   it('applies a central exception instead of an inline suppression', () => {
@@ -159,11 +202,68 @@ describe('checkFiles', () => {
   });
 });
 
+describe('checkFiles, on the prose kind that enforcement requires', () => {
+  const root = mkdtempSync(join(tmpdir(), 'ste-kind-'));
+
+  const enforcing = (extra: Record<string, unknown> = {}) => ({
+    ...documents,
+    policy: {
+      ...documents.policy,
+      rollout: { ...documents.policy.rollout, mode: 'enforce' },
+      classification: [
+        { id: 'probe', paths: ['*.md'], unit: 'prose', class: 'STE-STRICT', reason: 'Probe.' },
+        {
+          id: 'unclassified',
+          paths: ['**'],
+          unit: 'prose',
+          class: 'STE-EXEMPT',
+          catchAll: true,
+          reason: 'x',
+        },
+      ],
+      ...extra,
+    },
+  });
+
+  const rulesIn = (name: string, body: string): string[] => {
+    writeFileSync(join(root, name), body);
+    return checkFiles({ rootDir: root, files: [name], documents: enforcing() }).diagnostics.map(
+      (one) => one.rule,
+    );
+  };
+
+  it('fails closed when a document declares no prose kind', () => {
+    expect(rulesIn('undeclared.md', 'The value is stable.\n')).toContain(
+      'LW-STE-PROSE-KIND-UNRESOLVED',
+    );
+  });
+
+  it('accepts a document that declares its kind in front matter', () => {
+    expect(
+      rulesIn('declared.md', '---\nste-prose: descriptive\n---\n\nThe value is stable.\n'),
+    ).toEqual([]);
+  });
+
+  it('applies the 20-word limit to a document that declares a procedure', () => {
+    const long = `${Array.from({ length: 22 }, () => 'word').join(' ')}.`;
+    expect(rulesIn('steps.md', `---\nste-prose: procedural\n---\n\n${long}\n`)).toEqual([
+      'LW-STE-SENTENCE-LENGTH-PROCEDURAL',
+    ]);
+  });
+
+  it('lets a section declaration override the document kind', () => {
+    const long = `${Array.from({ length: 22 }, () => 'word').join(' ')}.`;
+    const source = `---\nste-prose: procedural\n---\n\n## Reference <!-- ste-prose: descriptive -->\n\n${long}\n`;
+    expect(rulesIn('mixed.md', source)).toEqual([]);
+  });
+});
+
 describe('enforcedFiles', () => {
   const files = ['docs/language/checker.md', 'README.md', 'scripts/ste/cli.mjs'];
+  const auditPolicy = { ...real.policy, rollout: { ...real.policy.rollout, mode: 'audit' } };
 
   it('keeps only the declared paths while the rollout is in audit mode', () => {
-    expect(enforcedFiles(files, real.policy)).toEqual([
+    expect(enforcedFiles(files, auditPolicy)).toEqual([
       'docs/language/checker.md',
       'scripts/ste/cli.mjs',
     ]);
@@ -197,7 +297,13 @@ describe('checkFiles, on files that must not stop the run', () => {
   });
 
   it('reports a symbolic link rather than reading outside the repository', () => {
-    symlinkSync('/etc/passwd', join(root, 'link.md'));
+    try {
+      symlinkSync('/etc/passwd', join(root, 'link.md'));
+    } catch (error) {
+      const code = (error as { code?: string }).code;
+      if (process.platform === 'win32' && (code === 'EPERM' || code === 'EACCES')) return;
+      throw error;
+    }
     const result = checkFiles({
       rootDir: root,
       files: ['link.md'],

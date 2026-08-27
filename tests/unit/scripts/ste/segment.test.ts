@@ -13,6 +13,8 @@ const split = (text: string): string[] =>
 describe('splitSentences', () => {
   it('splits normal sentences', () =>
     expect(split('One thing. Another thing.')).toEqual(['One thing.', 'Another thing.']));
+  it('splits when Markdown emphasis precedes the next sentence', () =>
+    expect(split('The first state is clear. **The next state is safe.**')).toHaveLength(2));
   it('does not split a recorded abbreviation', () =>
     expect(split('Use a limit, e.g. twenty words, for a step.')).toHaveLength(1));
   it('does not split inside a masked span', () =>

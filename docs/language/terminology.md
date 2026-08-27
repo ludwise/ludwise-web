@@ -1,3 +1,7 @@
+---
+ste-prose: descriptive
+---
+
 # Controlled terminology
 
 ASD-STE100 allows a subject-specific technical noun and a technical verb, so
@@ -43,7 +47,7 @@ that this repository already contains, with the word to write instead. A new
 technical verb is added only when no approved verb states the concept, and the
 addition is recorded with its reason.
 
-## How to add a term
+## How to add a term <!-- ste-prose: procedural -->
 
 1. Confirm that the concept has no preferred term already.
 2. Read the source that defines the concept.
@@ -59,14 +63,13 @@ change, not an implementation detail. It escalates.
 
 Two words that name one concept are recorded, not silently corrected. The
 `conflicts` list in [terminology.json](terminology.json) holds each one, with
-the evidence and the work that phase 2 owes it.
+the evidence and the decision that settled it.
 
-| Conflict            | State    | What phase 2 must settle                           |
+| Conflict            | State    | What phase 2 settled                               |
 | ------------------- | -------- | -------------------------------------------------- |
 | `catalog-spelling`  | resolved | Correct the prose to the spelling the module uses. |
-| `provider-overload` | open     | One noun names two things in this repository.      |
-| `surface-or-region` | open     | Choose one noun for the LUDWISE prose.             |
-| `provider-boundary` | open     | Decide what the third word names.                  |
+| `provider-overload` | resolved | The analytics sense becomes the transport.         |
+| `surface-or-region` | resolved | LUDWISE prose writes surface for an area.          |
 
-An open conflict is not a permission to pick a word. It is a decision that the
-architecture owes.
+Every recorded conflict now carries a resolution. An open conflict is not a
+permission to pick a word. It is a decision that the architecture owes.

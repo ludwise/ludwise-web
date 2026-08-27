@@ -1,3 +1,7 @@
+---
+ste-prose: descriptive
+---
+
 # Layout, grid and responsive behaviour
 
 ## Page regions

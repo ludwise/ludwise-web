@@ -3,7 +3,13 @@ import { loadLanguageDocuments } from '../../../../scripts/ste/policy.mjs';
 import { formatMatrix, formatText, summarize } from '../../../../scripts/ste/report.mjs';
 
 const documents = loadLanguageDocuments(process.cwd());
-const result = { diagnostics: [], filesChecked: 1, unitsChecked: 2, unsupportedUnits: 0 };
+const result = {
+  diagnostics: [],
+  filesChecked: 1,
+  unitsChecked: 2,
+  unsupportedUnits: 0,
+  reviewRequiredUnits: 2,
+};
 
 describe('report', () => {
   it('separates full mapping from partial machine support', () => {
@@ -12,10 +18,12 @@ describe('report', () => {
     expect(summary.coverage.mappedWritingRules).toBe(53);
     expect(summary.coverage.standardPartial).toBeGreaterThan(0);
     expect(summary.coverage.standardNone).toBeGreaterThan(0);
+    expect(summary.reviewRequiredUnits).toBe(2);
   });
   it('does not claim full conformance for a green checker', () => {
     const text = formatText(result, summarize(result, documents, 'repository'));
     expect(text).toContain('implemented checks only');
+    expect(text).toContain('semantic review');
     expect(text).toContain('standard-rule map includes all 53 writing rules');
     expect(text).toContain('Normative machine coverage is partial');
   });

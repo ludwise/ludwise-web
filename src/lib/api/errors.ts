@@ -3,13 +3,13 @@
  * one is meant to be rendered.
  *
  * The distinction this module enforces is *unavailable* versus *empty*. They
- * reach a page as similar absences and mean opposite things, and rendering the
- * first as the second tells a visitor no game is on sale when the truth is that
- * we failed to ask - a false claim about the market. So a failed read throws
- * rather than returning an empty view.
+ * reach a page as similar absences and mean opposite things. Rendering the
+ * first as the second tells a visitor no game is on sale when the truth is
+ * that we failed to ask. That is a false claim about the market. So a failed
+ * read throws rather than returning an empty view.
  *
  * A `LudwiseApiError` carries a closed-set `code` and a `requestId`, and
- * nothing else off the wire. Should a message ever appear there it must not be
+ * nothing else off the wire. If a message ever appears there it must not be
  * rendered: the response may have come from something in front of the backend.
  * `cause` exists for logs, and `toLogContext` is the only sanctioned way out.
  */
@@ -19,16 +19,16 @@ import type { ApiErrorBody } from './contract.js';
 /**
  * Why a read failed, in the terms a page needs to choose what to render.
  *
- * Deliberately coarser than HTTP status codes, because a page makes exactly
- * four decisions and finer distinctions would be information no renderer uses.
+ * Deliberately coarser than HTTP status codes. A page makes exactly four
+ * decisions, and finer distinctions would be information no renderer uses.
  *
- * - `rejected`   the request was refused; show which filters and let the visitor fix them
- * - `unavailable` the backend could not answer; say so, do not say "empty"
- * - `timeout`    the backend did not answer in time; same, with a different log line
- * - `malformed`  something answered, but not with the contract; treat as unavailable
+ * - `rejected`   the request was refused. Show which filters and let the visitor fix them
+ * - `unavailable` the backend could not answer. Say so, do not say "empty"
+ * - `timeout`    the backend did not answer in time. Same, with a different log line
+ * - `malformed`  something answered, but not with the contract. Treat as unavailable
  *
  * `malformed` is separate from `unavailable` only because they need different
- * investigations - one is an outage, the other is a version skew or something
+ * investigations. One is an outage, the other is a version skew or something
  * in front of the backend answering. A visitor sees the same page for both.
  */
 export type ApiFailureKind = 'rejected' | 'unavailable' | 'timeout' | 'malformed';
@@ -51,8 +51,8 @@ export class LudwiseApiError extends Error {
   /**
    * The correlation id this request carried.
    *
-   * Shown to visitors on failure pages, deliberately: it is the one value that
-   * lets somebody reporting a problem be found in the logs, and it identifies a
+   * Shown to visitors on failure pages, deliberately. It is the one value that
+   * lets somebody reporting a problem be found in the logs. It identifies a
    * request rather than a person.
    */
   readonly requestId: string | undefined;
@@ -61,9 +61,9 @@ export class LudwiseApiError extends Error {
   readonly data: unknown;
 
   constructor(kind: ApiFailureKind, operation: string, options: LudwiseApiErrorOptions = {}) {
-    // Kind and operation only, neither of them caller or backend data, so this
-    // message is safe wherever it ends up - which is what lets the rest of the
-    // codebase stop asking whether an error is safe to print.
+    // Kind and operation only, neither of them caller or backend data. So this
+    // message is safe wherever it ends up. That lets the rest of the codebase
+    // stop asking whether an error is safe to print.
     super(`${kind}: ${operation}`, { cause: options.cause });
     this.name = 'LudwiseApiError';
     this.kind = kind;
@@ -83,10 +83,10 @@ export class LudwiseApiError extends Error {
 /**
  * Codes for failures that never reached the backend, so carry none of its own.
  *
- * Prefixed `ERR_WEB_` rather than reusing the backend's `ERR_APP_` codes,
- * because they mean something different and an operator reading a log needs to
- * tell them apart: `ERR_APP_INFRASTRUCTURE` means the backend told us its
- * dependency failed, `ERR_WEB_UNAVAILABLE` means the backend told us nothing.
+ * Prefixed `ERR_WEB_` rather than reusing the backend's `ERR_APP_` codes. They
+ * mean something different, and an operator reading a log needs to
+ * tell them apart. `ERR_APP_INFRASTRUCTURE` means the backend told us its
+ * dependency failed. `ERR_WEB_UNAVAILABLE` means the backend told us nothing.
  */
 const LOCAL_CODES: Readonly<Record<ApiFailureKind, string>> = {
   rejected: 'ERR_WEB_REJECTED',
@@ -100,11 +100,11 @@ const LOCAL_CODES: Readonly<Record<ApiFailureKind, string>> = {
  *
  * Keyed on the code rather than the HTTP status, because the code is the part
  * the contract promises is stable. Two codes are free to share a status later
- * without this table noticing, and a status is free to change without a client
+ * without this table noticing. A status is free to change without a client
  * misclassifying the failure.
  *
- * An unrecognised code is `unavailable` rather than a guess: it means the
- * response did not come from the backend's own error path, and inventing a
+ * An unrecognised code is `unavailable` rather than a guess. It means the
+ * response did not come from the backend's own error path. Inventing a
  * classification for it would put a fabricated diagnosis into a log.
  */
 const KIND_BY_CODE: ReadonlyMap<string, ApiFailureKind> = new Map([
@@ -123,7 +123,7 @@ export function failureKindForCode(code: string | undefined): ApiFailureKind {
  *
  * Every field is read defensively rather than the body being cast. This parses
  * a response from another service, and "it came from us" is a deployment
- * assumption rather than a proof - a version skew, a proxy, or an error page
+ * assumption rather than a proof. A version skew, a proxy, or an error page
  * from something in front of the backend all arrive here looking like a
  * response. Anything unexpected is dropped rather than propagated.
  */
@@ -149,8 +149,8 @@ export function apiErrorFromBody(
 /**
  * The parts of a failure that are safe to log, and only those.
  *
- * Named as a function rather than left to each call site, because "log the
- * error" is the single easiest way to write a secret into a log file: `cause`
+ * Named as a function rather than left to each call site. "Log the error" is
+ * the single easiest way to write a secret into a log file. A `cause`
  * may hold a whole `Response`, a URL with a query string a visitor typed, or
  * text from something upstream. None of that is here.
  *
@@ -174,7 +174,7 @@ export function toLogContext(error: LudwiseApiError): Record<string, unknown> {
  * Whether an unknown thrown value is one of ours.
  *
  * `instanceof` rather than a duck-typed check, and it is safe here because
- * there is exactly one module realm: this is not a library being loaded twice.
+ * there is exactly one module realm. This is not a library being loaded twice.
  */
 export function isApiError(error: unknown): error is LudwiseApiError {
   return error instanceof LudwiseApiError;

@@ -1,14 +1,17 @@
 /**
  * Building the links a `/sales` filter chip or pagination control points to.
  *
- * Pulled out of `sales.astro` so the pairing rules encoded here - market and
- * currency travel together, a price bound's minimum and maximum travel
- * together, a release-year range's two ends travel together, and removing any
- * filter resets the page - are each one line a test can fail on its own,
- * rather than logic a future edit to the page can silently drop unnoticed.
+ * Pulled out of `sales.astro`. Each pairing rule encoded here is one line a test can fail on
+ * its own. It is not logic a future edit to the page can silently drop unnoticed.
+ *
+ * Four pairing rules are encoded here.
+ * Market and currency travel together.
+ * A price bound's minimum and maximum travel together.
+ * A release-year range's two ends travel together.
+ * Removing any filter resets the page.
  *
  * Pure functions over a `URLSearchParams`, with no Astro dependency, so they
- * run under plain Vitest.
+ * run in plain Vitest.
  */
 
 function pathWithQuery(next: URLSearchParams): string {
@@ -21,7 +24,7 @@ function pathWithQuery(next: URLSearchParams): string {
  * minus the named one and whatever else the same removal implies.
  *
  * `value` narrows a repeatable filter (only `store` today) to the one
- * instance being removed, leaving the others in place; without it the whole
+ * instance being removed, leaving the others in place. Without it the whole
  * named filter is dropped.
  */
 export function pathWithoutFilter(params: URLSearchParams, name: string, value?: string): string {

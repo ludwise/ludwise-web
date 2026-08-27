@@ -4,16 +4,14 @@ import { expect, test, type Page } from '@playwright/test';
 /**
  * What a visitor sees when the backend does not answer.
  *
- * The rule it exists to enforce: **unavailable is not empty**. The two arrive at
- * a page as similar-looking absences and mean opposite things. Rendering the
- * first as the second tells a visitor there are no games on sale when the truth
- * is that we failed to ask, which is a false claim about the market rather than
- * a cosmetic slip.
+ * The rule it exists to enforce: **unavailable is not empty**. The two arrive at a page as
+ * similar-looking absences and mean opposite things. Rendering the first as the second tells a
+ * visitor there are no games on sale. The truth is that we failed to ask. That is a false claim
+ * about the market rather than a cosmetic slip.
  *
- * Run under `playwright.states.config.ts` with the backend in `unavailable`
- * mode: the socket is destroyed rather than answered with a 503, because a 503
- * is the backend telling us something and this is the backend not being there,
- * a different path through the client.
+ * `playwright.states.config.ts` runs this with the backend in `unavailable` mode. The socket is
+ * destroyed rather than answered with a 503. A 503 is the backend telling us something, and
+ * this is the backend not being there, a different path through the client.
  */
 
 const LOGOTYPE = '.lw-header__wordmark-accent';
@@ -56,7 +54,7 @@ test.describe('the backend is unavailable', () => {
       const response = await page.goto(path);
 
       // 503, never 200 and never 404. A 200 would tell a crawler the page is
-      // fine and let it index an error; a 404 on the detail page would tell a
+      // fine and let it index an error. A 404 on the detail page would tell a
       // visitor following a good link that their link is broken.
       expect(response?.status()).toBe(503);
 
@@ -89,7 +87,7 @@ test.describe('the backend is unavailable', () => {
 
   test('the shell still renders, so the site is navigable', async ({ page }) => {
     // A failed read must not take the header and navigation down with it. A
-    // visitor who lands on a broken page should be able to leave it.
+    // visitor who lands on a broken page must be able to leave it.
     await page.goto('/games');
 
     await expect(page.getByRole('banner')).toBeVisible();

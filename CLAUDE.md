@@ -1,3 +1,7 @@
+---
+ste-prose: descriptive
+---
+
 # CLAUDE.md
 
 [AGENTS.md](AGENTS.md) is the canonical rulebook for this repository. Read it

@@ -8,7 +8,7 @@ import { isDocumentResponse } from '../../../src/lib/http/response.js';
  *
  * docs/analytics/privacy-principles.md forbids full URLs, raw query strings
  * and anything a visitor typed. A page view is only safe because it carries a
- * route template - `/games/[slug]`, not `/games/half-life?utm_source=…` - so
+ * route template - `/games/[slug]`, not `/games/half-life?utm_source=…`. So
  * the assertions here are mostly about what the event does NOT contain.
  */
 
@@ -83,7 +83,7 @@ describe('isDocumentResponse', () => {
     ['a not-found page', 404],
     ['a server failure page', 500],
   ])('does not count %s as a page view even when it renders html', (_label, status) => {
-    // A redirect is not a page anyone read, and an error page is a failure -
+    // A redirect is not a page anyone read. An error page is a failure -
     // counting either inflates the denominator of every funnel measured
     // against page views.
     const response = new Response('<p>x</p>', {

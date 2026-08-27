@@ -29,10 +29,10 @@ const LEVEL_LABEL: Readonly<Record<LogLevel, string>> = Object.freeze({
 });
 
 /**
- * Development sink, optimised for a human reading a terminal.
+ * Development sink, optimized for a human reading a terminal.
  *
  * Never selected in production. Vite eliminates it from the bundle because the
- * branch keys off import.meta.env.DEV, which is a compile-time constant.
+ * branch keys off `import.meta.env.DEV`, which is a compile-time constant.
  */
 export const prettySink: LogSink = (record) => {
   const time = record.timestamp.slice(11, 23);

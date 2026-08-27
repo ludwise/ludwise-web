@@ -23,7 +23,7 @@
     ]
   },
   "rollout": {
-    "mode": "audit",
+    "mode": "enforce",
     "modes": ["audit", "enforce"],
     "enforcedPaths": ["docs/language/**", "scripts/ste/**", "tests/unit/scripts/ste/**"],
     "enforcementCheckName": "Language"
@@ -53,8 +53,8 @@
     },
     "strings": {
       "summary": "Only the human-readable string literals in the file are controlled prose.",
-      "checkerSupport": "none",
-      "checkerSupportReason": "String extraction is not implemented. See docs/language/checker.md."
+      "checkerSupport": "partial",
+      "checkerSupportReason": "The extractor reads template text, a visitor-visible attribute and a named string constant. A string that a runtime value composes is reviewed rather than measured."
     }
   },
   "proseBearingExtensions": [
@@ -152,8 +152,8 @@
       "paths": ["src/**/*.{ts,tsx,mts,cts,jsx,astro}"],
       "unit": "comments",
       "class": "STE-STRICT",
-      "prose": "mixed",
-      "reason": "A code comment states a contract, so it must be unambiguous."
+      "prose": "descriptive",
+      "reason": "A code comment states a contract or a rationale, so it is descriptive prose. A step that a person performs belongs in a runbook, not beside the code."
     },
     {
       "id": "visitor-strings",
@@ -173,24 +173,24 @@
       "paths": ["scripts/**/*.{mjs,cjs,js,ts,mts,cts}", "eslint-rules/**/*.{js,mjs,cjs}"],
       "unit": "comments",
       "class": "STE-STRICT",
-      "prose": "mixed",
-      "reason": "Tooling comments explain rationale that the code cannot state."
+      "prose": "descriptive",
+      "reason": "A tooling comment explains a rationale that the code cannot state. It gives information rather than an instruction."
     },
     {
       "id": "test-comments",
       "paths": ["tests/**/*.{ts,tsx,mts,cts}"],
       "unit": "comments",
       "class": "STE-STRICT",
-      "prose": "mixed",
-      "reason": "A test comment records why the assertion is correct."
+      "prose": "descriptive",
+      "reason": "A test comment records why the assertion is correct. It gives information rather than an instruction."
     },
     {
       "id": "root-config-comments",
       "paths": ["*.{js,mjs,cjs,ts,mts,cts}"],
       "unit": "comments",
       "class": "STE-STRICT",
-      "prose": "mixed",
-      "reason": "Configuration comments explain a decision that the value cannot show."
+      "prose": "descriptive",
+      "reason": "A configuration comment explains a decision that the value cannot show. It gives information rather than an instruction."
     },
     {
       "id": "other-markdown",
@@ -554,5 +554,9 @@
     "reason": "LUDWISE holds no permission to a machine-readable copy of the controlled dictionary, and will not scrape one. Until a licensed source exists, LW-STE-WORD-APPROVED and LW-STE-WORD-PART-OF-SPEECH are not run.",
     "contract": ["approves(word)", "partsOfSpeech(word)"],
     "attachment": "scripts/ste/lexicon.mjs, through registerLexiconAdapter"
+  },
+  "causalSince": {
+    "reason": "Issue 9 approves since for time. A clause that gives a reason must read because. No word list separates the two, so the checker reports the shape a reason takes: since opening a sentence, or since after a comma. Since with a date or an event is untouched.",
+    "patterns": ["sentence-initial", "after-comma"]
   }
 }

@@ -1,17 +1,16 @@
 /**
  * The corpus is a transcript, and this proves it still reads like one.
  *
- * `tests/fixtures/corpus/` is not fixture data authored here. Every file is a
- * byte-for-byte copy of a response the private backend really produced, written
- * by its `tests/contract/corpus.test.ts`. The fake backend replays them, so the
- * end-to-end suites are evidence about the real contract - a property entirely
- * a matter of the bytes matching, which nothing else here would notice losing.
- * A reformat breaks it silently: the fake parses these files, so no test fails.
+ * `tests/fixtures/corpus/` is not fixture data authored here. Every file is a byte-for-byte copy of
+ * a response the private backend really produced, written by its `tests/contract/corpus.test.ts`.
+ * The fake backend replays them, so the end-to-end suites are evidence about the real contract.
+ * That property is entirely a matter of the bytes matching, and nothing else here would notice
+ * losing it. A reformat breaks it silently. The fake parses these files, so no test fails.
  *
- * A diff against the backend cannot be written here - this repository is public
- * and must pass its own CI without access to the private one. So it pins the
- * serialisation the recorder produces instead, which is the strongest statement
- * available from inside this repository and exactly what Prettier broke.
+ * A diff against the backend cannot be written here. This repository is public and must pass its
+ * own CI without access to the private one. So it pins the serialisation the recorder produces
+ * instead, which is the strongest statement available from inside this repository and exactly what
+ * Prettier broke.
  */
 
 import { readdirSync, readFileSync } from 'node:fs';
@@ -28,8 +27,8 @@ const FILES = readdirSync(CORPUS)
 describe('the recorded corpus', () => {
   it('has recordings to check', () => {
     // An empty directory would make every `it.each` below vacuous. The floor is
-    // under the count at the time of writing (27), so a deliberate removal does
-    // not fail but deleting the corpus does.
+    // less than the count at the time of writing (27), so a deliberate removal
+    // does not fail but deleting the corpus does.
     expect(FILES.length).toBeGreaterThanOrEqual(20);
   });
 
@@ -38,7 +37,7 @@ describe('the recorded corpus', () => {
 
     // The recorder's exact call. Re-serialising and comparing to the bytes on
     // disk catches reformatting, reindenting, reordered keys and a stripped
-    // trailing newline in one assertion, without a regex over JSON.
+    // trailing newline. One assertion does that, without a regex over JSON.
     const reserialised = `${JSON.stringify(JSON.parse(raw), null, 2)}\n`;
 
     expect(raw).toBe(reserialised);
@@ -51,7 +50,7 @@ describe('the recorded corpus', () => {
     >;
 
     // The recorder writes exactly these two keys. Anything else means the file
-    // was hand-edited, which is the failure mode this whole suite exists for -
+    // was hand-edited. That is the failure mode this whole suite exists for:
     // a plausible-looking recording of a response no backend ever sent.
     expect(Object.keys(parsed).sort()).toEqual(['body', 'status']);
     expect(typeof parsed['status']).toBe('number');

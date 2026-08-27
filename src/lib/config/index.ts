@@ -22,7 +22,7 @@ export class ConfigError extends Error {
    * Which settings were wrong, for the logs.
    *
    * Names only, never values. A configuration value can be a hostname, a
-   * binding name or - in some future - something sensitive, and an error that
+   * binding name or, in some future, something sensitive. An error that
    * echoes what it was given is how that reaches a response. The names alone
    * are enough for an operator holding the deployment.
    */
@@ -44,8 +44,8 @@ export interface AppConfig {
    * How long the backend has to answer, in milliseconds.
    *
    * Configurable because the right value differs by environment rather than by
-   * opinion: a local backend running under `wrangler dev` with a cold isolate
-   * is legitimately slower than a deployed one, and a developer should not have
+   * opinion. A local backend running in `wrangler dev` with a cold isolate
+   * is legitimately slower than a deployed one. A developer must not have
    * to see timeout pages because of it.
    */
   readonly backendTimeoutMs: number;
@@ -60,12 +60,13 @@ function isEnvironment(value: string): value is Environment {
 /**
  * Reads and validates configuration, collecting every problem before failing.
  *
- * Every problem rather than the first: an operator fixing a bad deployment
- * should see the whole list once, not discover the next one after each redeploy.
+ * Every problem rather than the first. An operator fixing a bad deployment
+ * sees the whole list once, and does not discover the next one after each
+ * redeploy.
  *
  * Nothing is defaulted where a wrong guess would be silent. `ENVIRONMENT` has
- * no default at all - guessing `development` would disable protections, and
- * guessing `production` would enable indexing on a deployment whose
+ * no default at all. Guessing `development` would disable protections.
+ * Guessing `production` would enable indexing on a deployment whose
  * configuration is already known to be broken.
  */
 export function loadConfig(source: Readonly<Record<string, string | undefined>>): AppConfig {
@@ -113,15 +114,15 @@ function isAbsoluteHttpUrl(value: string): boolean {
  *
  * The backend reports its own environment on `/api/health`, and the site
  * compares it to its own once per isolate. A mismatch is a deployment fault
- * rather than a request fault, so it fails every request rather than the
- * unlucky one that noticed - a site that half-works against the wrong backend
+ * rather than a request fault. So it fails every request rather than the
+ * unlucky one that noticed. A site that half-works against the wrong backend
  * is harder to diagnose than one that refuses.
  *
  * Development is exempt in one direction only, and the asymmetry is the point.
  * A developer may deliberately point a local site at a *staging* backend to
- * reproduce something, which is a real workflow and reads data that is already
- * disposable. Nothing may point at production: not local, not staging. That is
- * not a workflow, it is the accident this function exists to prevent.
+ * reproduce something. That is a real workflow, and it reads data that is
+ * already disposable. Nothing may point at production: not local, not staging.
+ * That is not a workflow, it is the accident this function exists to prevent.
  */
 export function assertEnvironmentsMatch(site: Environment, backend: string): void {
   if (site === backend) return;

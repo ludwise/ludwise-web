@@ -1,3 +1,7 @@
+---
+ste-prose: descriptive
+---
+
 # Feedback
 
 Reference specifications for `components/feedback/`. For each component: the **prop contract** (the API you must preserve), the **usage rules**, and the **reference implementation**.

@@ -4,8 +4,8 @@
  * ported verbatim.
  *
  * Markup and sizing come from the shared name-to-path-data map in ./icons.ts
- * rather than being duplicated here: AppHeader.tsx needs the same glyphs and
- * cannot import an .astro file, so the map lives in a framework-neutral module
+ * rather than being duplicated here. AppHeader.tsx needs the same glyphs and
+ * cannot import an .astro file. So the map lives in a framework-neutral module
  * both can reach.
  */
 import { ICON_SIZES, LUDWISE_ICONS, type IconName, type IconSize } from './icons.js';
@@ -15,7 +15,7 @@ interface Props {
   name: IconName;
   /** xs 12 / sm 14 / md 16 / lg 20 / xl 24, or an explicit pixel number. */
   size?: IconSize | number | undefined;
-  /** Normalised to 1.75 across the system. Change only with a documented reason. */
+  /** Normalized to 1.75 across the system. Change only with a documented reason. */
   strokeWidth?: number | undefined;
   /** Provide ONLY when the icon carries meaning no adjacent text carries.
    *  Omitting it marks the icon aria-hidden, which is correct beside a label. */
@@ -29,8 +29,8 @@ const px = typeof size === 'number' ? size : (ICON_SIZES[size] ?? ICON_SIZES.md)
 
 /**
  * Path data for the glyph, and the only reason escaping may be switched off
- * below: a lookup into the compile-time `LUDWISE_ICONS` map, keyed by the closed
- * `IconName` union. Never a runtime value.
+ * below. It is a lookup into the compile-time `LUDWISE_ICONS` map, keyed by
+ * the closed `IconName` union. Never a runtime value.
  *
  * `title` is deliberately not composed into this string. It is a prop, so the
  * first caller writing `title={game.title}` would put provider data into

@@ -13,8 +13,8 @@ export interface RouteInfo {
  * Collapses high-cardinality path segments.
  *
  * Without this a crawler walking fifty thousand URLs produces fifty thousand
- * distinct route values, which makes every dashboard grouped by route useless
- * and inflates metric cardinality without adding information.
+ * distinct route values. That makes every dashboard grouped by route useless.
+ * It also inflates metric cardinality without adding information.
  */
 export function sanitizePathname(pathname: string): string {
   const segments = pathname.split('/').filter((segment) => segment.length > 0);
@@ -29,10 +29,10 @@ export function sanitizePathname(pathname: string): string {
 }
 
 /**
- * Prefers the framework route pattern, e.g. /games/[slug].
+ * Prefers the framework route pattern, for example /games/[slug].
  *
  * The pattern is absent for unmatched requests, which are exactly the ones most
- * worth seeing, so the sanitised pathname is the fallback rather than an error.
+ * worth seeing. So the sanitised pathname is the fallback rather than an error.
  */
 export function routeTemplate(input: { routePattern?: string | undefined; url: URL }): RouteInfo {
   if (input.routePattern && input.routePattern.length > 0) {

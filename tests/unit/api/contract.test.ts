@@ -12,11 +12,12 @@ import { failureKindForCode } from '../../../src/lib/api/errors.js';
 
 /**
  * `contract.ts` is mostly interfaces, which the type checker verifies and a
- * unit test cannot add anything to. What it also exports are runtime values -
+ * unit test cannot add anything to. It also exports runtime values. Those are
  * the error code set, the refusable field allowlist, sort names and page
- * sizes - and those are real contract surface: other modules key behaviour on
- * them, and a value drifting out of step with the backend is exactly the kind
- * of change that must fail a build rather than degrade silently in production.
+ * sizes. Those values are real contract surface, because other modules key
+ * behavior on them. A value can drift out of step with the backend. That is
+ * exactly the kind of change that must fail a build rather than degrade
+ * silently in production.
  */
 
 describe('API_ERROR_CODES', () => {
@@ -47,7 +48,7 @@ describe('API_ERROR_CODES', () => {
 describe('REFUSABLE_FIELDS', () => {
   it('is a superset of every field the filter-advice tables know how to word', () => {
     // adviseGameSearch and adviseSales silently drop a field this list does not
-    // recognise, so a field present in the advice tables but absent here would
+    // recognize. So a field present in the advice tables but absent here would
     // never actually be reachable from a real backend rejection.
     const advisedGameFields = [
       'page',

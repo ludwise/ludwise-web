@@ -1,17 +1,17 @@
 /**
  * A stand-in for the backend, replaying its recorded responses from
  * `tests/fixtures/corpus/`. The site cannot render `/games` or `/sales` without
- * something answering `/v1`, and the real backend is a private repository this
+ * something answering `/v1`. The real backend is a private repository this
  * one is built not to need.
  *
- * The recordings are real - the backend's own `tests/contract/corpus.test.ts`
- * fails if its routes stop producing exactly those bytes (ADR 0025) - and they
- * are deterministic, they reproduce the unavailable and malformed cases a
- * working service cannot produce on demand, and they need no credentials in CI.
+ * The recordings are real: the backend's own `tests/contract/corpus.test.ts`
+ * fails if its routes stop producing exactly those bytes (architecture decision
+ * record 0025). They are deterministic, need no credentials in CI, and cover
+ * the unavailable and malformed cases a working service cannot produce.
  *
- * Not a second implementation: it matches a request to a recording and replays
- * it, and answers 501 where there is none. A fake that improvised would let a
- * suite pass against behaviour the real backend does not have.
+ * Not a second implementation. It replays the recording matching a request and
+ * answers 501 where there is none. A fake that improvised would let a
+ * suite pass against behavior the real backend does not have.
  */
 
 import { createServer } from 'node:http';
@@ -25,19 +25,19 @@ const CORPUS = resolve(root, 'tests', 'fixtures', 'corpus');
 /**
  * Where unmatched requests are recorded.
  *
- * A file as well as stderr, because under Playwright the fake's output is
- * interleaved with the site's and the runner's and is effectively unreadable.
- * "Which requests does the corpus not cover" is the one question a missing
- * recording raises, and it should be answerable in one look. Gitignored.
+ * A file is used as well as stderr. In Playwright the fake's output is
+ * interleaved with the site's and the runner's. That makes it effectively
+ * unreadable. "Which requests does the corpus not cover" is the one question a
+ * missing recording raises. It must be answerable in one look. Gitignored.
  */
 const MISSES = resolve(root, 'corpus-misses.log');
 
 /**
- * How this instance should behave.
+ * How this instance behaves.
  *
- * Chosen by an environment variable rather than by a control endpoint, because
- * a control endpoint is a way for one test to change another test's backend
- * halfway through a parallel run.
+ * This is chosen by an environment variable rather than by a control endpoint.
+ * The reason is that a control endpoint is a way for one test to change another
+ * test's backend halfway through a parallel run.
  */
 const MODE = process.env['LUDWISE_FAKE_BACKEND_MODE'] ?? 'populated';
 const PORT = Number(process.env['LUDWISE_FAKE_BACKEND_PORT'] ?? '8788');
@@ -50,13 +50,13 @@ interface Recorded {
 /**
  * Which recording answers which request.
  *
- * The key is the request itself - path plus normalised query - so adding a
- * corpus case makes it reachable without editing a routing table. That matters:
- * a table would be a third place the set of covered requests lives, after the
- * backend's `CASES` and the files themselves, and the two would drift.
+ * The key is the request itself - path plus normalized query - so adding a
+ * corpus case makes it reachable without editing a routing table. That matters.
+ * A table would be a third place the set of covered requests lives, after the
+ * backend's `CASES` and the files themselves. The two would drift.
  *
  * `game-detail` cases key on their slug, which is read from the recording
- * rather than from the filename. The backend chose that slug; parsing it out of
+ * rather than from the filename. The backend chose that slug. Parsing it out of
  * `game-detail-canonical.json` would be inferring it from a naming convention
  * nobody promised to keep.
  */
@@ -81,10 +81,10 @@ function keyFor(path: string, params: URLSearchParams): string {
 /**
  * The request a recording answers, recovered from the backend's own case list.
  *
- * The corpus filenames encode the case name rather than the URL, so the URLs
- * live here - copied from the backend's `CASES`, which is the only place they
- * are authoritative. A name here with no file, or a file with no name here,
- * fails at startup rather than at the first request that needs it.
+ * The corpus filenames encode the case name rather than the URL. The URLs
+ * thus live here, copied from the backend's `CASES`. That case list is the
+ * only place they are authoritative. A name here with no file, or a file with
+ * no name here, fails at startup rather than at the first request that needs it.
  */
 const CASE_URLS: Readonly<Record<string, string>> = {
   games: '/v1/games',
@@ -171,13 +171,13 @@ function answer(url: URL): Recorded | undefined {
  *
  * Derived from a real recording rather than written out, so it carries every
  * field the contract has with the contents emptied. A hand-written empty view
- * would be a second place the shape lives, and the first field added to the
- * contract would leave it stale in a way nothing detects.
+ * would be a second place the shape lives. The first field added to the
+ * contract would then leave it stale in a way nothing detects.
  *
  * This state is worth a mode of its own because the interface says different
- * words for it. "No games are on sale right now" is a claim about the market
- * and is only true once LUDWISE has observed prices and found none discounted;
- * "LUDWISE has not collected any prices yet" is the truth here, and
+ * words for it. The sentence "No games are on sale right now" is a claim about
+ * the market. It is only true once LUDWISE has observed prices and found none
+ * discounted. The truth here is "LUDWISE has not collected any prices yet", and
  * `hasAnyOfferData: false` is what tells the page which to render.
  */
 function emptyAnswer(url: URL): Recorded | undefined {
@@ -219,8 +219,8 @@ function emptied(recorded: Recorded, overrides: Record<string, unknown>): Record
  * The request id, put back.
  *
  * The corpus records `<request-id>` because a real one differs on every request
- * and would pin nothing. The site forwards its own, and echoing it back is what
- * lets the suites assert that one id travels the whole way and reaches a
+ * and would pin nothing. The site forwards its own. Echoing it back is what
+ * lets the suites assert that one id travels the whole way. That id reaches a
  * failure page a visitor could quote.
  */
 function withRequestId(body: unknown, requestId: string | undefined): unknown {
@@ -234,7 +234,7 @@ const server = createServer((request, response) => {
 
   // Answered in every mode, including the ones that refuse everything else: a
   // runner asking whether the process is listening, not whether the backend is
-  // healthy. Under `/__` so it can never collide with a `/v1` path.
+  // healthy. In the `/__` prefix so it can never collide with a `/v1` path.
   if (url.pathname === '/__ready') {
     response.writeHead(200, { 'content-type': 'application/json' });
     response.end(JSON.stringify({ mode: MODE }));
@@ -243,7 +243,7 @@ const server = createServer((request, response) => {
 
   if (MODE === 'unavailable') {
     // Destroyed rather than answered with a 503, deliberately. A 503 is the
-    // backend telling us something; this is the backend not being there, which
+    // backend telling us something. This is the backend not being there, which
     // is a different code path in the client and the one a real outage takes.
     request.socket.destroy();
     return;
@@ -261,7 +261,7 @@ const server = createServer((request, response) => {
     const recorded = answer(url);
 
     if (recorded === undefined) {
-      // 501 rather than 404: a 404 would be a claim about the catalogue, and
+      // 501 rather than 404: a 404 would be a claim about the catalog, and
       // this is a claim about the fixture set. The fix is a case added to the
       // backend's corpus, not a cleverer server.
       const request_ = `${url.pathname}${url.search}`;
@@ -274,9 +274,9 @@ const server = createServer((request, response) => {
         }),
       );
 
-      // Appended to a file as well: under Playwright the fake's stderr is
-      // interleaved with two other processes, and "which requests does the
-      // corpus not cover" has to be answerable in one look.
+      // Appended to a file as well. In Playwright the fake's stderr is interleaved
+      // with two other processes. "Which requests does the corpus not cover" has to be
+      // answerable in one look.
       process.stderr.write(`no recording for ${request_}\n`);
       appendFileSync(MISSES, `${request_}\n`);
       return;

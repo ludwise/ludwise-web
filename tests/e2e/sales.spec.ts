@@ -5,11 +5,11 @@ import { expect, test, type Page } from '@playwright/test';
  * The sales page against a populated database.
  *
  * tests/fixtures/sales.sql seeds every case the sale rule has to get right,
- * including three that must not appear at all, plus one expensive and deeply
- * discounted game whose price rank and discount rank disagree - without it,
- * sorting "by discount" and sorting "by price" can render the same order and
- * still look correct. Asserting only that the sales show up would pass
- * against a query that returned the whole catalogue, so every test here that
+ * including three that must not appear at all. It also seeds one expensive and
+ * deeply discounted game whose price rank and discount rank disagree. Without
+ * it, sorting "by discount" and sorting "by price" can render the same order
+ * and still look correct. Asserting only that the sales show up would pass
+ * against a query that returned the whole catalog. So every test here that
  * checks a card also checks something absent.
  */
 
@@ -17,7 +17,7 @@ const THEME_COOKIE = 'theme';
 const THEMES = ['light', 'dark'] as const;
 
 // The one accepted exception, excluded here for the same reason
-// tests/e2e/shell.spec.ts excludes it: the logotype's accent is brand, it is
+// tests/e2e/shell.spec.ts excludes it. The logotype's accent is brand, it is
 // decorative, and the wordmark reads without it.
 const LOGOTYPE = '.lw-header__wordmark-accent';
 
@@ -35,7 +35,7 @@ test.describe('sales browsing', () => {
     expect(response?.status()).toBe(200);
 
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('Current sales');
-    // Germany sorts before the European Union and Japan, so it is the default
+    // Germany sorts before the European Union and Japan. So it is the default
     // pair, and the page says so rather than leaving it to be inferred.
     await expect(page.getByText('Showing Germany prices, in EUR.')).toBeVisible();
 
@@ -124,7 +124,7 @@ test.describe('sales browsing', () => {
   });
 
   /**
-   * #2's fix: one control offering only pairs that hold a sale, rather than
+   * #2's fix: one control offering only pairs that hold a sale. It replaces
    * two independent selects a visitor could submit in a combination that
    * exists for neither of them. Switching through it, rather than a direct
    * link, is what actually exercises the control.
@@ -153,9 +153,9 @@ test.describe('sales browsing', () => {
     const results = page.getByRole('list', { name: 'Games on sale' });
     await expect(results.getByRole('listitem')).toHaveCount(1);
     await expect(results.getByText('Two Store Demo Game')).toBeVisible();
-    // A region, not merely an attribute: aria-label on a role-less div is
-    // dropped by most screen readers, which is why this checks the
-    // accessible structure rather than the markup that used to stand in for it.
+    // A region, not merely an attribute. An aria-label on a role-less div is
+    // dropped by most screen readers. So this checks the accessible structure
+    // rather than the markup that used to stand in for it.
     await expect(page.getByRole('region', { name: 'Active filters' })).toBeVisible();
     await expect(page.getByRole('link', { name: 'Reset all' })).toHaveAttribute('href', '/sales');
   });
@@ -203,7 +203,7 @@ test.describe('sales browsing', () => {
       .getByRole('list', { name: 'Games on sale' })
       .getByRole('heading', { level: 3 })
       .allInnerTexts();
-    // Steep Discount is 80% off at €80.00; Two Store is 66% off at €19.99;
+    // Steep Discount is 80% off at €80.00. Two Store is 66% off at €19.99.
     // Half Off is 50% off at €29.99.
     expect(byDiscount).toEqual([
       'Steep Discount Demo Game',
@@ -227,8 +227,8 @@ test.describe('sales browsing', () => {
 
   /**
    * #8's fix: the visitor-facing inputs are whole units of the active
-   * currency, not the minor units LUDWISE stores. €70 has to exclude the
-   * €29.99 and €19.99 offers and keep the €80.00 one - typing 7000 would
+   * currency, not the minor units LUDWISE stores. A value of €70 has to exclude
+   * the €29.99 and €19.99 offers and keep the €80.00 one. Typing 7000 would
    * have been required, and would have meant something else entirely.
    */
   test('filters by price in whole currency units, not stored minor units', async ({ page }) => {

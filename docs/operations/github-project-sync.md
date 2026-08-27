@@ -1,3 +1,7 @@
+---
+ste-prose: descriptive
+---
+
 # GitHub Project synchronization
 
 LUDWISE issues are tracked in the organization project [LUDWISE Development](https://github.com/orgs/ludwise/projects/2).
@@ -25,15 +29,15 @@ Reviewed against the live Project:
 
 Each repository contains `.github/workflows/project-sync.yml`. It runs:
 
-- on issue open, reopen, close, edit, label, and unlabel events;
-- hourly as a repair/backfill pass;
-- manually through `workflow_dispatch`.
+- on issue open, reopen, close, edit, label, and unlabel events.
+- Hourly as a repair/backfill pass.
+- Manually through `workflow_dispatch`.
 
 The workflow is intentionally additive. It adds missing issue items and updates only automation-owned metadata:
 
-- closed issues become `Done`;
-- reopened issues become `Backlog`;
-- clear area labels map to the Project `Area` field: `frontend` → `Web`, `area: backend` → `Backend`, `area: database` → `Data`, infrastructure/CI/observability labels → `Infra`, and ops labels → `Ops`.
+- closed issues become `Done`.
+- Reopened issues become `Backlog`.
+- Clear area labels map to the Project `Area` field: `frontend` → `Web`, `area: backend` → `Backend`, `area: database` → `Data`, infrastructure/CI/observability labels → `Infra`, and ops labels → `Ops`.
 
 It does not delete project items, copy issue bodies, or overwrite an active manually chosen status during the hourly pass.
 

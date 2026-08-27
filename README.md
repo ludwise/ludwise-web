@@ -1,13 +1,17 @@
+---
+ste-prose: descriptive
+---
+
 # LUDWISE web client
 
 The public website for [LUDWISE](https://ludwise.com), a transparent PC game
 store comparison and discovery platform.
 
-This repository holds the **interface**: the pages a visitor sees, the design
-system they are built from, and the client that asks the backend for data. It
-holds no catalogue logic, no database, and no provider integrations — those live
-in a separate private repository, and this one is built to be readable and
-runnable without it.
+This repository holds the **interface**. That means the pages a visitor sees,
+the design system they are built from, and the client that asks the backend for
+data. It holds no catalog logic, no database, and no provider integrations.
+Those live in a separate private repository. This one is built to be readable
+and runnable without it.
 
 > **Status:** staging only. Production has not been launched.
 
@@ -17,14 +21,14 @@ runnable without it.
 | ------------------------------------------ | ------------------------------------- |
 | Routing, page composition, markup          | Canonical game identity and matching  |
 | Design tokens, components, themes          | Search ranking and relevance          |
-| Accessibility and responsive behaviour     | Pricing arithmetic and sale rules     |
+| Accessibility and responsive behavior      | Pricing arithmetic and sale rules     |
 | SEO presentation, `robots.txt`, canonicals | Which provider data may be displayed  |
 | The API client and its failure handling    | Persistence, D1, provider credentials |
 | Visitor analytics                          | Ingestion, the operations dashboard   |
 
 The division is not stylistic. Everything on the right is a decision about the
 _catalogue_, and this repository renders those decisions rather than making
-them. A discount percentage arrives computed; an offer ordering arrives ordered.
+them. A discount percentage arrives computed. An offer ordering arrives ordered.
 If you find yourself adding arithmetic over prices here, it belongs on the other
 side of the boundary.
 
@@ -45,7 +49,7 @@ application / domain / D1 / providers
 ```
 
 Every read happens during server-side rendering. The browser never calls the
-API — there is no URL for it to call, because the reads answer on a named
+API — there is no URL for it to call. This is because the reads answer on a named
 Worker entrypoint that no hostname reaches. That single decision is why this
 repository contains no CORS configuration, no API key, and no client-side data
 fetching.
@@ -99,7 +103,7 @@ Individually:
 | `pnpm test:e2e`        | Playwright, including accessibility in both themes |
 | `pnpm build`           | the Worker bundle                                  |
 
-The architecture tests are worth knowing about before you add a file: they fail
+The architecture tests are worth knowing about before you add a file. They fail
 if anything calls `fetch` outside the API client, imports a Cloudflare binding
 outside `src/middleware.ts`, or names something that looks like a credential.
 See [`tests/architecture/boundaries.test.ts`](tests/architecture/boundaries.test.ts),
@@ -112,7 +116,7 @@ Issues and pull requests are welcome. Two things are worth reading first:
 - [`docs/architecture.md`](docs/architecture.md) — especially the section on
   what must not be duplicated from the backend.
 - [`docs/design-system.md`](docs/design-system.md) — the tokens are the styling
-  API; a hard-coded colour will fail a test rather than a review.
+  API. A hard-coded color will fail a test rather than a review.
 
 Commits follow [Conventional Commits](https://www.conventionalcommits.org/),
 which `commitlint` enforces.
@@ -122,7 +126,7 @@ which `commitlint` enforces.
 Apache-2.0. See [`LICENSE`](LICENSE) and [`NOTICE`](NOTICE).
 
 The LUDWISE name, wordmark and logo marks are reserved separately — see
-[`TRADEMARKS.md`](TRADEMARKS.md). Using the code does not grant permission to
+[`TRADEMARKS.md`](TRADEMARKS.md). Use of the code does not grant permission to
 use the brand, and a fork must be renamed.
 
 ## Security

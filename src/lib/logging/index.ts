@@ -48,7 +48,7 @@ function rootFor(channel: LogChannel): Logger {
     options = { channel, level: config.logLevel, environment: config.environment };
   } catch {
     // Configuration is invalid. Logging is how that gets reported, so it must
-    // still work; fall back to a safe verbose default rather than rethrowing.
+    // still work. Fall back to a safe verbose default rather than rethrowing.
     options = { channel, level: 'info' };
   }
 

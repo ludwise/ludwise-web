@@ -1,10 +1,14 @@
+---
+ste-prose: descriptive
+---
+
 # Text that a person outside the team reads
 
 This is the `STE-DERIVED` class. A visitor reads the public product text. That
 person is not a contributor, and does not read a controlled language for a
 living.
 
-## The pipeline
+## The pipeline <!-- ste-prose: procedural -->
 
 ```text
 meaning -> ASD-STE100 baseline -> /humanizer -> semantic safety review -> final text
@@ -50,7 +54,7 @@ question: does the final text still say what the baseline said? A reviewer who
 cannot answer it sends the text back.
 
 Wording that changes what LUDWISE claims about itself is a product decision. It
-escalates under the rule in `CLAUDE.md`, and it is not settled by whoever has
+escalates by the rule in `CLAUDE.md`, and it is not settled by whoever has
 the file open.
 
 ## When the humanizer is not available
@@ -67,13 +71,13 @@ Silence is not an option. A commit that skipped the step says so in its body.
 
 This phase does not rewrite the visitor-facing copy that already exists. The
 checker never reads a string literal, so no deterministic rule covers this class
-today. [conformance.md](conformance.md) records that gap under
+today. [conformance.md](conformance.md) records that gap in
 `LW-STE-DERIVED-PIPELINE`.
 
 The gap matters more here than in the backend. Almost every visitor-visible
 string is written in a template, and only `src/lib/http/filter-advice.ts` holds
-copy on its own. A phase 2 task that wants an automatic check must first decide
-where the strings should live.
+copy on its own. A phase 2 task that wants an automatic check must first choose
+a home for the strings.
 
 [content-style.md](../../design/system/guidelines/content-style.md) already
 fixes some strings and prohibits some claims. That document wins where the two

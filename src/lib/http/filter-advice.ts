@@ -1,16 +1,14 @@
 /**
  * What to tell a visitor about each filter the backend refused.
  *
- * Keyed by field name, the half of a rejection that crosses the wire. The
- * backend's `reason` deliberately does not: those strings name internal
- * expectations for whoever reads the logs, so wording one for a person is a
- * presentation decision made here.
+ * Keyed by field name, the half of a rejection that crosses the wire. The backend's `reason`
+ * deliberately does not cross the wire. Those strings name internal expectations for whoever
+ * reads the logs, so wording one for a person is a presentation decision made here.
  *
- * One table rather than one per page: `marketCode` and `currencyCode` are
- * refused together and share a sentence, while `/games` and `/sales` word the
- * same rule differently. An unknown field is dropped rather than shown - it
- * means a newer backend refused something this build has no control for - and
- * still logged, so the skew reaches an operator.
+ * One table rather than one per page. `marketCode` and `currencyCode` are refused together and
+ * share a sentence, while `/games` and `/sales` word the same rule differently. An unknown field
+ * is dropped rather than shown, because it means a newer backend refused something this build
+ * has no control for. It is still logged, so the skew reaches an operator.
  */
 
 /** Advice for `/games`, keyed by the field names `/v1/games` may refuse. */
@@ -41,11 +39,11 @@ const SALES_ADVICE: Readonly<Record<string, string>> = {
 /**
  * The sentences to show for a set of refused fields, without repeats.
  *
- * Deduplicated because one mistake produces several fields by design - a market
- * without its currency is refused on both sides - and two fields sharing one
- * sentence would otherwise print it twice.
+ * Deduplicated because one mistake produces several fields by design. A market without its
+ * currency is refused on both sides. Two fields sharing one sentence would otherwise print it
+ * twice.
  *
- * Order follows the table rather than the response, so the same mistake reads
+ * Order follows the table rather than the response. So the same mistake reads
  * the same way every time regardless of the order the backend happened to
  * validate in.
  */

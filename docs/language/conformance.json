@@ -66,9 +66,9 @@
       "title": "Use an approved word only with its approved meaning.",
       "sourceVerification": "verified",
       "enforcement": "semantic",
-      "checkerSupport": "none",
+      "checkerSupport": "partial",
       "humanReview": "required",
-      "limitation": "Dictionary and semantic review are required."
+      "limitation": "Dictionary and semantic review are required. LW-STE-CAUSAL-SINCE reports one probable error in this rule, a since that reads as a reason, and it does not decide the rule."
     },
     {
       "ruleNumber": "1.4",
@@ -827,6 +827,23 @@
       "humanReview": "none"
     },
     {
+      "ludwiseRule": "LW-STE-CAUSAL-SINCE",
+      "title": "Review a since that reads as a reason rather than as time.",
+      "steReference": {
+        "section": 1,
+        "sectionName": "Words",
+        "ruleNumber": "1.3",
+        "sourceVerification": "verified"
+      },
+      "appliesToLudwise": true,
+      "contentClasses": ["STE-STRICT", "STE-DERIVED"],
+      "enforcement": "heuristic",
+      "implementationStatus": "implemented",
+      "checkerSupport": "partial",
+      "limitations": "Issue 9 approves since as a conjunction of time and requires because for a reason. Nothing in the text marks the meaning, so this rule reads clause shape and excludes a following time expression. It cannot see a reason in another position, and it does not check the part of speech. Rule 1.3 stays a semantic review obligation, and this rule is an aid to that review rather than proof of it.",
+      "humanReview": "required"
+    },
+    {
       "ludwiseRule": "LW-STE-PUNCTUATION-ALTERNATIVE-SLASH",
       "title": "Do not use a configured slash form to join alternatives.",
       "steReference": {
@@ -1054,9 +1071,9 @@
     "standardRuleMapRows": 53,
     "mappedWritingRules": 53,
     "completeRuleMap": true,
-    "rowsCitingASection": 8,
+    "rowsCitingASection": 9,
     "ludwiseExtensionRows": 17,
-    "totalRows": 25,
+    "totalRows": 26,
     "note": "The normative map is complete. Machine enforcement remains intentionally partial where safe deterministic checking is not possible."
   }
 }

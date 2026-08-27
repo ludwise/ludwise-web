@@ -30,7 +30,7 @@ const UI_DIRECTORIES = ['src/components', 'src/layouts', 'src/pages'];
  * `set:html={...}` and `dangerouslySetInnerHTML={{ __html: ... }}`, capturing
  * the expression up to its closing brace so it can be judged.
  *
- * `[\s\S]*?` rather than `[^\n]*`, and the difference is not cosmetic: an
+ * `[\s\S]*?` rather than `[^\n]*`, and the difference is not cosmetic. An
  * end-of-line capture returns nothing once Prettier wraps the expression, so
  * *formatting a dangerous line would silently switch the rule off*. The key
  * may be quoted or computed - `["__html"]:` - because a computed key must not
@@ -43,7 +43,7 @@ const RAW_HTML_SINK = /(?:set:html=\{|__html["']?\s*\]?\s*:\s*)([\s\S]*?)\}/g;
  *
  * An allowlist, not a denylist of composition operators. A denylist has to
  * anticipate every way to build a string - `.concat`, `.join`, `.replace`, a
- * ternary, a helper call - and the first one nobody thought of passes. This
+ * ternary, a helper call. The first one nobody thought of then passes. This
  * says instead what safe looks like, and everything else is a finding.
  */
 const NAMES_A_VALUE = /^[A-Za-z_$][\w$]*(?:\.[\w$]+|\[[A-Za-z_$][\w$]*\])*$/;

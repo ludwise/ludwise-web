@@ -8,9 +8,9 @@ export const prerender = false;
 
 {
   /* Not in the design handoff, which documents four product screens and no
-     error pages. Composed from EmptyState using the wording pattern in
+     error pages. Composed from EmptyState with the wording pattern in
      design/system/guidelines/content-style.md - what happened, why you are
-     seeing this, what to do next - and recorded as an addition in
+     seeing this, what to do next. Recorded as an addition in
      docs/development/design-system.md.
 
      No activeNavId: this page is not a nav destination, and marking one
@@ -19,10 +19,10 @@ export const prerender = false;
 <BaseLayout title="Page not found — LUDWISE">
   <PageContainer width="reading">
     {
-      /* titleAs="h1" because this is the whole page, not a region within one.
+      /* titleAs="h1" because this is the whole page, not a surface within one.
          Rendered as a span - EmptyState's default, correct where it labels a
-         region - it would leave this page with no heading at all, and a screen
-         reader navigating by heading with nothing to find. */
+         surface - it would leave this page with no heading at all. A
+         screen reader navigating by heading with nothing to find. */
     }
     <EmptyState icon="circle-question-mark" title="Page not found" titleAs="h1">
       There is nothing at this address. The page may have moved, or the link you followed may be
@@ -35,9 +35,9 @@ export const prerender = false;
            same thing.
 
            It carries the button's size and treatment because it is the only
-           recovery path on the page: as bare body text it was a 20px-tall
-           target, under the 40px the design system requires of a pointer
-           surface. */
+           recovery path on the page. As bare body text it was a 20px-tall
+           target. That is less than the 40px the design system requires of a
+           pointer surface. */
       }
       <a slot="action" class="lw-recovery-link" href="/">Go to the home page</a>
     </EmptyState>

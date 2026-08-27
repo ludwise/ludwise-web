@@ -1,3 +1,7 @@
+---
+ste-prose: descriptive
+---
+
 # Vendored fonts
 
 Do not edit by hand. Regenerate with `node scripts/vendor-fonts.mjs`.

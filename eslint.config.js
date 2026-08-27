@@ -6,17 +6,16 @@ import ludwise from './eslint-rules/max-comment-block-lines.js';
 
 // --- Layering ---------------------------------------------------------------
 //
-// Every zone below is a `no-restricted-imports` config on a `files` scope.
-// Flat config does NOT merge a rule's options across objects: the last matching
-// object wins outright. A zone that switches off whatever a broader one
-// installed unless it repeats it - which is why the platform group is a shared
-// constant spread into each zone rather than retyped, and why
-// tests/architecture/boundaries.test.ts asserts the platform ban independently
-// of this file.
+// Every zone below is a `no-restricted-imports` configuration on a `files` scope.
+// Flat configuration does NOT merge a rule's options across objects: the last matching
+// object wins outright. A zone switches off whatever a broader one installed unless it repeats
+// it. That is why the platform group is a shared constant spread into each zone rather than
+// retyped. It is also why tests/architecture/boundaries.test.ts asserts the platform ban
+// independently of this file.
 //
 // This repository's layering is much simpler than the backend's, and
 // deliberately so: there is no domain, no persistence and no provider layer
-// here, because those are the things the split moved out. What is left is a
+// here. This is because those are the things the split moved out. What is left is a
 // contract, a client, some presentation, and the rule that keeps them apart.
 
 const platformNeutral = {
@@ -29,11 +28,10 @@ const platformNeutral = {
 };
 
 // The one restriction helper. There is no directory-zone list here as there is
-// in the backend, and that absence is the split working: the layers a zone list
+// in the backend. That absence is the split working: the layers a zone list
 // would separate - domain, persistence, providers - are exactly what moved to
-// the private repository. The rules that remain are scoped by `files` because
-// what they constrain is which *files* may import a thing, not which
-// directories may import each other.
+// the private repository. The rules that remain are scoped by `files`. The reason is that they
+// constrain which *files* may import a thing, not which directories may import each other.
 const restrictImports = (...patterns) => ({
   'no-restricted-imports': ['error', { patterns }],
 });
@@ -49,9 +47,9 @@ export default tseslint.config(
       'test-results/**',
       'playwright-report/**',
       'worker-configuration.d.ts',
-      // The vendored design-system handoff. Reference material, not source:
-      // its component examples are inline-styled React written for the design
-      // tooling, and linting them would report on code that is never built.
+      // The vendored design-system handoff. Reference material, not source.
+      // Its component examples are inline-styled React written for the design
+      // tooling. Linting them would report on code that is never built.
       'design/**',
       // Recorded backend responses. Data, not source.
       'tests/fixtures/corpus/**',
@@ -69,8 +67,8 @@ export default tseslint.config(
   },
 
   // Type-aware linting is scoped to src/ rather than applied globally and then
-  // switched off again. Root config files and scripts sit outside the tsconfig
-  // project, and a global type-checked config would fail on them for want of
+  // switched off again. Root configuration files and scripts sit outside the tsconfig
+  // project. A global type-checked configuration would fail on them for want of
   // type information before any override could take effect.
   {
     files: ['src/**/*.{ts,tsx}'],
@@ -94,13 +92,13 @@ export default tseslint.config(
     },
   },
 
-  // Root config files and scripts are evaluated by Node, not by workerd. They
+  // Root configuration files and scripts are evaluated by Node, not by workerd. They
   // are also outside the tsconfig project, so they get Node globals, the
   // TypeScript parser where they are written in it, and no type-aware rules.
   //
   // `scripts/**/*.ts` is here rather than in the src/ block above for a
-  // specific reason: those files are run with `node --experimental-strip-types`
-  // and are not part of the build. Linting them under the type-aware config
+  // specific reason. Those files are run with `node --experimental-strip-types`
+  // and are not part of the build. Linting them with the type-aware configuration
   // fails at parse time for want of a tsconfig project that includes them.
   {
     files: ['*.config.{js,mjs,ts}', 'scripts/**/*.{mjs,ts}'],
@@ -145,13 +143,13 @@ export default tseslint.config(
   },
 
   // --- The architectural boundary -------------------------------------------
-  // Nothing under src/lib/ may depend on Astro or Cloudflare module namespaces.
+  // Nothing in src/lib/ may depend on Astro or Cloudflare module namespaces.
   //
   // This buys three things at once:
-  //   1. src/lib/ unit-tests under plain Vitest with no workerd and no Astro
-  //      config load, because there are no virtual modules to resolve.
-  //   2. The API client takes its `fetch` as an argument, which is what lets a
-  //      test drive it without a network and what lets production hand it a
+  //   1. src/lib/ unit-tests in plain Vitest with no workerd and no Astro
+  //      configuration load, because there are no virtual modules to resolve.
+  //   2. The API client takes its `fetch` as an argument. That argument lets a
+  //      test drive it without a network. It also lets production hand it a
   //      service binding.
   //   3. Platform portability stays cheap rather than becoming a rewrite.
   //
@@ -173,9 +171,9 @@ export default tseslint.config(
   // --- The API boundary -----------------------------------------------------
   //
   // The contract is the innermost thing here. It states the wire shapes and is
-  // authoritative about them (ADR 0025), so it must not depend on the client
+  // authoritative about them (architecture decision record (ADR) 0025). So it must not depend on the client
   // that happens to use them - the backend vendors this one file and nothing
-  // else, and an import would drag the whole tree along with it.
+  // else. An import would drag the whole tree along with it.
   {
     files: ['src/lib/api/contract.ts'],
     rules: {

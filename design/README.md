@@ -1,3 +1,7 @@
+---
+ste-prose: descriptive
+---
+
 # Handoff: LUDWISE design system → `daniel-kindl/ludwise`
 
 ## Overview

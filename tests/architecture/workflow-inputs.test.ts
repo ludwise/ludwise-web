@@ -4,26 +4,26 @@ import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 /**
- * Guards a failure mode that looks like a passing workflow until you read the
- * logs: a **required action input fed from an optional secret**.
+ * Guards a failure mode that looks like a passing workflow until you read the logs: a
+ * **required action input fed from an optional secret**.
  *
- * `actions/github-script` requires `github-token`. When the secret behind it is
- * unset the expression resolves to the empty string and the action fails with
- * "Input required and not supplied: github-token" - before it reads the script,
- * so a no-op guard written inside that script is unreachable.
+ * `actions/github-script` requires `github-token`. When the secret behind it is unset, the
+ * expression resolves to the empty string. The action then fails with "Input required and not
+ * supplied: github-token". That happens before it reads the script, so a no-op guard written
+ * inside that script is unreachable.
  *
- * A step-level `if:` cannot fix this: `steps.if` is not given the `secrets`
- * context, so the condition cannot ask whether a secret exists. The fallback
- * operator can, and is what the workflows now use. The rule covers required
- * inputs of known actions only - an optional input receiving an empty string is
- * fine - and scans line by line, no YAML library being a dependency here.
+ * A step-level `if:` cannot fix this. `steps.if` is not given the `secrets` context, so the
+ * condition cannot ask whether a secret exists. The fallback operator can, and is what the
+ * workflows now use. The rule covers required inputs of known actions only, and an optional
+ * input receiving an empty string is fine. It scans line by line, no YAML library being a
+ * dependency here.
  */
 
 const WORKFLOW_DIR = '.github/workflows';
 
 /**
  * Inputs that the action rejects when empty. Extend as workflows adopt actions
- * with the same shape; an unknown action is not assumed safe, it is simply not
+ * with the same shape. An unknown action is not assumed safe, it is simply not
  * covered, which the coverage assertion below keeps honest.
  */
 const REQUIRED_INPUTS: ReadonlyMap<string, readonly string[]> = new Map([
@@ -52,7 +52,7 @@ const BLOCK_SCALAR = /^\s*[A-Za-z0-9_-]+:\s*[|>][+-]?\s*$/;
 const LIST_ITEM = /^\s*-\s/;
 
 function indentOf(line: string): number {
-  // A blank or whitespace-only line has no indent to speak of; treating it as
+  // A blank or whitespace-only line has no indent to speak of. Treating it as
   // infinitely deep keeps it inside whatever block is being read, and the
   // callers skip it before this matters.
   return INDENT.exec(line)?.[1]?.length ?? Number.MAX_SAFE_INTEGER;
@@ -61,13 +61,13 @@ function indentOf(line: string): number {
 /**
  * Every required input of a known action, with the expression feeding it.
  *
- * `uses:`, `env:` and `with:` are siblings, so a step is read from its `uses:`
- * line outward at that same indent until the block ends or the next list item
- * begins - stopping at the first sibling would stop at `env:` and find nothing,
- * which is what the coverage assertion below caught.
+ * `uses:`, `env:` and `with:` are siblings. So a step is read from its `uses:` line outward at
+ * that same indent, until the block ends or the next list item begins. Stopping at the first
+ * sibling would stop at `env:` and find nothing, which is what the coverage assertion below
+ * caught.
  *
- * Inputs are the keys directly under `with:`. The body of a block scalar is
- * skipped, since `script: |` holds JavaScript and a `key: value` line inside it
+ * Inputs are the keys directly below `with:`. The body of a block scalar is
+ * skipped, because `script: |` holds JavaScript and a `key: value` line inside it
  * is program text rather than an input.
  */
 function coveredInputs(): readonly CoveredInput[] {
@@ -110,7 +110,7 @@ function coveredInputs(): readonly CoveredInput[] {
 
         if (BLOCK_SCALAR.test(candidate)) blockScalarIndent = candidateIndent;
 
-        // Only keys directly under `with:` are inputs; `env:` keys are not.
+        // Only keys directly below `with:` are inputs. `env:` keys are not.
         if (withIndent === undefined) continue;
         if (!required.includes(key[1] ?? '')) continue;
 

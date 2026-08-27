@@ -10,7 +10,7 @@ import {
 /**
  * The theme cookie is caller-controlled and its value is rendered into an HTML
  * attribute on `<html>`. That makes `readThemeCookie` a sanitiser, not a
- * convenience: anything it lets through reaches the document, so it answers
+ * convenience: anything it lets through reaches the document. So it answers
  * only with a member of a closed set or with null.
  */
 

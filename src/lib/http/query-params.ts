@@ -2,11 +2,11 @@
  * Reading a query string the way a submitted GET form actually arrives.
  *
  * A blank control is not a filter. A GET form submits every control it holds,
- * so an empty number field sends `name=`; `Number('')` is 0 and a use case
+ * so an empty number field sends `name=`. `Number('')` is 0 and a use case
  * rightly refuses it. Without this boundary, "Apply filters" would fail the
  * request the page had just built.
  *
- * A present-but-malformed value is carried through and refused out loud: a
+ * A present-but-malformed value is carried through and refused out loud. A
  * filter a visitor can see in the address bar and not in the results is worse
  * than one that is rejected. Shared rather than copied, because a second copy
  * turns `''` into a `0` nobody asked for and nobody can see.
@@ -24,7 +24,7 @@ export function optionalText(params: URLSearchParams, name: string): string | un
  * A decimal integer, or nothing when the control was blank.
  *
  * Not `Number()` alone: it reads '0x10' as 16, '1e3' as 1000 and ' 12 ' as 12,
- * none of which a number input can produce, so a hand-written URL would
+ * none of which a number input can produce. So a hand-written URL would
  * otherwise mean something the form cannot say. `NaN` reaches validation and is
  * refused there, which is where the reason for refusing it lives.
  */

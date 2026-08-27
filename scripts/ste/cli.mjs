@@ -90,7 +90,13 @@ const runOverText = (documents, options, path) => {
     correction: one.correction,
   }));
 
-  const result = { diagnostics, filesChecked: 1, unitsChecked: units.length, unsupportedUnits: 0 };
+  const result = {
+    diagnostics,
+    filesChecked: 1,
+    unitsChecked: units.length,
+    unsupportedUnits: 0,
+    reviewRequiredUnits: 0,
+  };
   console.log(emit(result, documents, 'one text', options.format));
   return diagnostics.length;
 };

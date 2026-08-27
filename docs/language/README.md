@@ -1,3 +1,7 @@
+---
+ste-prose: descriptive
+---
+
 # LUDWISE language policy
 
 LUDWISE uses one controlled standard for English technical prose.
@@ -56,6 +60,6 @@ The repository records rule identifiers and LUDWISE paraphrases only.
 LUDWISE does not claim ASD approval, certification, or endorsement.
 Part 2 remains the normative controlled dictionary.
 The local checker does not contain a complete machine-readable copy.
-Therefore lexical conformance still needs semantic review.
+Lexical conformance thus still needs semantic review.
 
 The normative map is complete before the phase 2 compliance migration starts.

@@ -4,14 +4,14 @@ import { defineConfig, devices } from '@playwright/test';
  * One browser, and two servers.
  *
  * The second server is the point. This repository is a site that talks to a
- * backend, so a suite running against the site alone would be testing something
+ * backend. So a suite running against the site alone would be testing something
  * other than what is deployed. `scripts/fake-backend.ts` answers `/v1` with the
  * contract's own shapes, which makes the suite deterministic - a real backend's
- * catalogue changes as ingestion runs, so an assertion about what is on the
+ * catalog changes as ingestion runs. So an assertion about what is on the
  * page would be an assertion about what Steam was selling that morning.
  *
  * Chromium only. A second engine doubles the slowest step in CI to re-answer a
- * question about our own markup rather than about a browser; add one when a
+ * question about our own markup rather than about a browser. Add one when a
  * real cross-browser defect justifies it.
  */
 
@@ -22,10 +22,9 @@ const BACKEND_PORT = process.env.LUDWISE_FAKE_BACKEND_PORT ?? '8788';
 /**
  * Which fixtures the backend serves, and whether it answers at all.
  *
- * `degraded.spec.ts` runs under its own config with this set to `unavailable`,
- * because "the backend is not there" is a property of the whole process rather
- * than of one request, and cannot be toggled mid-suite without one test
- * changing another's world.
+ * `degraded.spec.ts` runs with its own configuration with this set to `unavailable`. The reason
+ * is that "the backend is not there" is a property of the whole process rather than of one
+ * request. It cannot be toggled mid-suite without one test changing another's world.
  */
 const MODE = process.env.LUDWISE_FAKE_BACKEND_MODE ?? 'populated';
 
@@ -34,8 +33,8 @@ export default defineConfig({
   // Vitest owns tests/**/*.test.ts. Keeping the extensions disjoint means
   // neither runner ever tries to execute the other's files.
   testMatch: '**/*.spec.ts',
-  // Two suites need the backend answering something other than the catalogue,
-  // and each runs under playwright.states.config.ts with its own pair of
+  // Two suites need the backend answering something other than the catalog,
+  // and each runs with playwright.states.config.ts with its own pair of
   // servers. That is not a convenience: "the backend has nothing" and "the
   // backend is not there" are properties of the whole process, and toggling
   // either mid-suite would let one test change another's world.
@@ -62,9 +61,8 @@ export default defineConfig({
     },
     {
       command: 'pnpm exec astro dev --port 4321',
-      // The health endpoint cannot answer until configuration has validated,
-      // so waiting on it means the site is genuinely ready rather than merely
-      // bound to a port.
+      // The health endpoint cannot answer until configuration has validated. So waiting on it
+      // means the site is genuinely ready rather than merely bound to a port.
       url: `${BASE_URL}/api/health`,
       reuseExistingServer: !process.env.CI,
       timeout: 120_000,

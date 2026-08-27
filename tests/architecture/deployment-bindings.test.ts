@@ -2,7 +2,7 @@
  * What the deployed Worker is actually allowed to hold.
  *
  * `boundaries.test.ts` proves the *source* reaches nothing private. This proves
- * the same of the *deployment*: a binding is capability, and one that appears in
+ * the same of the *deployment*. A binding is capability, and one that appears in
  * the generated configuration is usable at runtime whether or not any source
  * file mentions it. The file read is `dist/server/wrangler.json`, which
  * @astrojs/cloudflare produces by merging `wrangler.jsonc` with its own
@@ -30,7 +30,7 @@ interface Route {
 interface ServiceBinding {
   readonly binding: string;
   readonly service: string;
-  /** Absent means the target Worker's default entrypoint. See ADR 0028. */
+  /** Absent means the target Worker's default entrypoint. See architecture decision record (ADR) 0028. */
   readonly entrypoint?: string;
 }
 
@@ -46,7 +46,7 @@ interface AuthoredConfig {
   readonly env?: Readonly<Record<string, AuthoredEnvironment>>;
 }
 
-/** Parse this repository's JSONC config without adding a dependency for one test. */
+/** Parse this repository's JSONC configuration without adding a dependency for one test. */
 function readJsonc(path: string): AuthoredConfig {
   const source = readFileSync(path, 'utf8');
   let output = '';
@@ -115,9 +115,9 @@ const ALLOWED_BINDINGS = new Set(['ASSETS', 'BACKEND']);
  * inferred, so that adding a real one is a decision someone makes here.
  *
  * `kv_namespaces` is the one that actually fired. The rest are the other ways a
- * public web client could grow direct state or direct data access, which is the
- * thing the split exists to prevent: this repository reads through `/v1` or it
- * does not read at all.
+ * public web client could grow direct state or direct data access. Preventing
+ * that is the thing the split exists for. This repository reads through `/v1`
+ * or it does not read at all.
  */
 const MUST_BE_EMPTY = [
   'kv_namespaces',
@@ -144,7 +144,7 @@ interface GeneratedConfig {
 
 /**
  * Set by the CI step that runs this suite after the build. Absent means the
- * build output may legitimately not exist yet; present means it must, and a
+ * build output may legitimately not exist yet. Present means it must, and a
  * missing file is a failure.
  *
  * `test` runs before `build` in `pnpm run check` and in `verify.yml` alike, so
@@ -163,7 +163,7 @@ const config = readGenerated();
 
 describe('the generated deployment configuration', () => {
   it('was produced by a build, or these rules are not running', () => {
-    // Not an assertion about the config - an assertion about this suite. Every
+    // Not an assertion about the configuration - an assertion about this suite. Every
     // rule below is `runIf(config)`, so without this one a run with no build
     // output reports passes and skips and checks nothing.
     if (REQUIRE_BUILD_OUTPUT) {
@@ -220,8 +220,8 @@ describe('the generated deployment configuration', () => {
 
   it.runIf(config)('holds no secret-shaped values in plain vars', () => {
     // `vars` is plaintext in the deployed configuration and readable by anyone
-    // who can see the Worker's settings. Secrets belong in secret bindings; the
-    // point here is that none of these should ever be secret at all.
+    // who can see the Worker's settings. Secrets belong in secret bindings. The
+    // point here is that none of these is ever secret at all.
     for (const [name, value] of Object.entries(config?.vars ?? {})) {
       expect(/token|secret|key|password|credential/iu.test(name), `suspicious var: ${name}`).toBe(
         false,
@@ -232,7 +232,7 @@ describe('the generated deployment configuration', () => {
 
   it.runIf(config)('reaches the backend through the named visitor-read entrypoint', () => {
     // The security property of ADR 0028 from this side. The backend's default
-    // entrypoint has no `/v1` at all, so a binding without this field would 404
+    // entrypoint has no `/v1` at all. So a binding without this field would 404
     // every page - and would mean the read contract was expected to be routed.
     const backend = (config?.services ?? []).find((s) => s.binding === 'BACKEND');
 
@@ -250,7 +250,7 @@ describe('the generated deployment configuration', () => {
     else if (name.endsWith('-production')) expect(backend).toBe('ludwise-production');
     else expect(backend).toBe('ludwise');
 
-    // Never, under any name: a production backend behind a non-production site.
+    // Never, for any name: a production backend behind a non-production site.
     if (!name.endsWith('-production')) {
       expect(backend).not.toBe('ludwise-production');
     }
@@ -272,7 +272,7 @@ describe('the authored deployment routing', () => {
   });
 
   it('binds every environment to the named entrypoint, local included', () => {
-    // All three environments at once, the local block in particular:
+    // All three environments at once, the local block in particular.
     // check-environment.mjs inspects only the deployed ones, so a top-level
     // binding that lost its entrypoint would reach neither check.
     const blocks = [

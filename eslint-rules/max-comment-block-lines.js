@@ -1,11 +1,11 @@
 /**
  * Limits how long a comment may run: a `//` block, and a `/* *\/` doc comment.
  *
- * A long run of line comments means either the code is not saying what it does,
- * or a contract is being described where documentation tooling cannot read it.
- * A long doc comment means something else: an essay has grown where a contract
- * belongs, usually by absorbing worked examples a test already asserts or a
- * rationale an ADR already owns.
+ * A long run of line comments means one of two things. Either the code is not saying what it
+ * does, or a contract is being described where documentation tooling cannot read it.
+ * A long doc comment means something else. An essay has grown where a contract belongs.
+ * It usually grows by absorbing worked examples a test already asserts.
+ * It also absorbs a rationale an architecture decision record (ADR) already owns.
  *
  * Directive comments (`eslint-…`, `@ts-…`, `prettier-…`) are exempt: they are
  * instructions to tooling, not prose, and their length is not ours to choose.

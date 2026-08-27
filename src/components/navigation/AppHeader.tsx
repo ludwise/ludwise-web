@@ -5,9 +5,9 @@
  * The one `client:load` island on the page. SearchField lives here because the
  * handoff makes it part of AppHeader rather than a standalone export.
  *
- * Icon, Button and Wordmark are Astro components a React island cannot import,
- * so this file renders its own glyphs from the framework-neutral
- * `../foundation/icons.js` map and its own button and wordmark markup.
+ * Icon, Button and Wordmark are Astro components a React island cannot import.
+ * So this file renders its own glyphs from the framework-neutral
+ * `../foundation/icons.js` map, plus its own button and wordmark markup.
  *
  * Search uses a native GET action, so it works before hydration. The account
  * control renders only when the host supplies `authed` at all: the prop has no
@@ -24,8 +24,8 @@ import './AppHeader.css';
  *
  * `markup` is a lookup into `LUDWISE_ICONS`, keyed by the closed `IconName`
  * union and never derived from a request or a database row. That constancy is
- * the whole basis for switching escaping off, so nothing variable may join the
- * string: `title` is a prop, and reaches the accessible name through
+ * the whole basis for switching escaping off. So nothing variable may join the
+ * string. `title` is a prop, and reaches the accessible name through
  * `aria-label`, which React escapes, rather than an interpolated `<title>`.
  */
 function IconGlyph({
@@ -64,10 +64,10 @@ function IconGlyph({
  * Geometry for the lockup, reimplemented from Wordmark.astro because that is an
  * Astro component this island cannot import.
  *
- * Fixed at the reference's `<Wordmark size="md" />`; the header exposes no size
+ * Fixed at the reference's `<Wordmark size="md" />`. The header exposes no size
  * or tone knob, matching a prop contract that has none. The href is the one
  * departure: the reference's `#` was a placeholder for a specimen with no
- * router, and this is the second tab stop on every real page.
+ * router. This is the second tab stop on every real page.
  */
 const WORDMARK_PX = 19;
 const WORDMARK_TILE_RATIO = 1.22;
@@ -122,10 +122,10 @@ interface SearchFieldProps {
 }
 
 /** design/system/components/forms.md § SearchField — prop contract ported
- *  verbatim, minus the raw HTML-attribute passthrough the reference inherits
- *  via `extends Omit<InputHTMLAttributes, ...>`: this SearchField is used only
- *  from within AppHeader, not exported as a standalone public primitive, so
- *  that passthrough surface has no caller here. */
+ *  verbatim. It drops the raw HTML-attribute passthrough the reference
+ *  inherits via `extends Omit<InputHTMLAttributes, ...>`. This SearchField is
+ *  used only from within AppHeader, and is not exported as a standalone
+ *  public primitive. So that passthrough surface has no caller here. */
 function SearchField({
   value,
   onChange,
@@ -180,9 +180,9 @@ export interface NavItem {
 export interface AppHeaderProps {
   items: NavItem[];
   activeId?: string | undefined;
-  /** Called with the item id when a nav link is clicked; the default anchor
+  /** Called with the item id when a nav link is clicked. The default anchor
    *  navigation is prevented. Omit for a real multi-page app, where the href
-   *  should navigate normally. */
+   *  navigates normally. */
   onNavigate?: ((id: string) => void) | undefined;
   searchValue?: string | undefined;
   /** Native GET destination for the server-rendered search form. */
@@ -191,11 +191,11 @@ export interface AppHeaderProps {
   onSearchClear?: (() => void) | undefined;
   theme?: Theme | undefined;
   onThemeToggle?: (() => void) | undefined;
-  /** Current commercial market and currency, e.g. "EUR · Eurozone". Distinct
+  /** Current commercial market and currency, for example "EUR · Eurozone". Distinct
    *  from UI language — never conflate the two. */
   marketLabel?: string | undefined;
   /** Called with the new open state when the compact menu button is pressed.
-   *  The header manages its own menu panel; this is only for host-side effects
+   *  The header manages its own menu panel. This is only for host-side effects
    *  such as locking body scroll. */
   onMenu?: ((open: boolean) => void) | undefined;
   authed?: boolean | undefined;
@@ -230,11 +230,11 @@ export function useIsCompactHeader(breakpoint: number = DEFAULT_COMPACT_BREAKPOI
 
 /**
  * Open/closed state for the compact menu panel, and the Escape and resize
- * behaviour that closes it.
+ * behavior that closes it.
  *
  * A non-modal disclosure, not a modal dialog: opening it never moves focus
- * into the panel, so there is no focus trap and nothing to restore — only a
- * place for focus to land when Escape closes it, which
+ * into the panel. So there is no focus trap and nothing to restore. There is
+ * only a place for focus to land when Escape closes it, which
  * accessibility.md § Focus and keyboard requires. Escape is listened for on
  * the document rather than the panel because focus may be on the trigger,
  * inside the panel, or (having tabbed past it) beyond both.
@@ -245,7 +245,7 @@ function useMenuPanel(onMenu: ((open: boolean) => void) | undefined) {
   const viewportIsCompact = useIsCompactHeader();
 
   // The panel's own state, not the layout. CSS already hides the panel at
-  // desktop width, but React state should not disagree with what is on screen
+  // desktop width. But React state must not disagree with what is on screen
   // once a real resize has passed the breakpoint.
   useEffect(() => {
     if (!viewportIsCompact) setMenuOpen(false);
@@ -278,11 +278,11 @@ function useMenuPanel(onMenu: ((open: boolean) => void) | undefined) {
  * Resolved here rather than round-tripped through the host, so the glyph
  * changes on click rather than on the next render the host happens to cause.
  *
- * `initial` is the cookie value the server resolved (src/lib/http/theme.ts),
- * which is all the server can know. A first-time visitor has no cookie, so
+ * `initial` is the cookie value this Worker resolved (src/lib/http/theme.ts),
+ * which is all this Worker can know. A first-time visitor has no cookie. So
  * what is actually on `<html>` was decided before paint by the head script
- * from prefers-color-scheme — the effect below adopts that, or the toggle
- * would offer to switch to the theme already showing.
+ * from prefers-color-scheme. The effect below adopts that value. Otherwise
+ * the toggle would offer to switch to the theme already showing.
  */
 function useHeaderTheme(initial: Theme, onThemeToggle: (() => void) | undefined) {
   const [currentTheme, setCurrentTheme] = useState<Theme>(initial);
@@ -307,8 +307,8 @@ function useHeaderTheme(initial: Theme, onThemeToggle: (() => void) | undefined)
  * The `data-compact` attribute value, or `undefined` to leave it off.
  *
  * Which layout renders is CSS's job, never this component's: `useIsCompactHeader`
- * resolves in an effect, so it answers `false` on the server and through the
- * whole pre-hydration window, and a layout only correct after hydration would
+ * resolves in an effect. So it answers `false` during rendering and through the
+ * whole pre-hydration window. A layout only correct after hydration would
  * break the server-rendered HTML PRODUCT.md §83 and §89 require.
  *
  * `compact` is the escape hatch the prop contract documents. Supplied, this
@@ -346,7 +346,7 @@ export function AppHeader({
     closeMenu();
   };
 
-  // Both variants are rendered; CSS decides which is visible. `variant` reaches
+  // Both variants are rendered. CSS decides which is visible. `variant` reaches
   // nothing but this nav's own classes, so hydration has nothing to get wrong.
   const renderNav = (variant: 'bar' | 'panel') => (
     <nav aria-label="Primary" className={`lw-header__nav lw-header__nav--${variant}`}>
@@ -367,8 +367,8 @@ export function AppHeader({
     </nav>
   );
 
-  // Same reasoning as renderNav: the bar copy carries an extra class so CSS
-  // can hide it at compact widths, the panel copy needs no such class
+  // Same reasoning as renderNav. The bar copy carries an extra class so CSS
+  // can hide it at compact widths. The panel copy needs no such class,
   // because its whole container is already gated on `menuOpen`.
   const renderMarketButton = (extraClassName?: string) =>
     marketLabel ? (
@@ -413,8 +413,8 @@ export function AppHeader({
 
         {renderNav('bar')}
 
-        {/* CSS chooses the desktop copy; the native GET form remains usable
-            before the island hydrates. */}
+        {/* CSS chooses the desktop copy. The native GET form remains usable
+            before the island finishes hydration. */}
         {hasSearch && <div className="lw-header__search-slot">{renderSearch('sm')}</div>}
 
         <div className="lw-header__utilities-slot">
@@ -436,7 +436,7 @@ export function AppHeader({
 
             {/* Gated on authed !== undefined — see the file comment. A host
                 that has not said whether the visitor is authenticated has no
-                account state to show; `authed`'s prop default was removed
+                account state to show. `authed`'s prop default was removed
                 (rather than left at `false`) precisely so "unknown" and
                 "answered no" stay distinguishable here. */}
             {authed !== undefined &&
@@ -455,15 +455,17 @@ export function AppHeader({
                 </button>
               ))}
 
-            {/* Rendered unconditionally, because CSS decides whether it shows:
-                gating it on a hydration-resolved value would leave it out of the
-                server HTML, where a mobile visitor's only route to the nav is.
+            {/* Rendered unconditionally, because CSS decides whether it shows.
+                Gating it on a hydration-resolved value would leave it out of
+                the server-rendered HTML, which is a mobile visitor's only route
+                to the nav.
 
-                aria-expanded, not aria-pressed: this discloses `#lw-header-menu`
-                rather than toggling a pressed state. The name stays "Menu" —
-                aria-expanded already carries open/closed, and a changing name
-                alongside it states the same thing twice. The glyph carries it
-                visually through `data-pressed`, which implies no ARIA role. */}
+                This uses aria-expanded, not aria-pressed. It discloses
+                `#lw-header-menu` rather than toggling a pressed state. The
+                name stays "Menu". The reason is that aria-expanded already
+                carries open/closed, and a changing name alongside it states the
+                same thing twice. The glyph carries it visually through
+                `data-pressed`, which implies no ARIA role. */}
             <button
               ref={menuButtonRef}
               type="button"
@@ -481,7 +483,7 @@ export function AppHeader({
         </div>
       </div>
 
-      {/* Unconditional for the same reason as the menu button; CSS decides
+      {/* Unconditional for the same reason as the menu button. CSS decides
           whether this or the inline `.lw-header__search-slot` copy shows. */}
       {hasSearch && <div className="lw-header__mobile-search">{renderSearch('md')}</div>}
 

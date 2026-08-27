@@ -4,9 +4,9 @@ export const MAX_DEPTH_MARKER = '[MaxDepth]';
 export const CIRCULAR_MARKER = '[Circular]';
 
 /**
- * Normalised key fragments that must never reach a log sink.
+ * Normalized key fragments that must never reach a log sink.
  *
- * Matched as substrings of the normalised key, not by equality, so
+ * Matched as substrings of the normalized key, not by equality, so
  * `steamApiKey`, `providerApiKey` and `refreshTokenHash` are all caught without
  * enumerating them. The trade is deliberate and asymmetric: over-redaction
  * costs a harmless field, under-redaction puts a live credential into retained
@@ -50,7 +50,7 @@ const DEFAULTS = {
   maxStringLength: 2048,
 } as const;
 
-/** Lowercases and strips separators, so X-Api-Key and api_key normalise alike. */
+/** Lowercases and strips separators, so X-Api-Key and api_key normalize alike. */
 export function normalizeKey(key: string): string {
   return key.toLowerCase().replace(/[-_.\s]/g, '');
 }
@@ -70,11 +70,11 @@ function looksSecret(value: string): boolean {
 }
 
 /**
- * Exported so a boundary that only ever sees one string at a time - a
- * projected log field rather than a whole context object - can apply the same
- * secret-detection and truncation rule without walking a full object through
- * `redact()`. Both paths share one rule for what counts as a credential and
- * how long a value survives, so no caller quietly ends up with a second,
+ * Exported for a boundary that only ever sees one string at a time, a projected
+ * log field rather than a whole context object. Such a boundary can apply the
+ * same secret-detection and truncation rule without walking a full object
+ * through `redact()`. Both paths share one rule for what counts as a credential
+ * and how long a value survives. So no caller quietly ends up with a second,
  * looser one.
  */
 export function redactString(value: string, maxLength: number): string {

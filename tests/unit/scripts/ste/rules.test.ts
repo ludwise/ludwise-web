@@ -1,14 +1,17 @@
 import { describe, expect, it } from 'vitest';
+
 import { IMPLEMENTED_RULE_IDS, runRules } from '../../../../scripts/ste/rules.mjs';
 
 const policy = {
   rollout: { mode: 'audit' },
   limits: { proceduralSentenceWords: 20, descriptiveSentenceWords: 25, paragraphSentences: 6 },
-  sentenceBoundary: { abbreviations: ['e.g'] },
-  contractions: { words: ["it's"], suffixes: ["n't", "'ll", "'re", "'ve"] },
+  sentenceBoundary: { abbreviations: ['e.g', 'i.e', 'etc'] },
+  contractions: { words: ["it's", "let's"], suffixes: ["n't", "'ll", "'re", "'ve"] },
   spelling: { variants: [{ variant: 'behaviour', preferred: 'behavior' }] },
   punctuation: { alternativeSlash: ['read/write'] },
+  causalSince: { patterns: ['sentence-initial', 'after-comma'] },
 };
+
 const terminology = {
   terms: [
     {
@@ -16,17 +19,35 @@ const terminology = {
       preferredTerm: 'catalog',
       prohibitedSynonyms: [{ term: 'catalogue', unless: [] }],
     },
+    {
+      conceptId: 'visitor',
+      preferredTerm: 'visitor',
+      prohibitedSynonyms: [{ term: 'user', unless: ['user agent'] }],
+    },
   ],
   prohibited: [
     { expression: 'wire up', suggestion: 'connect', reason: 'A phrasal verb.' },
     { expression: 'leverage', suggestion: 'use', reason: 'A longer word.' },
+    { expression: 'under', suggestion: 'below, or in', reason: 'Not an approved preposition.' },
+    {
+      expression: 'should',
+      suggestion: 'must',
+      reason: 'Not an approved word.',
+      unlessExactly: ['SHOULD'],
+    },
   ],
   abbreviations: [
     { abbreviation: 'ADR', expansion: 'architecture decision record', expandOnFirstUse: true },
+    {
+      abbreviation: 'API',
+      expansion: 'application programming interface',
+      expandOnFirstUse: false,
+    },
   ],
   prohibitedAbbreviations: [{ abbreviation: 'config', expansion: 'configuration' }],
   officialNames: ['LUDWISE'],
 };
+
 const unit = (text: string, over: Record<string, unknown> = {}) => ({
   kind: 'paragraph',
   prose: null,
@@ -34,63 +55,230 @@ const unit = (text: string, over: Record<string, unknown> = {}) => ({
   start: 0,
   ...over,
 });
-const check = (text: string, over: Record<string, unknown> = {}) =>
+
+const check = (text: string, over: Record<string, unknown> = {}): string[] =>
   runRules([unit(text, over)], { policy, terminology, defaultProse: 'mixed' }).map(
     (one) => one.rule,
   );
-const words = (n: number) => Array.from({ length: n }, () => 'word').join(' ') + '.';
 
-describe('limits and word count', () => {
-  it('uses the 25 word descriptive limit', () => {
+const words = (count: number): string =>
+  Array.from({ length: count }, () => 'word').join(' ') + '.';
+
+describe('sentence length', () => {
+  it('uses 25 words for descriptive prose', () => {
     expect(check(words(25))).toEqual([]);
     expect(check(words(26))).toEqual(['LW-STE-SENTENCE-LENGTH-DESCRIPTIVE']);
   });
-  it('uses the 20 word procedural limit', () => {
+
+  it('uses 20 words for explicitly procedural prose', () => {
     expect(check(words(20), { prose: 'procedural' })).toEqual([]);
     expect(check(words(21), { prose: 'procedural' })).toEqual([
       'LW-STE-SENTENCE-LENGTH-PROCEDURAL',
     ]);
   });
-  it('counts parenthetical text once in the containing sentence', () => {
+
+  it('uses the Issue 9 parenthetical count for the containing sentence', () => {
     const prefix = Array.from({ length: 24 }, () => 'word').join(' ');
-    expect(check(`${prefix} (many words are inside here).`)).toEqual([]);
+    expect(check(`${prefix} (this parenthetical text has many words).`)).toEqual([]);
   });
-  it('checks parenthetical prose separately', () => {
+
+  it('measures parenthetical prose as a separate sentence', () => {
     const inner = Array.from({ length: 26 }, () => 'word').join(' ');
-    expect(check(`Stable (${inner}).`)).toEqual(['LW-STE-SENTENCE-LENGTH-DESCRIPTIVE']);
+    expect(check(`The value is stable (${inner}).`)).toEqual([
+      'LW-STE-SENTENCE-LENGTH-DESCRIPTIVE',
+    ]);
+  });
+
+  it('counts a number and a supported unit as one word', () => {
+    const prefix = Array.from({ length: 23 }, () => 'word').join(' ');
+    expect(check(`${prefix} 20 ms.`)).toEqual([]);
   });
 });
 
 describe('prose kind', () => {
-  it('blocks mixed list prose in enforcement', () => {
+  it('does not make an ordered Markdown item normative in enforcement mode', () => {
+    const enforcingPolicy = { ...policy, rollout: { mode: 'enforce' } };
     const found = runRules([unit(words(5), { kind: 'list-item', prose: 'procedural' })], {
-      policy: { ...policy, rollout: { mode: 'enforce' } },
+      policy: enforcingPolicy,
       terminology,
       defaultProse: 'mixed',
     });
     expect(found.map((one) => one.rule)).toEqual(['LW-STE-PROSE-KIND-UNRESOLVED']);
   });
+
+  it('accepts an explicit procedural classification in enforcement mode', () => {
+    const enforcingPolicy = { ...policy, rollout: { mode: 'enforce' } };
+    const found = runRules([unit(words(20))], {
+      policy: enforcingPolicy,
+      terminology,
+      defaultProse: 'procedural',
+    });
+    expect(found).toEqual([]);
+  });
 });
 
-describe('verified deterministic controls', () => {
-  it('reports semicolons for rule 8.1', () =>
-    expect(check('Read the file; then stop.')).toEqual(['LW-STE-PUNCTUATION-SEMICOLON']));
-  it('reports recorded phrasal verbs separately', () =>
-    expect(check('Wire up the binding.')).toEqual(['LW-STE-PHRASAL-VERB-RECORDED']));
-  it('keeps project prohibited words separate', () =>
-    expect(check('Leverage the adapter.')).toEqual(['LW-STE-TERM-PROHIBITED']));
-  it('reports contractions', () =>
-    expect(check("It doesn't run.")).toEqual(['LW-STE-CONTRACTION']));
-  it('reports spelling variants', () =>
-    expect(check('The behaviour is stable.')).toEqual(['LW-STE-SPELLING-VARIANT']));
-  it('reports synonyms', () =>
-    expect(check('Read the catalogue.')).toEqual(['LW-STE-TERM-PREFERRED']));
+describe('paragraph length', () => {
+  it('limits descriptive paragraphs to six sentences', () => {
+    expect(check('A. B. C. D. E. F.')).toEqual([]);
+    expect(check('A. B. C. D. E. F. G.')).toEqual(['LW-STE-PARAGRAPH-SENTENCES']);
+  });
 });
 
-describe('registry', () => {
-  it('contains the corrected controls', () => {
+describe('words and terminology', () => {
+  it('reports contractions but not possessives', () => {
+    expect(check("The checker doesn't run.")).toEqual(['LW-STE-CONTRACTION']);
+    expect(check("The policy's owner reviews it.")).toEqual([]);
+  });
+
+  it('reports recorded synonyms and respects an allowed phrase', () => {
+    expect(check('Read the catalogue now.')).toEqual(['LW-STE-TERM-PREFERRED']);
+    expect(check('The user agent sends a header.')).toEqual([]);
+  });
+
+  it('separates rule 9.3 phrasal verbs from LUDWISE prohibited expressions', () => {
+    expect(check('Wire up the binding.')).toEqual(['LW-STE-PHRASAL-VERB-RECORDED']);
+    expect(check('Leverage the adapter.')).toEqual(['LW-STE-TERM-PROHIBITED']);
+  });
+
+  it('reports configured spelling variants', () => {
+    expect(check('The behaviour is stable.')).toEqual(['LW-STE-SPELLING-VARIANT']);
+    expect(check('The behavior is stable.')).toEqual([]);
+  });
+});
+
+describe('abbreviations', () => {
+  it('reports a prohibited abbreviation', () => {
+    expect(check('Read the config first.')).toEqual(['LW-STE-ABBREVIATION-PROHIBITED']);
+  });
+
+  it('requires expansion only when the policy says so', () => {
+    expect(check('The ADR records it.')).toEqual(['LW-STE-ABBREVIATION-EXPANSION']);
+    expect(check('The API answers.')).toEqual([]);
+  });
+});
+
+describe('punctuation', () => {
+  it('reports the semicolon prohibited by Issue 9 rule 8.1', () => {
+    expect(check('Read the file; then close it.')).toEqual(['LW-STE-PUNCTUATION-SEMICOLON']);
+    expect(check('Run `const x = 1;` now.')).toEqual([]);
+  });
+
+  it('keeps the LUDWISE alternative-slash rule separate', () => {
+    expect(check('The read/write split is clear.')).toEqual([
+      'LW-STE-PUNCTUATION-ALTERNATIVE-SLASH',
+    ]);
+    expect(check('Open docs/language/policy.json now.')).toEqual([]);
+  });
+});
+
+describe('the causal since rule', () => {
+  /**
+   * Issue 9 approves "since" as a conjunction of time and asks for "because"
+   * when the clause gives a reason. Nothing in the text marks the meaning, so
+   * the rule reports a probable error from clause shape. It never decides
+   * rule 1.3, which stays a semantic review obligation.
+   */
+  it('reports a reason that opens a sentence', () => {
+    expect(check('Since the file is missing, the check fails.')).toEqual(['LW-STE-CAUSAL-SINCE']);
+  });
+
+  it('reports a reason that follows a comma', () => {
+    expect(check('The check fails, since the file is missing.')).toEqual(['LW-STE-CAUSAL-SINCE']);
+  });
+
+  it('leaves a sentence-initial temporal conjunction alone', () => {
+    // The approved conjunction takes the same position a reason does, so
+    // position alone would report these. A following time expression is what
+    // separates them.
+    expect(check('Since May 2026, the price has fallen twice.')).toEqual([]);
+    expect(check('Since the last release, three faults were repaired.')).toEqual([]);
+    expect(check('Since then, the job has run nightly.')).toEqual([]);
+  });
+
+  it('leaves non-conjunction since alone', () => {
+    // Here "since" is a preposition, not the approved conjunction. The rule
+    // does not check the part of speech, and conformance.json says so.
+    expect(check('Lowest price observed by LUDWISE since May 2026.')).toEqual([]);
+    expect(check('It reads every commit since the last release.')).toEqual([]);
+  });
+
+  it('leaves a wrapped line alone', () => {
+    // Prose and comments wrap at a column limit, and a wrapped line is not a
+    // new sentence. Treating every newline as a sentence start reported the
+    // middle of a sentence, which is a plain false positive.
+    expect(check('If this number has changed\nsince a previous call, the price moved.')).toEqual(
+      [],
+    );
+    expect(check('Every claim of a lowest price observed\n * since launch rests on this.')).toEqual(
+      [],
+    );
+    expect(check('A quoted line wraps here\n> since the last call it changed.')).toEqual([]);
+  });
+
+  it('reports a reason that opens a paragraph or a list item', () => {
+    // A blank line does start a sentence, and so does a list marker.
+    expect(check('The check runs.\n\nSince the file is missing, it fails.')).toEqual([
+      'LW-STE-CAUSAL-SINCE',
+    ]);
+    expect(check('The check runs.\n\n- Since the file is missing, it fails.')).toEqual([
+      'LW-STE-CAUSAL-SINCE',
+    ]);
+  });
+
+  it('matches each configured pattern on its own', () => {
+    const opening = 'Since the file is missing, the check fails.';
+    const trailing = 'The check fails, since the file is missing.';
+    const withPatterns = (patterns: string[], text: string): string[] =>
+      runRules([unit(text)], {
+        policy: { ...policy, causalSince: { patterns } },
+        terminology,
+        defaultProse: 'mixed',
+      }).map((one) => one.rule);
+
+    expect(withPatterns(['sentence-initial'], opening)).toEqual(['LW-STE-CAUSAL-SINCE']);
+    expect(withPatterns(['sentence-initial'], trailing)).toEqual([]);
+    expect(withPatterns(['after-comma'], trailing)).toEqual(['LW-STE-CAUSAL-SINCE']);
+    expect(withPatterns(['after-comma'], opening)).toEqual([]);
+    expect(withPatterns([], opening)).toEqual([]);
+
+    // A name the rule does not implement matches nothing, rather than
+    // switching the whole rule on.
+    expect(withPatterns(['mid-clause'], opening)).toEqual([]);
+  });
+});
+
+describe('an exact-case exemption', () => {
+  it('separates a defined requirement level from the ordinary word', () => {
+    // PRODUCT.md defines SHOULD as a requirement level. The lower-case word
+    // is ordinary prose and Issue 9 does not approve it.
+    expect(check('A SHOULD requirement is strongly preferred.')).toEqual([]);
+    expect(check('The value should be stable.')).toEqual(['LW-STE-TERM-PROHIBITED']);
+  });
+});
+
+describe('the word boundary of a prohibited expression', () => {
+  it('does not match inside a hyphenated compound', () => {
+    // A hyphen joins a compound into one word. "under-matching" is not the
+    // preposition. The regex boundary \b matches at a hyphen, so it reported
+    // the compound as the listed word.
+    expect(check('The cost of under-matching is a live credential in a log.')).toEqual([]);
+    expect(check('It under-counts during an incident.')).toEqual([]);
+  });
+
+  it('still matches the bare word beside ordinary punctuation', () => {
+    // The compound must not become a way to hide the real word.
+    expect(check('The label sits under the chart.')).toEqual(['LW-STE-TERM-PROHIBITED']);
+    expect(check('It is stored under, and read from, the same key.')).toEqual([
+      'LW-STE-TERM-PROHIBITED',
+    ]);
+  });
+});
+
+describe('the rule registry', () => {
+  it('contains the new deterministic controls without duplicates', () => {
     expect(IMPLEMENTED_RULE_IDS).toContain('LW-STE-PROSE-KIND-UNRESOLVED');
     expect(IMPLEMENTED_RULE_IDS).toContain('LW-STE-PHRASAL-VERB-RECORDED');
     expect(IMPLEMENTED_RULE_IDS).toContain('LW-STE-PUNCTUATION-SEMICOLON');
+    expect(new Set(IMPLEMENTED_RULE_IDS).size).toBe(IMPLEMENTED_RULE_IDS.length);
   });
 });

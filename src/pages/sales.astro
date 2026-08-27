@@ -37,7 +37,7 @@ try {
 
   if (error.isRejection) {
     // A rejected filter combination is something a visitor did, not something
-    // that broke, so it is a warning rather than an error - an alert on every
+    // that broke. So it is a warning rather than an error - an alert on every
     // mistyped year would bury the failures that matter.
     locals.logger.warn(EVENTS.APPLICATION_QUERY_FAILED, 'Sales filters were rejected', {
       error_category: 'application',
@@ -47,8 +47,8 @@ try {
     rejectedFilters = adviseSales(error.fields);
 
     // The form comes back with the rejection, reusing the pair enumeration the
-    // failed read already did - the most expensive query the product issues, on a
-    // path anyone reaches by editing the address bar (ADR 0025).
+    // failed read already did. The most expensive query the product issues, on a
+    // path anyone reaches by editing the address bar (architecture decision record 0025).
     view = (error.data as BrowseSalesView | undefined) ?? null;
 
     if (view === null) {
@@ -80,7 +80,7 @@ const selectedStores = new Set(input.stores ?? []);
 const storeCount = view?.facets.stores.length ?? 0;
 
 // The pairs holding a sale, plus the one the visitor asked for when it holds
-// none - otherwise the select offers a pair nobody chose while the address bar
+// none. Otherwise the select offers a pair nobody chose while the address bar
 // says otherwise. Locale-independent order, so every list on the page agrees.
 const offeredContexts =
   context !== null &&
@@ -170,7 +170,7 @@ const pageOutOfRange = view !== null && view.games.length === 0 && view.resultCo
             </label>
             {/* Submitted by a button rather than on change. A select that
                 navigates as the value changes fires on every option a keyboard
-                user arrows past, and it would be the only client script on a
+                a visitor arrows past. It would be the only client script on a
                 page that otherwise needs none. */}
             <button type="submit">Apply</button>
           </form>
@@ -219,8 +219,8 @@ const pageOutOfRange = view !== null && view.games.length === 0 && view.resultCo
             <summary>Filters</summary>
 
             <form method="get" action="/sales" class="lw-sale-filters__pair-form">
-              {/* Every other filter is carried forward except the price bounds,
-                  which are amounts in the currency being left - keeping them
+              {/* Every other filter is carried forward except the price bounds.
+                  Those are amounts in the currency being left. Keeping them
                   would silently reinterpret them in another one. */}
               {input.stores?.map((store) => (
                 <input type="hidden" name="store" value={store} />
@@ -242,10 +242,10 @@ const pageOutOfRange = view !== null && view.games.length === 0 && view.resultCo
 
               <label>
                 <span>Market and currency</span>
-                {/* One control offering only the pairs that hold a sale, so a
+                {/* One control offering only the pairs that hold a sale. So a
                     visitor cannot submit a market and a currency that were
-                    never paired - unlike two independent selects, where
-                    changing one can leave the other pointed at a currency the
+                    never paired. Two independent selects allow it: changing
+                    one can leave the other pointed at a currency the
                     new market never quoted in. */}
                 <select name="pair">
                   {offeredContexts.map((option) => (

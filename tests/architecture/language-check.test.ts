@@ -46,6 +46,62 @@ describe('the developer commands', () => {
   });
 });
 
+describe('the recorded terminology conflicts', () => {
+  /**
+   * terminology.md tabulates what terminology.json records, and the two drifted.
+   * The table listed four conflicts as open, and a `provider-boundary` that the
+   * data has never held, while every conflict in the data was resolved. A reader
+   * checking whether phase 2 still owed a decision would have been told yes by
+   * one file and no by the other.
+   */
+  const conflicts = (
+    documents.terminology as { conflicts: { id: string; status: string; resolution: unknown }[] }
+  ).conflicts;
+  const prose = readFileSync('docs/language/terminology.md', 'utf8');
+
+  it('are each tabulated in the prose that describes them', () => {
+    for (const conflict of conflicts) {
+      expect(prose, `${conflict.id} is recorded but not tabulated`).toContain(`\`${conflict.id}\``);
+    }
+  });
+
+  it('are the only conflicts the prose claims exist', () => {
+    // The section, not the file. An earlier version read every table row and
+    // picked up the field reference above, which names JSON keys rather than
+    // conflicts.
+    const section = prose.slice(prose.indexOf('## Recorded conflicts'));
+    const tabulated = [...section.matchAll(/^\|\s*`([a-z-]+)`\s*\|/gmu)].flatMap((row) =>
+      row[1] === undefined ? [] : [row[1]],
+    );
+    const recorded = new Set(conflicts.map((conflict) => conflict.id));
+
+    expect(tabulated.length, 'the conflict table was not found').toBeGreaterThan(0);
+    for (const id of tabulated) {
+      expect(recorded.has(id), `the table names ${id}, which no conflict records`).toBe(true);
+    }
+  });
+
+  it('agree with the prose about whether each is settled', () => {
+    for (const conflict of conflicts) {
+      const row = prose.split('\n').find((line) => line.includes(`\`${conflict.id}\``)) ?? '';
+      expect(row, `the table and the record disagree about ${conflict.id}`).toContain(
+        conflict.status,
+      );
+    }
+  });
+
+  it('carry a resolution once enforcement is on', () => {
+    // rollout.md makes settling every conflict a precondition for enforcement,
+    // and no deterministic rule can see an unsettled one.
+    if (documents.policy.rollout.mode !== 'enforce') return;
+
+    for (const conflict of conflicts) {
+      expect(conflict.status, `${conflict.id} is still open`).toBe('resolved');
+      expect(conflict.resolution, `${conflict.id} resolves to nothing`).toBeTruthy();
+    }
+  });
+});
+
 describe('the rollout state', () => {
   it('is one of the two modes the policy declares', () => {
     expect(documents.policy.rollout.modes).toContain(documents.policy.rollout.mode);

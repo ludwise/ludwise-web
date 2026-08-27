@@ -8,13 +8,13 @@ export const prerender = false;
  * The last line before an opaque platform error page.
  *
  * Astro renders this for an unhandled failure. `locals.requestId` is set by the
- * correlation middleware, which runs first and cannot fail - but this page can
- * also be reached for a failure that happened before that, so the id is read
+ * correlation middleware, which runs first and cannot fail. But this page can
+ * also be reached for a failure that happened before that. So the id is read
  * defensively rather than assumed.
  *
  * Nothing about the failure itself is rendered: not the message, not the
  * cause, not a stack. The request id is the whole bridge between what a
- * visitor can see and what an operator can find, which is why it is here and
+ * visitor can see and what an operator can find. That is why it is here, and
  * why nothing else is.
  */
 const requestId: string | undefined = Astro.locals.requestId;
@@ -23,15 +23,16 @@ const requestId: string | undefined = Astro.locals.requestId;
 {
   /* Not in the design handoff, which documents four product screens and no
      error pages. The wording follows the application-failure pattern in
-     design/system/guidelines/content-style.md - what happened, what you are
-     seeing instead, what you can do - and the addition is recorded in
-     docs/development/design-system.md.
+     design/system/guidelines/content-style.md. That pattern is what happened,
+     what you are seeing instead, and what you can do. The addition is recorded
+     in docs/development/design-system.md.
 
      Deliberately NOT built from InlineMessage. That component is an assertive
-     live region, which is right for a failure appearing *into* a page the
-     visitor is already reading and wrong for a failure that *is* the page:
-     it would announce the entire document as an alert, and its title would be
-     a span, leaving this page with no heading for anyone navigating by one. */
+     live region. That is right for a failure appearing *into* a page the
+     visitor is already reading. It is wrong for a failure that *is* the page,
+     because it would announce the entire document as an alert. Its heading
+     would be a span, leaving this page with no heading for anyone navigating
+     by one. */
 }
 <BaseLayout title="Something failed — LUDWISE">
   <PageContainer width="reading">

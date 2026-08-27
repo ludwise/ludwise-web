@@ -1,3 +1,7 @@
+---
+ste-prose: descriptive
+---
+
 # Paste this into Claude Code
 
 You are working in the `daniel-kindl/ludwise` repository (Astro 7, server output, Cloudflare Workers, TypeScript, React available for islands but not yet used).

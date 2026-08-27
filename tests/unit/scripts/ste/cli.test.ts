@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process';
-import { mkdtempSync, writeFileSync } from 'node:fs';
+import { copyFileSync, mkdirSync, mkdtempSync, readdirSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -39,6 +39,36 @@ const textFile = (contents: string): string => {
   return path;
 };
 
+/**
+ * A throwaway repository holding one file that is known to violate the profile.
+ *
+ * `--strict` is a property of the command line, not of this repository, so the
+ * test must supply its own violation. Asserting against the real tracked files
+ * would make the test pass only while some file is still non-compliant. It
+ * would then fail the moment the repository was cleaned up, which is backwards.
+ *
+ * The checker enumerates its scope with `git ls-files`, so the copy has to be
+ * a real repository with the fixture committed. The language documents are
+ * copied because the checker loads its policy from the root it is given.
+ */
+const repositoryWithAViolation = (): string => {
+  const root = mkdtempSync(join(tmpdir(), 'ste-repo-'));
+  mkdirSync(join(root, 'docs/language'), { recursive: true });
+
+  for (const name of readdirSync('docs/language')) {
+    copyFileSync(join('docs/language', name), join(root, 'docs/language', name));
+  }
+  copyFileSync('tests/fixtures/ste/violations.md', join(root, 'violations.md'));
+
+  const git = (...args: string[]): void => {
+    execFileSync('git', args, { cwd: root, stdio: 'ignore' });
+  };
+  git('init');
+  git('add', '-A');
+
+  return root;
+};
+
 describe('the command line entry point', () => {
   it(
     'exits with zero when the phase one scope is clean',
@@ -64,7 +94,10 @@ describe('the command line entry point', () => {
     () => {
       const result = run(['audit']);
       expect(result.status).toBe(0);
-      expect(result.output).toContain('audit');
+      // The audit command reports and exits zero. This test used to look for
+      // the word "audit" in the claim. That word appears only in the branch
+      // that reports violations, so a clean repository stopped matching it.
+      expect(result.output).toContain('The checker ran and found');
       expect(result.output).not.toContain('STE compliant');
     },
     AUDIT_TIMEOUT,
@@ -73,7 +106,7 @@ describe('the command line entry point', () => {
   it(
     'fails the audit when the strict option is given and violations exist',
     () => {
-      expect(run(['audit', '--strict']).status).toBe(1);
+      expect(run(['audit', '--strict', '--root', repositoryWithAViolation()]).status).toBe(1);
     },
     AUDIT_TIMEOUT,
   );

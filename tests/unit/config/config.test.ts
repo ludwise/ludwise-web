@@ -2,10 +2,10 @@
  * Configuration validation, and the guardrail that keeps environments apart.
  *
  * The validation half is ordinary. The `assertEnvironmentsMatch` half is the
- * reason this file matters: a staging site reading production data publishes
- * production prices on a hostname that is not meant to be public, and makes
+ * reason this file matters. A staging site reading production data publishes
+ * production prices on a hostname that is not meant to be public. It also makes
  * staging's own data untrustworthy for the testing it exists to do. It is the
- * single worst configuration mistake available in this architecture, so it is
+ * single worst configuration mistake available in this architecture. So it is
  * the one with a test naming every combination rather than a representative
  * sample.
  */
@@ -40,7 +40,7 @@ describe('loadConfig', () => {
   });
 
   it('reports every problem at once rather than the first', () => {
-    // An operator fixing a bad deployment should see the whole list once, not
+    // An operator fixing a bad deployment must see the whole list once, not
     // discover the next one after each redeploy.
     const error = (() => {
       try {
@@ -56,7 +56,7 @@ describe('loadConfig', () => {
   });
 
   it('refuses to guess an absent environment', () => {
-    // Guessing development would disable protections; guessing production would
+    // Guessing development would disable protections. Guessing production would
     // enable indexing on a deployment already known to be misconfigured.
     expect(() => loadConfig({ ...VALID, ENVIRONMENT: undefined })).toThrow(ConfigError);
   });
@@ -84,7 +84,7 @@ describe('loadConfig', () => {
 
   it('refuses a timeout that would disable itself', () => {
     // Zero and negative values are the shapes that would silently mean "no
-    // ceiling" in a naive implementation, which is the one thing the timeout
+    // ceiling" in a naive implementation. That is the one thing the timeout
     // exists to prevent.
     for (const value of ['0', '-1', 'soon', '1.5', 'Infinity']) {
       expect(() => loadConfig({ ...VALID, BACKEND_TIMEOUT_MS: value }), value).toThrow(ConfigError);
@@ -104,7 +104,7 @@ describe('loadConfig', () => {
       return null;
     })();
 
-    // SITE_URL is valid there, so nothing should throw at all - which is the
+    // SITE_URL is valid there, so nothing throws at all - which is the
     // point: the assertion below is about the case that does.
     expect(error).toBeNull();
 
@@ -132,7 +132,7 @@ describe('assertEnvironmentsMatch', () => {
   /**
    * Every crossing, named individually rather than sampled.
    *
-   * The table is small enough to write out, and writing it out is what makes
+   * The table is small enough to write out. Writing it out is what makes
    * the one permitted exception visible as an exception rather than as a gap.
    */
   const CROSSINGS: readonly [Environment, string, 'allowed' | 'refused'][] = [
@@ -141,9 +141,9 @@ describe('assertEnvironmentsMatch', () => {
     // data that is already disposable.
     ['development', 'staging', 'allowed'],
 
-    // development -> production is refused as firmly as staging -> production: a
-    // developer's experiment reading real data over an unaudited binding is the
-    // accident this function exists to prevent.
+    // development -> production is refused as firmly as staging -> production.
+    // A developer's experiment reading real data over an unaudited binding is
+    // the accident this function exists to prevent.
     ['development', 'production', 'refused'],
     ['staging', 'production', 'refused'],
     ['staging', 'development', 'refused'],

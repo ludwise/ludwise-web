@@ -1,8 +1,8 @@
 import type { Environment } from '../config/index.js';
 
 /**
- * Ordered by severity. Meanings are documented in docs/operations/logging.md;
- * undocumented levels always drift into inconsistent use.
+ * Ordered by severity. Meanings are documented in docs/operations/logging.md.
+ * Undocumented levels always drift into inconsistent use.
  */
 export const LOG_LEVELS = ['debug', 'info', 'warn', 'error', 'fatal'] as const;
 export type LogLevel = (typeof LOG_LEVELS)[number];
@@ -22,7 +22,7 @@ export function isLogLevel(value: unknown): value is LogLevel {
 /**
  * PRODUCT.md section 103 requires operational telemetry, security logs and
  * audit records to stay conceptually distinct. Bound at logger construction
- * rather than passed per call, so it cannot be forgotten, and queryable as a
+ * rather than passed per call. So it cannot be forgotten, and queryable as a
  * field so one transport can carry three concerns without blurring them.
  *
  * Product analytics is deliberately not a channel here. It is a separate module
@@ -33,7 +33,7 @@ export type LogChannel = 'operational' | 'security' | 'audit';
 export type LogContext = Readonly<Record<string, unknown>>;
 export type ErrorContext = LogContext & {
   readonly error?: unknown;
-  /** Stable failure category, e.g. 'provider_unavailable'. Alerts key on this. */
+  /** Stable failure category, for example 'provider_unavailable'. Alerts key on this. */
   readonly error_category?: string;
 };
 
@@ -48,9 +48,9 @@ export interface LogError {
    *
    * Load-bearing rather than convenience. `ApplicationError` deliberately
    * keeps the cause out of its own message, out of `toLogContext()` and out of
-   * every response, on the promise that an operator holding the request id can
-   * still find what actually failed. This field is where that promise is kept:
-   * without it a rejected D1 call is reported as
+   * every response. It does so on the promise that an operator holding the
+   * request id can still find what actually failed. This field is where that
+   * promise is kept. Without it a rejected D1 call is reported as
    * `ERR_APP_INFRASTRUCTURE: games.list failed` and nothing anywhere records
    * which column was misspelled.
    */
@@ -61,9 +61,9 @@ export interface LogRecord {
   readonly timestamp: string;
   readonly level: LogLevel;
   readonly channel: LogChannel;
-  /** Stable machine key, e.g. 'http.request.completed'. Never reworded. */
+  /** Stable machine key, for example 'http.request.completed'. Never reworded. */
   readonly event: string;
-  /** Human prose. Free to change in any commit; never parsed, never localised. */
+  /** Human prose. Free to change in any commit. Never parsed, never localised. */
   readonly message: string;
   readonly service: string;
   readonly environment: Environment | 'unknown';

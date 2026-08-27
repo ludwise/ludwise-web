@@ -4,12 +4,12 @@
  * Source SVGs are vendored at design/system/assets/icons/. The inner markup is
  * inlined here, verbatim from design/system/components/foundation.md, so an
  * icon renders with no network request and inherits `currentColor`. Stroke
- * width is normalised to 1.75 at every size — that is what reads correctly
+ * width is normalized to 1.75 at every size. That is what reads correctly
  * both at 14px in a table cell and at 24px in a header.
  *
- * This module is framework-neutral on purpose: `Icon.astro` (static pages)
- * and `AppHeader.tsx` (the one React island) both need the same 49 glyphs,
- * and a React-only `lucide-react` dependency is explicitly out of scope. One
+ * This module is framework-neutral on purpose. `Icon.astro` (static pages)
+ * and `AppHeader.tsx` (the one React island) both need the same 49 glyphs.
+ * A React-only `lucide-react` dependency is explicitly out of scope. One
  * name→path-data map shared by both keeps the glyph set — and any future
  * addition to it — in exactly one place.
  */

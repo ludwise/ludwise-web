@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   commentCoverage,
+  declaredProseKind,
   extractComments,
   extractMarkdown,
 } from '../../../../scripts/ste/extract.mjs';
@@ -98,6 +99,16 @@ describe('extractComments', () => {
     expect(units[0]?.kind).toBe('doc-comment');
   });
 
+  it('returns a trailing line comment after code', () => {
+    const units = extractComments('const a = 1; // A durable reason.\n', 'a.ts');
+    expect(units.map((unit) => unit.text.trim())).toEqual(['A durable reason.']);
+  });
+
+  it('returns an inline block comment after code', () => {
+    const units = extractComments('const a = 1; /* A durable reason. */\n', 'a.ts');
+    expect(units.map((unit) => unit.text.trim())).toEqual(['A durable reason.']);
+  });
+
   it('ignores a comment marker inside a string', () => {
     expect(extractComments('const a = "// not a comment";\n', 'a.ts')).toEqual([]);
   });
@@ -142,10 +153,63 @@ describe('extractComments, on what it must not join or drop', () => {
 
   it('reports how much of a file its comments cover', () => {
     expect(commentCoverage('const a = 1;\n', 'a.ts')).toBe('full');
-    expect(commentCoverage('---\nconst a = 1;\n---\n<p>x</p>\n', 'a.astro')).toBe(
-      'frontmatter-only',
-    );
+    expect(commentCoverage('---\nconst a = 1;\n---\n<p>x</p>\n', 'a.astro')).toBe('full');
     expect(commentCoverage('<p>x</p>\n', 'a.astro')).toBe('none');
+  });
+
+  it('reads a comment from an Astro template as well as its frontmatter', () => {
+    const source = '---\n// A reason.\n---\n<p>x</p>\n{/* A template reason. */}\n';
+    expect(extractComments(source, 'a.astro').map((one) => one.text.trim())).toEqual([
+      'A reason.',
+      'A template reason.',
+    ]);
+  });
+
+  it('reads a template comment when the component has no frontmatter', () => {
+    const source = '<p>x</p>\n{/* Only a template reason. */}\n';
+    expect(extractComments(source, 'a.astro').map((one) => one.text.trim())).toEqual([
+      'Only a template reason.',
+    ]);
+  });
+
+  it('reports an offset in a template comment that points back into the source', () => {
+    const source = '---\nconst a = 1;\n---\n<p>x</p>\n{/* A template reason. */}\n';
+    const units = extractComments(source, 'a.astro');
+    const template = units.find((one) => one.text.includes('template reason'));
+    expect(source.slice(template!.start, template!.start + 2)).toBe('/*');
+  });
+
+  it('stops a template comment at its own close rather than a later one', () => {
+    const source = [
+      '---',
+      'const a = 1;',
+      '---',
+      '{/* The first reason. */}',
+      '<script is:inline>{(() => { document.title = a ? "one" : "two"; })()}</script>',
+      '{/* The second reason. */}',
+      '',
+    ].join('\n');
+
+    const units = extractComments(source, 'a.astro');
+
+    expect(units.map((one) => one.text.trim())).toEqual([
+      'The first reason.',
+      'The second reason.',
+    ]);
+    expect(units.some((one) => one.text.includes('document.title'))).toBe(false);
+  });
+
+  it('reads a template comment followed by an expression instead of a brace', () => {
+    const source = '---\nconst a = 1;\n---\n{/* A reason to render. */ a && <p>x</p>}\n';
+    expect(extractComments(source, 'a.astro').map((one) => one.text.trim())).toEqual([
+      'A reason to render.',
+    ]);
+  });
+
+  it('does not read a CSS comment inside a style block as a template comment', () => {
+    const source = '---\nconst a = 1;\n---\n<style>.x { /* A CSS note. */ color: red; }</style>\n';
+    expect(extractComments(source, 'a.astro')).toEqual([]);
+    expect(commentCoverage('<style>.x { /* A CSS note. */ }</style>\n', 'a.astro')).toBe('none');
   });
 });
 
@@ -155,5 +219,70 @@ describe('extractMarkdown, on a fence inside a list item', () => {
       '- Run this:\n\n  ```sql\n  SELECT one FROM two WHERE three;\n  ```\n',
     );
     expect(units.map((one) => one.text.trim())).toEqual(['Run this:']);
+  });
+});
+
+/**
+ * A document says which kind of prose it holds.
+ *
+ * Markdown numbering is a layout choice, so it cannot decide which sentence
+ * limit applies. A document states its own kind in front matter, and a heading
+ * states it for the section that follows.
+ */
+describe('declaredProseKind', () => {
+  it('reads the kind from front matter', () => {
+    expect(declaredProseKind('---\nste-prose: procedural\n---\n\nOpen it.\n')).toBe('procedural');
+    expect(declaredProseKind('---\nste-prose: descriptive\n---\n\nIt is open.\n')).toBe(
+      'descriptive',
+    );
+  });
+
+  it('returns null when the document declares nothing', () => {
+    expect(declaredProseKind('# A title\n\nBody.\n')).toBeNull();
+    expect(declaredProseKind('---\nname: thing\n---\n\nBody.\n')).toBeNull();
+  });
+
+  it('ignores a value that is not one of the two kinds', () => {
+    expect(declaredProseKind('---\nste-prose: whatever\n---\n\nBody.\n')).toBeNull();
+  });
+
+  it('reads the key only from real front matter', () => {
+    expect(declaredProseKind('Body.\n\nste-prose: procedural\n')).toBeNull();
+  });
+});
+
+describe('extractMarkdown, on a section that declares its own kind', () => {
+  it('carries a section declaration to every unit under it', () => {
+    const units = extractMarkdown(
+      '## Reference <!-- ste-prose: descriptive -->\n\n1. The first field is the identifier.\n\n## Setup\n\n1. Open the file.\n',
+    );
+    const reference = units.filter((one) => one.text.includes('first field'));
+    const setup = units.filter((one) => one.text.includes('Open the file'));
+    expect(reference[0]?.declaredProse).toBe('descriptive');
+    expect(setup[0]?.declaredProse).toBeNull();
+  });
+
+  it('keeps the list-shape estimate separate from the declaration', () => {
+    const units = extractMarkdown(
+      '## Reference <!-- ste-prose: descriptive -->\n\n1. The first field is the identifier.\n',
+    );
+    const item = units.filter((one) => one.kind === 'list-item');
+    expect(item[0]?.prose).toBe('procedural');
+    expect(item[0]?.declaredProse).toBe('descriptive');
+  });
+
+  it('keeps the declaration out of the measured text', () => {
+    const units = extractMarkdown('## Setup <!-- ste-prose: procedural -->\n\nOpen it.\n');
+    expect(units[0]?.text.trim()).toBe('Setup');
+  });
+
+  it('ends a section declaration at the next heading of the same depth or higher', () => {
+    const units = extractMarkdown(
+      '## Reference <!-- ste-prose: descriptive -->\n\n### Detail\n\nA field.\n\n## After\n\nOpen it.\n',
+    );
+    const detail = units.filter((one) => one.text.includes('A field'));
+    const after = units.filter((one) => one.text.includes('Open it'));
+    expect(detail[0]?.declaredProse).toBe('descriptive');
+    expect(after[0]?.declaredProse).toBeNull();
   });
 });

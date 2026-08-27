@@ -11,7 +11,7 @@ import {
 
 describe('normalizeKey', () => {
   it('collapses separators and case so one denylist entry covers every spelling', () => {
-    // Strips separators and case. The leading X is retained; what matters is
+    // Strips separators and case. The leading X is retained. What matters is
     // that the result contains 'apikey', which is how isDeniedKey matches.
     expect(normalizeKey('X-Api-Key')).toBe('xapikey');
     expect(normalizeKey('api_key')).toBe('apikey');
@@ -115,7 +115,7 @@ describe('redact', () => {
     expect(output['big']).toBe('42');
   });
 
-  // Credentials routinely arrive under innocent key names.
+  // Credentials routinely arrive with innocent key names.
   it('redacts values that look like credentials regardless of their key', () => {
     const output = redact({
       value: 'Bearer abc123def456',

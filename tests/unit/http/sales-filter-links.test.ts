@@ -49,7 +49,7 @@ describe('pathWithoutFilter', () => {
     );
   });
 
-  // The minimum and maximum price are one filter with two edges; removing
+  // The minimum and maximum price are one filter with two edges. Removing
   // one without the other would leave a bound the visitor never asked for on
   // its own.
   it('removes the maximum together with the minimum', () => {

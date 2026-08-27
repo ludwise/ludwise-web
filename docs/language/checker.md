@@ -1,3 +1,7 @@
+---
+ste-prose: descriptive
+---
+
 # The checker
 
 The checker lives in [../../scripts/ste/](../../scripts/ste/).
@@ -33,7 +37,7 @@ Enforcement mode requires an explicit prose type for mixed content.
 
 ## Deterministic controls
 
-The checker reports semicolons under rule 8.1.
+The checker reports semicolons as rule 8.1 requires.
 It detects configured contractions for part of rule 4.2.
 It detects configured spelling variants for part of rule 1.14.
 It detects recorded technical-noun synonyms for part of rule 1.11.
