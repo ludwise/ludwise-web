@@ -6,8 +6,8 @@ import ludwise from './eslint-rules/max-comment-block-lines.js';
 
 // --- Layering ---------------------------------------------------------------
 //
-// Every zone below is a `no-restricted-imports` config on a `files` scope.
-// Flat config does NOT merge a rule's options across objects: the last matching
+// Every zone below is a `no-restricted-imports` configuration on a `files` scope.
+// Flat configuration does NOT merge a rule's options across objects: the last matching
 // object wins outright. A zone that switches off whatever a broader one
 // installed unless it repeats it - which is why the platform group is a shared
 // constant spread into each zone rather than retyped, and why
@@ -69,8 +69,8 @@ export default tseslint.config(
   },
 
   // Type-aware linting is scoped to src/ rather than applied globally and then
-  // switched off again. Root config files and scripts sit outside the tsconfig
-  // project, and a global type-checked config would fail on them for want of
+  // switched off again. Root configuration files and scripts sit outside the tsconfig
+  // project, and a global type-checked configuration would fail on them for want of
   // type information before any override could take effect.
   {
     files: ['src/**/*.{ts,tsx}'],
@@ -94,13 +94,13 @@ export default tseslint.config(
     },
   },
 
-  // Root config files and scripts are evaluated by Node, not by workerd. They
+  // Root configuration files and scripts are evaluated by Node, not by workerd. They
   // are also outside the tsconfig project, so they get Node globals, the
   // TypeScript parser where they are written in it, and no type-aware rules.
   //
   // `scripts/**/*.ts` is here rather than in the src/ block above for a
   // specific reason: those files are run with `node --experimental-strip-types`
-  // and are not part of the build. Linting them under the type-aware config
+  // and are not part of the build. Linting them under the type-aware configuration
   // fails at parse time for want of a tsconfig project that includes them.
   {
     files: ['*.config.{js,mjs,ts}', 'scripts/**/*.{mjs,ts}'],
@@ -149,7 +149,7 @@ export default tseslint.config(
   //
   // This buys three things at once:
   //   1. src/lib/ unit-tests under plain Vitest with no workerd and no Astro
-  //      config load, because there are no virtual modules to resolve.
+  //      configuration load, because there are no virtual modules to resolve.
   //   2. The API client takes its `fetch` as an argument, which is what lets a
   //      test drive it without a network and what lets production hand it a
   //      service binding.

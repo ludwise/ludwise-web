@@ -1,9 +1,9 @@
 /**
- * The client's behaviour when things go wrong, which is most of what it is for.
+ * The client's behavior when things go wrong, which is most of what it is for.
  *
  * The happy path is four lines of `fetch` and `json()`. Everything else in
  * `client.ts` exists for a failure, and every one of those failures has a
- * rendering consequence: a timeout must not look like an empty catalogue, a
+ * rendering consequence: a timeout must not look like an empty catalog, a
  * rejection must not be retried, a malformed response must not be trusted, and
  * nothing the backend said may reach a page.
  *
@@ -358,9 +358,9 @@ describe('an absent game is an answer rather than a failure', () => {
   });
 
   it('but a 404 on a list read is not', async () => {
-    // A missing slug is a fact about the catalogue. A 404 from /v1/games means
+    // A missing slug is a fact about the catalog. A 404 from /v1/games means
     // the route itself is gone, which is a deployment fault - and returning an
-    // empty catalogue for it would tell a visitor there are no games.
+    // empty catalog for it would tell a visitor there are no games.
     const fetchImpl = (async () => json({}, 404)) as unknown as typeof fetch;
 
     const error = await clientOver(fetchImpl)

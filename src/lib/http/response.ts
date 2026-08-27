@@ -28,7 +28,7 @@ export function isDocumentResponse(response: Response): boolean {
  * from the same route are indistinguishable in everything except the body --
  * which is the point: a caller parses one thing. `no-store` because caching
  * stays off in the first cut of the read contract (ADR 0025), so the migration
- * is provably behaviour-preserving rather than provably faster.
+ * is provably behavior-preserving rather than provably faster.
  */
 export function jsonResponse(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {

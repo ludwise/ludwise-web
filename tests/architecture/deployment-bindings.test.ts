@@ -46,7 +46,7 @@ interface AuthoredConfig {
   readonly env?: Readonly<Record<string, AuthoredEnvironment>>;
 }
 
-/** Parse this repository's JSONC config without adding a dependency for one test. */
+/** Parse this repository's JSONC configuration without adding a dependency for one test. */
 function readJsonc(path: string): AuthoredConfig {
   const source = readFileSync(path, 'utf8');
   let output = '';
@@ -163,7 +163,7 @@ const config = readGenerated();
 
 describe('the generated deployment configuration', () => {
   it('was produced by a build, or these rules are not running', () => {
-    // Not an assertion about the config - an assertion about this suite. Every
+    // Not an assertion about the configuration - an assertion about this suite. Every
     // rule below is `runIf(config)`, so without this one a run with no build
     // output reports passes and skips and checks nothing.
     if (REQUIRE_BUILD_OUTPUT) {

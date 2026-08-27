@@ -1,5 +1,5 @@
 /**
- * The product event catalogue.
+ * The product event catalog.
  *
  * Every event here has an entry in docs/analytics/event-governance.md stating
  * the product question it answers, why each property is needed, its privacy
@@ -7,8 +7,8 @@
  * file - if the purpose line is hard to write, the event is not ready.
  *
  * Deliberately tiny. PRODUCT.md section 102 asks for product events rather
- * than raw personal information, and a catalogue that grows ahead of the
- * product is a catalogue of speculation nobody can later interpret.
+ * than raw personal information, and a catalog that grows ahead of the
+ * product is a catalog of speculation nobody can later interpret.
  */
 
 import type { AnalyticsEvent } from './types.js';

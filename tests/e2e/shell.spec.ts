@@ -4,7 +4,7 @@ import { expect, test, type Page } from '@playwright/test';
 import { THEME_COOKIE_NAME } from '../../src/lib/http/theme.js';
 
 /**
- * The one end-to-end spec.
+ * The one end-to-end specification.
  *
  * It answers what no other layer can: that the application boots in a real
  * engine, that the shell renders, that navigation works, and that an
@@ -29,7 +29,7 @@ const BASE_URL = 'http://localhost:4321';
  * theme: `--color-accent-primary` on the page background measures 2.06:1.
  *
  * Excluded because WCAG 1.4.3 exempts it — "text that is part of a logo or
- * brand name has no contrast requirement" — and the colour is the design
+ * brand name has no contrast requirement" — and the color is the design
  * system's own, specified in design/system/components/foundation.md. Changing
  * it here would be redesigning the brand to satisfy a rule that does not apply
  * to it.
@@ -37,11 +37,11 @@ const BASE_URL = 'http://localhost:4321';
  * It is a narrow exclusion of one element rather than of the rule, so any other
  * contrast failure anywhere still fails. The underlying legibility question is
  * raised with the designer separately; delete this the moment the wordmark's
- * colour changes.
+ * color changes.
  */
 const LOGOTYPE = '.lw-header__wordmark-accent';
 
-/** Astro removes the `ssr` attribute from an island once it has hydrated. */
+/** Astro removes the `ssr` attribute from an island once it has filled. */
 async function waitForHydration(page: Page): Promise<void> {
   await page.waitForFunction(() => document.querySelector('astro-island[ssr]') === null);
 }
@@ -92,7 +92,7 @@ test.describe('the application shell', () => {
     const skipLink = page.getByRole('link', { name: 'Skip to content' });
     await expect(skipLink).toBeFocused();
     // Hidden until focused, then genuinely rendered - a skip link that stays
-    // clipped is one a sighted keyboard user cannot follow.
+    // clipped is one a sighted keyboard operator cannot follow.
     await expect(skipLink).toBeVisible();
   });
 

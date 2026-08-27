@@ -191,7 +191,7 @@ export interface AppHeaderProps {
   onSearchClear?: (() => void) | undefined;
   theme?: Theme | undefined;
   onThemeToggle?: (() => void) | undefined;
-  /** Current commercial market and currency, e.g. "EUR · Eurozone". Distinct
+  /** Current commercial market and currency, for example "EUR · Eurozone". Distinct
    *  from UI language — never conflate the two. */
   marketLabel?: string | undefined;
   /** Called with the new open state when the compact menu button is pressed.
@@ -230,7 +230,7 @@ export function useIsCompactHeader(breakpoint: number = DEFAULT_COMPACT_BREAKPOI
 
 /**
  * Open/closed state for the compact menu panel, and the Escape and resize
- * behaviour that closes it.
+ * behavior that closes it.
  *
  * A non-modal disclosure, not a modal dialog: opening it never moves focus
  * into the panel, so there is no focus trap and nothing to restore — only a

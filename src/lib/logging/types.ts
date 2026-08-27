@@ -33,7 +33,7 @@ export type LogChannel = 'operational' | 'security' | 'audit';
 export type LogContext = Readonly<Record<string, unknown>>;
 export type ErrorContext = LogContext & {
   readonly error?: unknown;
-  /** Stable failure category, e.g. 'provider_unavailable'. Alerts key on this. */
+  /** Stable failure category, for example 'provider_unavailable'. Alerts key on this. */
   readonly error_category?: string;
 };
 
@@ -61,7 +61,7 @@ export interface LogRecord {
   readonly timestamp: string;
   readonly level: LogLevel;
   readonly channel: LogChannel;
-  /** Stable machine key, e.g. 'http.request.completed'. Never reworded. */
+  /** Stable machine key, for example 'http.request.completed'. Never reworded. */
   readonly event: string;
   /** Human prose. Free to change in any commit; never parsed, never localised. */
   readonly message: string;

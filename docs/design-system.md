@@ -40,15 +40,15 @@ silently diverge.
 `tests/integration/design/token-parity.test.ts` pins every token name and value
 in source order. If you change a token here, that test fails and tells you
 which one — which is the point, because two copies of the same file drift the
-moment someone tunes a colour in whichever one they had open.
+moment someone tunes a color in whichever one they had open.
 
 Exactly one file differs: `tokens/fonts.css` serves Geist from this origin
 rather than Google Fonts. That divergence is asserted explicitly, and
 `src/styles/tokens/` is excluded from Prettier so the rest stays byte-identical.
 
-**Never write a literal where a token exists.** Not a colour, not a spacing
+**Never write a literal where a token exists.** Not a color, not a spacing
 value, not a radius, a shadow, a font size, a duration or an easing curve.
-`tests/architecture/design-system.test.ts` fails the build on any raw colour in
+`tests/architecture/design-system.test.ts` fails the build on any raw color in
 `src/components/`, `src/layouts/` or `src/pages/`. A literal is a value that
 belongs to one theme only, and it is invisible in review because it looks
 correct in whichever theme the author was viewing.
@@ -62,7 +62,7 @@ Geist and Geist Mono, self-hosted from `public/fonts/`, vendored by
 `scripts/vendor-fonts.mjs` out of the `@fontsource` packages. Run it after
 bumping either package; the output is committed. Weights: sans 400/500/600,
 mono 400/500. The token file also declares 300 and 700 — 300 is unused in
-product UI and 700 is reserved. Do not ship them.
+product UI and 700 is reserved. Do not include them.
 
 ## Themes
 
@@ -141,25 +141,25 @@ without meaning to.
   true.
 - **Missing is not zero.** `Not provided`, `Unavailable`, `No history collected
 yet`. Never `0`, `—` or `N/A`.
-- **Never colour alone.** Every state carries a glyph, a shape, a dash pattern
+- **Never color alone.** Every state carries a glyph, a shape, a dash pattern
   or a word as well. `design/system/guidelines/accessibility.md` tabulates the
   carrier for each state. The handoff calls this the system's hardest rule and
   the one most often lost in reimplementation.
-- **Retailer colour touches the 3px identity rule and the retailer's own logo,
+- **Retailer color touches the 3px identity rule and the retailer's own logo,
   nothing else.** A LUDWISE page must still read as LUDWISE with every retailer
-  colour removed.
+  color removed.
 - **Ads live only in `PromoSlot`.** Never inside a content component, never
   between comparison rows.
 
 ## Accessibility
 
-Target is WCAG 2.2 AA, built into the tokens rather than added per screen.
+Target is WCAG 2.2 AA, built into the tokens rather than added per page.
 `design/system/guidelines/accessibility.md` is authoritative.
 
 **There is exactly one `:focus-visible` rule**, in `tokens/base.css`. No
 component overrides it — `tests/architecture/design-system.test.ts` fails the
 build if one does. A per-component focus ring produces an indicator that
-changes shape as a keyboard user moves through the page.
+changes shape as a keyboard operator moves through the page.
 
 Touch targets: 40px on pointer surfaces, 44px on touch, 24px only for a control
 nested inside a larger target. `prefers-reduced-motion` is handled once,
@@ -184,7 +184,7 @@ These are additions, recorded here rather than invented silently:
 - **A favicon** — the bundle ships `assets/logo-mark.svg` and never says what
   a browser tab should show. `public/favicon.svg` is that file copied
   verbatim, pinned to it by `tests/integration/design/asset-parity.test.ts`
-  the same way the token layer is pinned. The colour mark rather than the mono
+  the same way the token layer is pinned. The color mark rather than the mono
   one: `logo-mark-mono.svg` fills itself with `currentColor`, which resolves
   against nothing when a browser fetches an icon outside any document.
   SVG only, with no `.ico` or apple-touch variant, because producing those
@@ -207,12 +207,12 @@ These are additions, recorded here rather than invented silently:
   handoff's mock uses: at caption size, tertiary on the default surface
   measures 4.19:1, below WCAG 1.4.3's 4.5:1.
 - **No `PromoSlot` and no affiliate disclosure on `/sales`.** The handoff's
-  sales screen has an ad unit in its aside. There is no advertising integration
+  sales page has an ad unit in its aside. There is no advertising integration
   and there are no affiliate links, so an empty promo box would be decoration
   and a disclosure describing a relationship that does not exist would be a
   false statement. The aside keeps only the "Legitimate stores only" note,
   which is a claim the data actually supports.
-- **No grid and list density toggle on `/sales`.** The handoff's screen has one.
+- **No grid and list density toggle on `/sales`.** The handoff's page has one.
   It needs either a second React island on a page that otherwise loads no
   framework, or a full page load per toggle, and it changes nothing factual.
 

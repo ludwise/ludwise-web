@@ -25,7 +25,7 @@ const UNKNOWN_COMMIT = 'unknown';
 const LOCAL_BUILD_ID = 'local';
 
 // Replaced textually by Vite `define` (astro.config.mjs). The `typeof` guard is
-// required, not defensive: Vitest loads no astro config, so an unguarded
+// required, not defensive: Vitest loads no astro configuration, so an unguarded
 // reference throws ReferenceError at module load. Vite folds the guard away.
 const version = typeof __BUILD_VERSION__ !== 'undefined' ? __BUILD_VERSION__ : '0.0.0-dev';
 const gitCommit =

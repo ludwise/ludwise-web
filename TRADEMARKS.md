@@ -19,7 +19,7 @@ The following are **not** licensed under Apache-2.0 and remain reserved:
 ## What that means in practice
 
 You may use, modify and redistribute this code under Apache-2.0. You may not
-use it to ship something that presents itself as LUDWISE.
+use it to release something that presents itself as LUDWISE.
 
 Concretely:
 

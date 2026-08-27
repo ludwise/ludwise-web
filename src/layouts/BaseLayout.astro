@@ -6,7 +6,7 @@ import '../styles/global.css';
 interface Props {
   title: string;
   description?: string | undefined;
-  /** Which nav destination is current. Omit on pages outside the nav, e.g. 404. */
+  /** Which nav destination is current. Omit on pages outside the nav, for example 404. */
   activeNavId?: string | undefined;
 }
 
@@ -90,8 +90,8 @@ const indexable = Astro.locals.config.environment === 'production';
          ePrivacy's strictly-necessary exemption, and it would not be necessary
          anyway: this script has already resolved and applied the theme for the
          page in front of them. Persisting it would only save *this same
-         script* from running on later pages - an optimisation, and an
-         optimisation is not the exemption. So the cookie exists only when the
+         script* from running on later pages - an optimization, and an
+         optimization is not the exemption. So the cookie exists only when the
          visitor used the toggle, which is squarely inside it. The cost is a
          few hundred inline bytes per page for a visitor who never toggles. */
       theme === null && (

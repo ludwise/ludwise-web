@@ -77,7 +77,7 @@ stable reference.
 Structured documentation comments are API contract documentation, not narrative
 implementation notes. Use the language/tooling convention in the surrounding
 code so documentation generators can treat them as a source of truth. Describe
-externally observable behaviour, invariants, errors, side effects, and
+externally observable behavior, invariants, errors, side effects, and
 compatibility constraints; do not describe implementation steps.
 
 The 80-character heuristic applies to explanatory inline comments, not to a

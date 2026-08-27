@@ -64,7 +64,7 @@ describe('the tree is large enough for these rules to mean something', () => {
 });
 
 /**
- * Nothing here reaches the catalogue except through the backend.
+ * Nothing here reaches the catalog except through the backend.
  *
  * Named as concrete module and binding names rather than as a general "no
  * database" rule, because a general rule matches nothing and passes forever.

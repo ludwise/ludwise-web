@@ -11,7 +11,7 @@ import { buildDefines, buildIdentity } from './scripts/build-identity.mjs';
 
 // `environment` is deliberately NOT injected here. Baking it into the artifact
 // would make a build un-promotable between staging and production, which the
-// main -> production branch model depends on. It is runtime config instead.
+// main -> production branch model depends on. It is runtime configuration instead.
 export default defineConfig({
   output: 'server',
   adapter: cloudflare({ imageService: 'compile' }),

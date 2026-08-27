@@ -5,7 +5,7 @@ store comparison and discovery platform.
 
 This repository holds the **interface**: the pages a visitor sees, the design
 system they are built from, and the client that asks the backend for data. It
-holds no catalogue logic, no database, and no provider integrations — those live
+holds no catalog logic, no database, and no provider integrations — those live
 in a separate private repository, and this one is built to be readable and
 runnable without it.
 
@@ -17,7 +17,7 @@ runnable without it.
 | ------------------------------------------ | ------------------------------------- |
 | Routing, page composition, markup          | Canonical game identity and matching  |
 | Design tokens, components, themes          | Search ranking and relevance          |
-| Accessibility and responsive behaviour     | Pricing arithmetic and sale rules     |
+| Accessibility and responsive behavior      | Pricing arithmetic and sale rules     |
 | SEO presentation, `robots.txt`, canonicals | Which provider data may be displayed  |
 | The API client and its failure handling    | Persistence, D1, provider credentials |
 | Visitor analytics                          | Ingestion, the operations dashboard   |
@@ -112,7 +112,7 @@ Issues and pull requests are welcome. Two things are worth reading first:
 - [`docs/architecture.md`](docs/architecture.md) — especially the section on
   what must not be duplicated from the backend.
 - [`docs/design-system.md`](docs/design-system.md) — the tokens are the styling
-  API; a hard-coded colour will fail a test rather than a review.
+  API; a hard-coded color will fail a test rather than a review.
 
 Commits follow [Conventional Commits](https://www.conventionalcommits.org/),
 which `commitlint` enforces.

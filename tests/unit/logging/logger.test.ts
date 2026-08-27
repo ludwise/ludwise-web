@@ -159,7 +159,7 @@ describe('createLogger', () => {
 describe('an error cause reaches the log', () => {
   /**
    * The failure taxonomy in src/lib/application/ deliberately withholds the
-   * underlying failure from every user-facing surface, on the promise that an
+   * underlying failure from every visitor-facing surface, on the promise that an
    * operator holding the request id can still find it. That promise is only
    * kept if the cause actually reaches a log record - otherwise a D1 failure
    * is reported as "ERR_APP_INFRASTRUCTURE: games.list failed" and nothing

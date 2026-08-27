@@ -96,9 +96,9 @@ do not exist:
   none. This is tracked, and it is the most valuable open hardening item.
 - **Staging is private** behind Cloudflare Access, and additionally sends
   `x-robots-tag: noindex` and a `robots.txt` that disallows everything. Those
-  last two are defence in depth and never the defence.
+  last two are defense in depth and never the defense.
 - **GitHub Actions are pinned to commit SHAs**, and the set that may run is an
-  organisation-wide allowlist. The default `GITHUB_TOKEN` is read-only.
+  organization-wide allowlist. The default `GITHUB_TOKEN` is read-only.
 - **No third-party scripts, analytics vendors, fonts or trackers.** Fonts are
   self-hosted. There is no runtime third-party origin at all, and a CI check
   fails if one appears.

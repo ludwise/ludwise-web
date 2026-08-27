@@ -9,7 +9,7 @@ import { expect, test, type Page } from '@playwright/test';
  * discounted game whose price rank and discount rank disagree - without it,
  * sorting "by discount" and sorting "by price" can render the same order and
  * still look correct. Asserting only that the sales show up would pass
- * against a query that returned the whole catalogue, so every test here that
+ * against a query that returned the whole catalog, so every test here that
  * checks a card also checks something absent.
  */
 

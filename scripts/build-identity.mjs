@@ -19,7 +19,7 @@ import { readFileSync } from 'node:fs';
 function localGitCommit() {
   try {
     // execFileSync (argument array, no shell) rather than execSync, so there is
-    // no shell interpolation surface and behaviour matches on Windows.
+    // no shell interpolation surface and behavior matches on Windows.
     return execFileSync('git', ['rev-parse', 'HEAD'], {
       encoding: 'utf8',
       stdio: ['ignore', 'pipe', 'ignore'],

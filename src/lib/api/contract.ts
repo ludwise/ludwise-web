@@ -64,7 +64,7 @@ export interface MarketFacetView {
 /**
  * What the filter form may offer.
  *
- * Derived from the catalogue rather than declared, so the form cannot offer a
+ * Derived from the catalog rather than declared, so the form cannot offer a
  * combination that matches nothing. That derivation is the backend's, and the
  * frontend renders it without re-deriving anything.
  */
@@ -247,7 +247,7 @@ export interface BrowseSalesView {
  * The codes a failure may carry.
  *
  * Stable by contract: the human-readable wording around them is free to change
- * and these are not. A client keys behaviour on the code, never on a message,
+ * and these are not. A client keys behavior on the code, never on a message,
  * and there is no message on the wire to key on anyway.
  *
  * `ERR_NOT_FOUND` accompanies a 404 and is the one code that is not a fault -

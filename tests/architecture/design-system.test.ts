@@ -18,7 +18,7 @@ import { listSourceFiles } from '../helpers/imports.js';
  * Both are stated as rules in the handoff, which is why they are asserted
  * rather than reviewed: `design/system/guidelines/component-states.md` says
  * focus "is one global rule ... No component overrides it", and
- * `design/README.md` calls never-colour-alone "the system's hardest rule and
+ * `design/README.md` calls never-color-alone "the system's hardest rule and
  * the one most often lost in reimplementation".
  */
 
@@ -29,10 +29,10 @@ const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const UI_DIRECTORIES = ['src/components', 'src/layouts', 'src/pages'];
 
 /**
- * A CSS hex colour, not an anchor.
+ * A CSS hex color, not an anchor.
  *
  * The lookbehind excludes `href="#main"` and friends: an id reference is
- * preceded by a quote or `=`, a colour never is.
+ * preceded by a quote or `=`, a color never is.
  */
 const HEX_COLOUR = /(?<![\w"'=#])#(?:[0-9a-fA-F]{8}|[0-9a-fA-F]{6}|[0-9a-fA-F]{3,4})\b/g;
 const FUNCTIONAL_COLOUR = /\b(?:rgba?|hsla?|oklch|color-mix)\s*\(/g;
@@ -44,7 +44,7 @@ const FUNCTIONAL_COLOUR = /\b(?:rgba?|hsla?|oklch|color-mix)\s*\(/g;
  * that put a second, concentric ring around one control, and a bare
  * `outline: none` that was inert only because the cascade happened to order
  * the global rule after it. Both look local and harmless; together they
- * produce a focus indicator that changes shape as a keyboard user moves
+ * produce a focus indicator that changes shape as a keyboard operator moves
  * across the page, which is the exact failure the one-rule policy exists to
  * prevent.
  */
@@ -144,7 +144,7 @@ describe('the design token layer is not bypassed', () => {
   });
 
   it('no component, layout or page declares a raw colour', () => {
-    // Every colour in this product exists as a semantic token with a value per
+    // Every color in this product exists as a semantic token with a value per
     // theme. A literal here is a value that belongs to one theme only.
     expect(offenders(HEX_COLOUR)).toEqual([]);
     expect(offenders(FUNCTIONAL_COLOUR)).toEqual([]);
@@ -153,7 +153,7 @@ describe('the design token layer is not bypassed', () => {
   it('only the token layer defines the focus ring', () => {
     // `:focus-visible` is set once, globally, in src/styles/tokens/base.css.
     // A component that restyles it produces a focus indicator that changes
-    // shape as a keyboard user moves through the page.
+    // shape as a keyboard operator moves through the page.
     expect(offenders(FOCUS_OVERRIDE)).toEqual([]);
     expect(readFileSync(join(REPO_ROOT, 'src/styles/tokens/base.css'), 'utf8')).toContain(
       ':focus-visible',

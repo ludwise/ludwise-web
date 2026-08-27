@@ -26,7 +26,7 @@ neither of these talks to directly.
 
 ## The boundary
 
-The backend owns every decision about the catalogue:
+The backend owns every decision about the catalog:
 
 - canonical identity, matching, and slugs
 - search relevance and result ordering
@@ -38,7 +38,7 @@ The backend owns every decision about the catalogue:
 This repository owns every decision about presentation:
 
 - routing and page composition
-- the design system, themes, and responsive behaviour
+- the design system, themes, and responsive behavior
 - accessibility
 - SEO presentation: titles, canonicals, `robots.txt`, indexability
 - loading, empty and failure states
@@ -187,8 +187,8 @@ The backend vendors this file into its own `tests/contract/` and proves
 conformance at compile time. A view type there that stops satisfying a type here
 fails **that** build with TS2344.
 
-So the direction is: the backend is authoritative about behaviour, this file is
-authoritative about the shape that behaviour must keep, and the conformance test
+So the direction is: the backend is authoritative about behavior, this file is
+authoritative about the shape that behavior must keep, and the conformance test
 is the joint. A hand-written type is only as true as the test that checks it,
 which is why that test is not optional.
 
@@ -213,7 +213,7 @@ contracts exist for a while.
 2. Copy it verbatim into the backend's `tests/contract/contract.ts`.
 3. Run the backend's `typecheck:tests`. It fails if the backend cannot satisfy
    the new shape.
-4. Make the backend satisfy it, and ship the backend **first** for an additive
+4. Make the backend satisfy it, and deploy the backend **first** for an additive
    change.
 
 ### The recorded corpus
@@ -276,7 +276,7 @@ been counted twice. After it there is exactly one page-view event per page,
 emitted here — the backend sees API reads and has no way to know a page was
 rendered.
 
-The event carries a route **template** and nothing else. No referrer, no user
+The event carries a route **template** and nothing else. No referrer, no visitor
 agent, no viewport, no session identifier, no visitor identifier. A route that
 was sanitised rather than matched produces no event at all: losing a count is
 recoverable, collecting a path a visitor typed is not.
@@ -287,8 +287,8 @@ arrive by accident.
 
 ## Caching
 
-No caching, in the first cut. `no-store` everywhere, matching the behaviour
-before the split, so the migration is provably behaviour-preserving.
+No caching, in the first cut. `no-store` everywhere, matching the behavior
+before the split, so the migration is provably behavior-preserving.
 
 That is a starting point rather than a conclusion. Adding a short cache later is
 unusually safe here because every price carries `observedAtMs` and the interface
@@ -306,7 +306,7 @@ place.
 SSR-first, deliberately. The only client-side JavaScript is the header island
 and the pre-paint theme script. There is no client-side router, no data
 fetching in the browser, and no state management library — a visitor comparing
-prices should not download the catalogue to read one page.
+prices should not download the catalog to read one page.
 
 One backend request per page, except a rejected filter combination, which costs
 one and gets its filter form rebuilt in the same response rather than making a

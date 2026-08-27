@@ -92,10 +92,10 @@ const PATTERNS = [
  */
 const NOT_A_SECRET = [
   // The W3C Trace Context specification's example trace id. It appears in the
-  // spec, in every tutorial, and in the tests that pin our parser against it.
+  // specification, in every tutorial, and in the tests that pin our parser against it.
   // It is a published constant, and a 32-hex rule cannot tell it from a key.
   /^4bf92f3577b34da6a3ce929d0e0e4736$/iu,
-  // All-zero and other single-character runs. The spec *requires* rejecting an
+  // All-zero and other single-character runs. The specification *requires* rejecting an
   // all-zero trace id, so the test suite is obliged to contain one. No key
   // generator emits a constant.
   /^(.)\1+$/u,
@@ -118,7 +118,7 @@ const NOT_A_SECRET = [
  * Matched as a *span*, and a match is suppressed only when it falls inside one.
  * The first attempt suppressed any finding on a line mentioning `integrity` or
  * `resolution`, which the mutation test immediately broke: a planted
- * tarball URL carrying basic-auth credentials, on a resolution line, went
+ * tarball URL carrying basic authentication credentials, on a resolution line, went
  * unreported. A lockfile tarball URL is a real way for a credential to be
  * committed, so the suppression has to be narrower than the line.
  *
@@ -128,7 +128,7 @@ const NOT_A_SECRET = [
 const INTEGRITY_HASH = /\bsha(?:256|384|512)-[A-Za-z0-9+/=_-]+/gu;
 
 /**
- * Files that exist to name a forbidden thing in order to ban it. Without this,
+ * Files that exist to name a forbidden thing to ban it. Without this,
  * the audit's own pattern table reports itself for containing STEAM_API_KEY.
  *
  * The exemption is scoped to the *name* rule alone, never to the whole file: an

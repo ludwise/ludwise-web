@@ -5,7 +5,7 @@ import { expect, test, type Page } from '@playwright/test';
  * What the site says when LUDWISE has ingested nothing at all.
  *
  * Its own suite and its own backend mode, because this state is a property of
- * the whole catalogue rather than of one request.
+ * the whole catalog rather than of one request.
  *
  * "No games are on sale right now" is a claim about the market, true only once
  * LUDWISE has observed prices and found none of them discounted. Before that it
@@ -41,7 +41,7 @@ test.describe('an empty catalogue', () => {
     expect(response?.status()).toBe(200);
     // The sentence that is true here, and the one that is not. Pinning the
     // second as an absence is what stops "no game is discounted" being
-    // rendered for a catalogue that has never seen a price.
+    // rendered for a catalog that has never seen a price.
     await expect(page.getByText('LUDWISE has not collected any prices yet')).toBeVisible();
     await expect(page.getByText('No games are on sale right now')).toHaveCount(0);
     // Nothing is on sale, so there is no market to name and no filter form

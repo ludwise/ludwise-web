@@ -2,7 +2,7 @@
  * Scalars only.
  *
  * Objects and arrays are excluded so that data minimisation is enforced by the
- * compiler rather than by review discipline. Passing a whole user or request
+ * compiler rather than by review discipline. Passing a whole visitor or request
  * object into an analytics event does not type-check, which means each field
  * collected has to be named deliberately. That is the entire point.
  */
@@ -10,10 +10,10 @@ export type AnalyticsValue = string | number | boolean | null;
 export type AnalyticsProperties = Readonly<Record<string, AnalyticsValue>>;
 
 export interface AnalyticsEvent {
-  /** Stable snake_case name, e.g. search_executed. */
+  /** Stable snake_case name, for example search_executed. */
   readonly name: string;
   /**
-   * Schema version for this event only. Bump when a property is added or its
+   * Schema version for this event only. Increase it when a property is added or its
    * meaning changes, so downstream analysis can separate the two shapes instead
    * of silently averaging across a redefinition.
    */

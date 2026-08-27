@@ -29,7 +29,7 @@ export function sanitizePathname(pathname: string): string {
 }
 
 /**
- * Prefers the framework route pattern, e.g. /games/[slug].
+ * Prefers the framework route pattern, for example /games/[slug].
  *
  * The pattern is absent for unmatched requests, which are exactly the ones most
  * worth seeing, so the sanitised pathname is the fallback rather than an error.

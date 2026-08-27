@@ -1,5 +1,5 @@
 /**
- * The visitor's colour-scheme preference, carried in a cookie.
+ * The visitor's color-scheme preference, carried in a cookie.
  *
  * A cookie rather than local storage because the server has to render the
  * right `data-theme` on the first response: a flash of the light theme over a

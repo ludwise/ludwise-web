@@ -2,7 +2,7 @@ import { defineConfig } from 'vitest/config';
 
 // Plain defineConfig, deliberately not getViteConfig from astro/config.
 // getViteConfig loads astro.config.mjs, which registers the Cloudflare adapter
-// and stands up a workerd dev environment, plus runs the git subprocess in that
+// and stands up a workerd development environment, plus runs the git subprocess in that
 // file - seconds of startup and a class of CI flakiness, for tests that only
 // call pure functions. Its one benefit is resolving astro:* virtual modules,
 // which the src/lib boundary rule makes unnecessary.

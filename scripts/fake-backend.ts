@@ -11,7 +11,7 @@
  *
  * Not a second implementation: it matches a request to a recording and replays
  * it, and answers 501 where there is none. A fake that improvised would let a
- * suite pass against behaviour the real backend does not have.
+ * suite pass against behavior the real backend does not have.
  */
 
 import { createServer } from 'node:http';
@@ -50,7 +50,7 @@ interface Recorded {
 /**
  * Which recording answers which request.
  *
- * The key is the request itself - path plus normalised query - so adding a
+ * The key is the request itself - path plus normalized query - so adding a
  * corpus case makes it reachable without editing a routing table. That matters:
  * a table would be a third place the set of covered requests lives, after the
  * backend's `CASES` and the files themselves, and the two would drift.
@@ -261,7 +261,7 @@ const server = createServer((request, response) => {
     const recorded = answer(url);
 
     if (recorded === undefined) {
-      // 501 rather than 404: a 404 would be a claim about the catalogue, and
+      // 501 rather than 404: a 404 would be a claim about the catalog, and
       // this is a claim about the fixture set. The fix is a case added to the
       // backend's corpus, not a cleverer server.
       const request_ = `${url.pathname}${url.search}`;

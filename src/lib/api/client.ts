@@ -217,7 +217,7 @@ async function attempt<T>(
 
   const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
   const timeout = AbortSignal.timeout(timeoutMs);
-  // Composed rather than chosen: a caller may abort (a cancelled navigation),
+  // Composed rather than chosen: a caller may abort (a canceled navigation),
   // and the timeout applies regardless. `AbortSignal.any` is what makes the
   // first of the two to fire win, without either being able to mask the other.
   const composed = signal === undefined ? timeout : AbortSignal.any([signal, timeout]);

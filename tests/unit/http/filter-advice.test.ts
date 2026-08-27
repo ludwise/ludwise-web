@@ -7,7 +7,7 @@ import { adviseGameSearch, adviseSales } from '../../../src/lib/http/filter-advi
  * act on. The backend's own `reason` string is deliberately not shown - see
  * the module header - so what matters here is that every refusable field maps
  * to something, that shared causes are deduplicated, and that a field this
- * build does not recognise is dropped rather than leaking an internal name.
+ * build does not recognize is dropped rather than leaking an internal name.
  */
 
 describe('adviseGameSearch', () => {

@@ -66,7 +66,7 @@ export const SECURITY_HEADERS = Object.freeze({
  * Cloudflare Access is what keeps staging private. This is what keeps it out of
  * a search index anyway, for the paths Access does not cover: a screenshot in a
  * crawled ticket, a link pasted into a public issue, an Access application
- * someone deletes by accident. It is defence in depth and never the defence -
+ * someone deletes by accident. It is defense in depth and never the defense -
  * a crawler that ignores it is not doing anything wrong, and a stranger reading
  * staging is stopped by Access or by nothing.
  *
