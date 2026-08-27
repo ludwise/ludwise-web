@@ -17,6 +17,8 @@ const startsSentence = (character) =>
   character === MASK_CHAR ||
   character === '`' ||
   character === '[' ||
+  character === '*' ||
+  character === '_' ||
   /[\p{Lu}\p{N}]/u.test(character);
 
 const precedingWord = (text, index) => {

@@ -99,6 +99,16 @@ describe('extractComments', () => {
     expect(units[0]?.kind).toBe('doc-comment');
   });
 
+  it('returns a trailing line comment after code', () => {
+    const units = extractComments('const a = 1; // A durable reason.\n', 'a.ts');
+    expect(units.map((unit) => unit.text.trim())).toEqual(['A durable reason.']);
+  });
+
+  it('returns an inline block comment after code', () => {
+    const units = extractComments('const a = 1; /* A durable reason. */\n', 'a.ts');
+    expect(units.map((unit) => unit.text.trim())).toEqual(['A durable reason.']);
+  });
+
   it('ignores a comment marker inside a string', () => {
     expect(extractComments('const a = "// not a comment";\n', 'a.ts')).toEqual([]);
   });

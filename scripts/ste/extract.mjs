@@ -79,13 +79,14 @@ const lineStarts = (source) => {
   return starts;
 };
 
-const unit = (kind, prose, body, start, declaredProse = null) => ({
+const unit = (kind, prose, body, start, declaredProse = null, reviewRequired = false) => ({
   kind,
   prose,
   declaredProse,
   text: body.text,
   map: body.map,
   start,
+  reviewRequired,
 });
 
 const tableCells = (line, offset) => {
@@ -299,6 +300,9 @@ const commentRanges = (text, path) => {
     for (const range of ts.getLeadingCommentRanges(text, node.pos) ?? []) {
       found.set(range.pos, range);
     }
+    for (const range of ts.getTrailingCommentRanges(text, node.end) ?? []) {
+      found.set(range.pos, range);
+    }
     for (const child of node.getChildren(file)) visit(child);
   };
 
@@ -469,24 +473,33 @@ const SENTENCE_SHAPE = /^[\p{L}\p{N}\p{P}\p{Zs}]+$/u;
 /**
  * Whether a value is a sentence a visitor could read.
  *
- * Two adjacent words are the bar. A single token is usually a route, a key or
- * an identifier. No sentence rule can say anything useful about one token.
+ * Two adjacent words are the default bar. Explicit visitor-facing contexts can
+ * allow one word, such as a button label, but not a one-letter placeholder.
  */
-const isVisitorText = (value) => {
+const isVisitorText = (value, allowSingleWord = false) => {
   const text = value.trim();
   if (text.length === 0 || !SENTENCE_SHAPE.test(text)) return false;
   if (text.includes('/') || text.includes('\\')) return false;
-  return WORDS.test(text);
+  return allowSingleWord ? /\p{L}{2,}/u.test(text) : WORDS.test(text);
 };
 
-const stringUnit = (kind, text, start) => {
+const stringUnit = (kind, text, start, reviewRequired = false) => {
   const map = Array.from({ length: text.length }, (_, index) => start + index);
-  return unit(kind, 'mixed', { text, map }, start);
+  return unit(kind, 'mixed', { text, map }, start, null, reviewRequired);
 };
 
 const trimmedPiece = (piece) => {
   const lead = piece.text.length - piece.text.trimStart().length;
   return { text: piece.text.trim(), start: piece.start + lead };
+};
+
+const mappedStringUnit = (kind, pieces, reviewRequired = false, allowSingleWord = false) => {
+  const trimmed = pieces.map(trimmedPiece).filter((piece) => piece.text.length > 0);
+  if (trimmed.length === 0) return null;
+  const body = joined(trimmed, ' ');
+  return isVisitorText(body.text, allowSingleWord)
+    ? unit(kind, 'mixed', body, trimmed[0].start, null, reviewRequired)
+    : null;
 };
 
 /**
@@ -501,9 +514,11 @@ const templateText = (raw, start) => {
   let index = 0;
   let depth = 0;
   let from = 0;
+  let reviewRequired = false;
 
   while (index < raw.length) {
     if (raw[index] === '{') {
+      reviewRequired = true;
       if (depth === 0) pieces.push({ text: raw.slice(from, index), start: start + from });
       depth += 1;
     } else if (raw[index] === '}' && depth > 0) {
@@ -514,7 +529,7 @@ const templateText = (raw, start) => {
   }
   if (depth === 0) pieces.push({ text: raw.slice(from), start: start + from });
 
-  return pieces.filter((piece) => piece.text.trim().length > 0);
+  return { pieces: pieces.filter((piece) => piece.text.trim().length > 0), reviewRequired };
 };
 
 const astroTemplateStrings = (source) => {
@@ -527,12 +542,18 @@ const astroTemplateStrings = (source) => {
   let textStart = 0;
 
   const flushText = () => {
-    const pieces = text.trim().length === 0 ? [] : templateText(text, base + textStart);
+    const extracted =
+      text.trim().length === 0
+        ? { pieces: [], reviewRequired: false }
+        : templateText(text, base + textStart);
+    const pieces = extracted.pieces;
     if (pieces.length > 0) {
       const trimmed = pieces.map(trimmedPiece).filter((piece) => piece.text.length > 0);
       const body = joined(trimmed, ' ');
-      if (trimmed.length > 0 && isVisitorText(body.text)) {
-        units.push(unit('template-text', 'mixed', body, trimmed[0].start));
+      if (trimmed.length > 0 && isVisitorText(body.text, true)) {
+        units.push(
+          unit('template-text', 'mixed', body, trimmed[0].start, null, extracted.reviewRequired),
+        );
       }
     }
     text = '';
@@ -564,7 +585,7 @@ const astroTemplateStrings = (source) => {
     const open = template.slice(index, close + 1);
     for (const found of matchesOfAttribute(open)) {
       if (!VISIBLE_ATTRIBUTES.has(found.name.toLowerCase())) continue;
-      if (!isVisitorText(found.value)) continue;
+      if (!isVisitorText(found.value, true)) continue;
       units.push(stringUnit('template-attribute', found.value.trim(), base + index + found.start));
     }
 
@@ -581,7 +602,7 @@ const astroTemplateStrings = (source) => {
   return units;
 };
 
-const ATTRIBUTE = /([a-zA-Z][\w:-]*)\s*=\s*"([^"]*)"/g;
+const ATTRIBUTE = /([a-zA-Z][\w:-]*)\s*=\s*(["'])(.*?)\2/g;
 
 const matchesOfAttribute = (open) => {
   ATTRIBUTE.lastIndex = 0;
@@ -590,8 +611,8 @@ const matchesOfAttribute = (open) => {
   while (match !== null) {
     found.push({
       name: match[1],
-      value: match[2],
-      start: match.index + match[0].length - match[2].length - 1,
+      value: match[3],
+      start: match.index + match[0].length - match[3].length - 1,
     });
     match = ATTRIBUTE.exec(open);
   }
@@ -615,17 +636,80 @@ const moduleStrings = (source, path, base = 0) => {
   );
 
   const units = [];
-  const add = (kind, text, start) => {
-    if (isVisitorText(text)) units.push(stringUnit(kind, text.trim(), base + start));
+  const add = (kind, text, start, allowSingleWord = false) => {
+    if (isVisitorText(text, allowSingleWord)) {
+      units.push(stringUnit(kind, text.trim(), base + start));
+    }
   };
 
-  const visit = (node) => {
-    if (ts.isJsxText(node)) {
-      add('template-text', node.getText(file), node.getStart(file));
+  const addMapped = (kind, pieces, reviewRequired = false, allowSingleWord = false) => {
+    const found = mappedStringUnit(
+      kind,
+      pieces.map((piece) => ({ ...piece, start: base + piece.start })),
+      reviewRequired,
+      allowSingleWord,
+    );
+    if (found !== null) units.push(found);
+  };
+
+  const templatePieces = (expression) => {
+    const pieces = [];
+    if (expression.head.text.length > 0) {
+      pieces.push({ text: expression.head.text, start: expression.head.getStart(file) + 1 });
+    }
+    for (const span of expression.templateSpans) {
+      if (span.literal.text.length > 0) {
+        pieces.push({ text: span.literal.text, start: span.literal.getStart(file) + 1 });
+      }
+    }
+    return { pieces, reviewRequired: true };
+  };
+
+  const jsxTextPieces = (node) => {
+    const pieces = [];
+    let reviewRequired = false;
+    const collect = (child) => {
+      if (ts.isJsxText(child)) {
+        pieces.push({ text: child.getText(file), start: child.getStart(file) });
+      } else if (ts.isJsxExpression(child)) {
+        reviewRequired = true;
+      } else if (ts.isJsxElement(child) || ts.isJsxFragment(child)) {
+        for (const nested of child.children) collect(nested);
+      }
+    };
+    for (const child of node.children) collect(child);
+    return { pieces, reviewRequired };
+  };
+
+  const visit = (node, insideJsx = false) => {
+    if ((ts.isJsxElement(node) || ts.isJsxFragment(node)) && !insideJsx) {
+      const extracted = jsxTextPieces(node);
+      addMapped('template-text', extracted.pieces, extracted.reviewRequired, true);
     } else if (ts.isJsxAttribute(node) && node.initializer !== undefined) {
       const name = node.name.getText(file).toLowerCase();
       if (VISIBLE_ATTRIBUTES.has(name) && ts.isStringLiteral(node.initializer)) {
-        add('template-attribute', node.initializer.text, node.initializer.getStart(file) + 1);
+        add('template-attribute', node.initializer.text, node.initializer.getStart(file) + 1, true);
+      } else if (
+        VISIBLE_ATTRIBUTES.has(name) &&
+        ts.isNoSubstitutionTemplateLiteral(node.initializer)
+      ) {
+        addMapped('template-attribute', [
+          { text: node.initializer.text, start: node.initializer.getStart(file) + 1 },
+        ]);
+      } else if (
+        VISIBLE_ATTRIBUTES.has(name) &&
+        ts.isJsxExpression(node.initializer) &&
+        node.initializer.expression !== undefined
+      ) {
+        const expression = node.initializer.expression;
+        if (ts.isTemplateExpression(expression)) {
+          const extracted = templatePieces(expression);
+          addMapped('template-attribute', extracted.pieces, extracted.reviewRequired, true);
+        } else if (ts.isNoSubstitutionTemplateLiteral(expression)) {
+          addMapped('template-attribute', [
+            { text: expression.text, start: expression.getStart(file) + 1 },
+          ]);
+        }
       }
     } else if (ts.isStringLiteral(node) && !ts.isImportDeclaration(node.parent)) {
       const parent = node.parent;
@@ -636,8 +720,24 @@ const moduleStrings = (source, path, base = 0) => {
         ts.isConditionalExpression(parent) ||
         ts.isArrayLiteralExpression(parent);
       if (named) add('string', node.text, node.getStart(file) + 1);
+    } else if (
+      (ts.isNoSubstitutionTemplateLiteral(node) || ts.isTemplateExpression(node)) &&
+      (ts.isVariableDeclaration(node.parent) ||
+        ts.isPropertyAssignment(node.parent) ||
+        ts.isReturnStatement(node.parent) ||
+        ts.isConditionalExpression(node.parent) ||
+        ts.isArrayLiteralExpression(node.parent))
+    ) {
+      if (ts.isNoSubstitutionTemplateLiteral(node)) {
+        addMapped('string', [{ text: node.text, start: node.getStart(file) + 1 }]);
+      } else {
+        const extracted = templatePieces(node);
+        addMapped('string', extracted.pieces, extracted.reviewRequired);
+      }
     }
-    for (const child of node.getChildren(file)) visit(child);
+    for (const child of node.getChildren(file)) {
+      visit(child, insideJsx || ts.isJsxElement(node) || ts.isJsxFragment(node));
+    }
   };
 
   visit(file);

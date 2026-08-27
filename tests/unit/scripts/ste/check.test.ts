@@ -21,6 +21,7 @@ const documents = {
   ...real,
   policy: {
     ...real.policy,
+    rollout: { ...real.policy.rollout, mode: 'audit' },
     classification: [
       {
         id: 'fixture-prose',
@@ -140,6 +141,43 @@ describe('checkFiles', () => {
     expect(spelling).toEqual([]);
   });
 
+  it('counts runtime-composed visitor text for semantic review', () => {
+    const root = mkdtempSync(join(tmpdir(), 'ste-runtime-'));
+    writeFileSync(
+      join(root, 'dynamic.ts'),
+      'const count = 1;\nconst message = `Showing ${count} games.`;\n',
+    );
+    const result = checkFiles({
+      rootDir: root,
+      files: ['dynamic.ts'],
+      documents: {
+        ...documents,
+        policy: {
+          ...documents.policy,
+          classification: [
+            {
+              id: 'runtime-strings',
+              paths: ['dynamic.ts'],
+              unit: 'strings',
+              class: 'STE-DERIVED',
+              reason: 'Fixture.',
+            },
+            {
+              id: 'unclassified',
+              paths: ['**'],
+              unit: 'prose',
+              class: 'STE-EXEMPT',
+              catchAll: true,
+              reason: 'Not ours.',
+            },
+          ],
+        },
+      },
+    });
+    expect(result.unsupportedUnits).toBe(0);
+    expect(result.reviewRequiredUnits).toBe(1);
+  });
+
   it('applies a central exception instead of an inline suppression', () => {
     const result = checkFiles({
       rootDir: process.cwd(),
@@ -222,9 +260,10 @@ describe('checkFiles, on the prose kind that enforcement requires', () => {
 
 describe('enforcedFiles', () => {
   const files = ['docs/language/checker.md', 'README.md', 'scripts/ste/cli.mjs'];
+  const auditPolicy = { ...real.policy, rollout: { ...real.policy.rollout, mode: 'audit' } };
 
   it('keeps only the declared paths while the rollout is in audit mode', () => {
-    expect(enforcedFiles(files, real.policy)).toEqual([
+    expect(enforcedFiles(files, auditPolicy)).toEqual([
       'docs/language/checker.md',
       'scripts/ste/cli.mjs',
     ]);
@@ -258,7 +297,13 @@ describe('checkFiles, on files that must not stop the run', () => {
   });
 
   it('reports a symbolic link rather than reading outside the repository', () => {
-    symlinkSync('/etc/passwd', join(root, 'link.md'));
+    try {
+      symlinkSync('/etc/passwd', join(root, 'link.md'));
+    } catch (error) {
+      const code = (error as { code?: string }).code;
+      if (process.platform === 'win32' && (code === 'EPERM' || code === 'EACCES')) return;
+      throw error;
+    }
     const result = checkFiles({
       rootDir: root,
       files: ['link.md'],

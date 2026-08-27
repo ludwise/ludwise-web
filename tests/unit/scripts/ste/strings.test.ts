@@ -40,17 +40,31 @@ describe('extractStrings, on an Astro template', () => {
     expect(texts(source)).toEqual(['Showing games.']);
   });
 
+  it('marks text around an expression for semantic review', () => {
+    const source = '---\nconst count = 1;\n---\n<p>Showing {count} games.</p>\n';
+    expect(extractStrings(source, 'a.astro')[0]?.reviewRequired).toBe(true);
+  });
+
+  it('reads a one-word visitor label', () => {
+    expect(texts('---\n---\n<button>Delete</button>\n')).toEqual(['Delete']);
+  });
+
+  it('reads a single-quoted visible attribute', () => {
+    expect(texts("---\n---\n<button aria-label='Close menu'></button>\n")).toEqual(['Close menu']);
+  });
+
   it('ignores whitespace and punctuation that carries no words', () => {
     expect(texts('---\nconst a = 1;\n---\n<p>{a}</p>\n<span> · </span>\n')).toEqual([]);
   });
 
   it('reads a visitor string from a named constant in the frontmatter', () => {
-    const source = '---\nconst EMPTY_MESSAGE = "No sale is running now.";\n---\n<p>x</p>\n';
+    const source =
+      '---\nconst EMPTY_MESSAGE = "No sale is running now.";\n---\n<p>{EMPTY_MESSAGE}</p>\n';
     expect(texts(source)).toEqual(['No sale is running now.']);
   });
 
   it('leaves an identifier-shaped constant alone', () => {
-    const source = '---\nconst ROUTE = "/games";\nconst KEY = "marketCode";\n---\n<p>x</p>\n';
+    const source = '---\nconst ROUTE = "/games";\nconst KEY = "marketCode";\n---\n<p>{ROUTE}</p>\n';
     expect(texts(source)).toEqual([]);
   });
 
@@ -72,9 +86,20 @@ describe('extractStrings, on a React island', () => {
     expect(texts(source, 'a.tsx')).toEqual(['Close the menu']);
   });
 
+  it('reads literal text around an expression in JSX', () => {
+    const source = 'const count = 1;\nexport const A = () => <p>Showing {count} games.</p>;\n';
+    expect(texts(source, 'a.tsx')).toEqual(['Showing games.']);
+  });
+
   it('reads a visitor string from a named constant', () => {
     const source = 'const MENU_LABEL = "Open the main menu";\nexport const A = MENU_LABEL;\n';
     expect(texts(source, 'a.tsx')).toEqual(['Open the main menu']);
+  });
+
+  it('reads literal words in a JSX template attribute', () => {
+    const source =
+      'const label = "games";\nexport const A = () => <button aria-label={`Remove filter: ${label}`} />;\n';
+    expect(texts(source, 'a.tsx')).toEqual(['Remove filter:']);
   });
 });
 

@@ -61,6 +61,7 @@ const unitsFor = (assignment, source, file) => {
           supported: true,
           unread: 0,
           prose: declaredProseKind(source),
+          reviewRequired: 0,
         }
       : { units: [], supported: false, unread: 1 };
   }
@@ -71,14 +72,17 @@ const unitsFor = (assignment, source, file) => {
       units: coverage === 'none' ? [] : extractComments(source, file),
       supported: coverage !== 'none',
       unread: coverage === 'full' ? 0 : 1,
+      reviewRequired: 0,
     };
   }
   if (assignment.unit === 'strings') {
     const coverage = stringCoverage(file);
+    const units = coverage === 'none' ? [] : extractStrings(source, file);
     return {
-      units: coverage === 'none' ? [] : extractStrings(source, file),
+      units,
       supported: coverage !== 'none',
       unread: coverage === 'full' ? 0 : 1,
+      reviewRequired: units.filter((unit) => unit.reviewRequired === true).length,
     };
   }
   return { units: [], supported: false, unread: 1 };
@@ -93,6 +97,7 @@ export const checkFiles = ({ rootDir, files, documents, allFiles = files }) => {
   let filesChecked = 0;
   let unitsChecked = 0;
   let unsupportedUnits = 0;
+  let reviewRequiredUnits = 0;
 
   for (const file of files) {
     const assignments = classify(file, policy).assignments.filter(
@@ -142,8 +147,9 @@ export const checkFiles = ({ rootDir, files, documents, allFiles = files }) => {
         continue;
       }
 
-      const { units, supported, unread, prose } = extracted;
+      const { units, supported, unread, prose, reviewRequired = 0 } = extracted;
       unsupportedUnits += unread;
+      reviewRequiredUnits += reviewRequired;
       if (!supported) continue;
 
       touched = true;
@@ -208,6 +214,7 @@ export const checkFiles = ({ rootDir, files, documents, allFiles = files }) => {
     filesChecked,
     unitsChecked,
     unsupportedUnits,
+    reviewRequiredUnits,
     implementedRules: IMPLEMENTED_RULE_IDS,
   };
 };

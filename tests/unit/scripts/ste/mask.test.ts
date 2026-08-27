@@ -36,6 +36,14 @@ describe('maskSpans', () => {
     expect(output).toContain(MASK_CHAR);
   });
 
+  it('masks a mail address including its domain suffix', () => {
+    const output = mask('Contact git@danielkindl.dev for detail.');
+    expect(output).not.toContain('danielkindl.dev');
+    expect(output).not.toContain('.dev');
+    expect(output).toContain('Contact ');
+    expect(output).toContain(' for detail.');
+  });
+
   it('masks a link destination and keeps the link text', () => {
     const output = mask('Read [the rules](docs/language/profile.md) now.');
     expect(output).toContain('the rules');

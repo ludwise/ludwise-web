@@ -37,6 +37,7 @@ export const summarize = (result, documents, scope) => {
     filesChecked: result.filesChecked,
     unitsChecked: result.unitsChecked,
     unsupportedUnits: result.unsupportedUnits,
+    reviewRequiredUnits: result.reviewRequiredUnits ?? 0,
     violations: result.diagnostics.length,
     byRule: Object.fromEntries(countBy(result.diagnostics, 'rule')),
     byFile: Object.fromEntries(countBy(result.diagnostics, 'file')),
@@ -102,6 +103,7 @@ export const formatText = (result, summary) => {
   lines.push(
     `Files read: ${summary.filesChecked}. Prose units: ${summary.unitsChecked}. Units without extraction support: ${summary.unsupportedUnits}.`,
   );
+  lines.push(`Units requiring semantic review: ${summary.reviewRequiredUnits}.`);
 
   if (summary.violations > 0) {
     lines.push('');
@@ -126,6 +128,7 @@ export const formatMarkdown = (summary) => {
     `- Standard: ${summary.standard}, profile version ${summary.profileVersion}`,
     `- Rollout mode: \`${summary.rolloutMode}\`, scope: ${summary.scope}`,
     `- Files read: ${summary.filesChecked}, prose units: ${summary.unitsChecked}`,
+    `- Units requiring semantic review: ${summary.reviewRequiredUnits}`,
     `- Violations: ${summary.violations}`,
     '',
     claim(summary),
