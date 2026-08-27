@@ -52,7 +52,7 @@ function toLogError(
     const code: unknown = (raw as { code?: unknown }).code;
     if (typeof code === 'string') error.code = code;
     // Redacted rather than copied: a cause chain is attacker-influenced in
-    // principle, so it needs the same depth, breadth, length and cycle bounds as
+    // principle. So it needs the same depth, breadth, length and cycle bounds as
     // any other untrusted structure. redact() already walks nested causes.
     if (raw.cause !== undefined) error.cause = redact(raw.cause, redactOptions);
     return error;

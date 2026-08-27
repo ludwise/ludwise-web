@@ -27,7 +27,7 @@ export interface AnalyticsProvider {
    * Fire and forget.
    *
    * Returns void rather than a promise on purpose: it makes
-   * `await analytics.track(...)` impossible to write, so a third-party call can
+   * `await analytics.track(...)` impossible to write. So a third-party call can
    * never end up on the critical path of a page render. Implementations must
    * not throw.
    */

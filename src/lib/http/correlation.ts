@@ -80,7 +80,7 @@ export function formatTraceparent(correlation: Correlation): string {
  * Derives correlation identifiers for one request.
  *
  * A malformed inbound header is never an error. Rejecting the request would let
- * any caller take the site down with a junk header, so the invalid value is
+ * any caller take the site down with a junk header. So the invalid value is
  * discarded and a fresh identifier is generated instead. The source field
  * records which happened, because an inbound id is caller-controlled and must
  * be treated as such during an investigation.

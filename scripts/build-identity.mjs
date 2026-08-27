@@ -8,7 +8,7 @@ import { readFileSync } from 'node:fs';
  * Extracted from astro.config.mjs because there are now two things to build.
  * The site gets these through Vite `define`. The ingestion Worker is bundled
  * by Wrangler and gets them through `--define`. Two copies of "how do we work
- * out the commit" would drift, and the symptom of that drift is a log record
+ * out the commit" would drift. The symptom of that drift is a log record
  * blaming the wrong commit - which is only ever discovered while reading logs
  * during an incident.
  *

@@ -9,7 +9,7 @@ export const prerender = false;
  *
  * Astro renders this for an unhandled failure. `locals.requestId` is set by the
  * correlation middleware, which runs first and cannot fail - but this page can
- * also be reached for a failure that happened before that, so the id is read
+ * also be reached for a failure that happened before that. So the id is read
  * defensively rather than assumed.
  *
  * Nothing about the failure itself is rendered: not the message, not the

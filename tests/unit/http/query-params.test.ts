@@ -47,7 +47,7 @@ describe('optionalInteger', () => {
    * results.
    */
   // Not '%2B1': a leading sign is a decimal integer, and a bare '+' in a
-  // query string decodes to a space, so both are values a form can produce.
+  // query string decodes to a space. So both are values a form can produce.
   it.each(['one', '12.5', '1e3', '0x7e4', '1_000', '--1', '3px'])(
     'keeps %s malformed so the use case refuses it',
     (value) => {

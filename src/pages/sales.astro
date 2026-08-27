@@ -37,7 +37,7 @@ try {
 
   if (error.isRejection) {
     // A rejected filter combination is something a visitor did, not something
-    // that broke, so it is a warning rather than an error - an alert on every
+    // that broke. So it is a warning rather than an error - an alert on every
     // mistyped year would bury the failures that matter.
     locals.logger.warn(EVENTS.APPLICATION_QUERY_FAILED, 'Sales filters were rejected', {
       error_category: 'application',
@@ -170,7 +170,7 @@ const pageOutOfRange = view !== null && view.games.length === 0 && view.resultCo
             </label>
             {/* Submitted by a button rather than on change. A select that
                 navigates as the value changes fires on every option a keyboard
-                a visitor arrows past, and it would be the only client script on a
+                a visitor arrows past. It would be the only client script on a
                 page that otherwise needs none. */}
             <button type="submit">Apply</button>
           </form>
@@ -242,7 +242,7 @@ const pageOutOfRange = view !== null && view.games.length === 0 && view.resultCo
 
               <label>
                 <span>Market and currency</span>
-                {/* One control offering only the pairs that hold a sale, so a
+                {/* One control offering only the pairs that hold a sale. So a
                     visitor cannot submit a market and a currency that were
                     never paired - unlike two independent selects, where
                     changing one can leave the other pointed at a currency the

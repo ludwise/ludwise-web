@@ -24,7 +24,7 @@ export function optionalText(params: URLSearchParams, name: string): string | un
  * A decimal integer, or nothing when the control was blank.
  *
  * Not `Number()` alone: it reads '0x10' as 16, '1e3' as 1000 and ' 12 ' as 12,
- * none of which a number input can produce, so a hand-written URL would
+ * none of which a number input can produce. So a hand-written URL would
  * otherwise mean something the form cannot say. `NaN` reaches validation and is
  * refused there, which is where the reason for refusing it lives.
  */

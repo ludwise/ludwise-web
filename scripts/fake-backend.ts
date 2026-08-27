@@ -1,7 +1,7 @@
 /**
  * A stand-in for the backend, replaying its recorded responses from
  * `tests/fixtures/corpus/`. The site cannot render `/games` or `/sales` without
- * something answering `/v1`, and the real backend is a private repository this
+ * something answering `/v1`. The real backend is a private repository this
  * one is built not to need.
  *
  * The recordings are real - the backend's own `tests/contract/corpus.test.ts`

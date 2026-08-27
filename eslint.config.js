@@ -70,7 +70,7 @@ export default tseslint.config(
 
   // Type-aware linting is scoped to src/ rather than applied globally and then
   // switched off again. Root configuration files and scripts sit outside the tsconfig
-  // project, and a global type-checked configuration would fail on them for want of
+  // project. A global type-checked configuration would fail on them for want of
   // type information before any override could take effect.
   {
     files: ['src/**/*.{ts,tsx}'],
@@ -173,7 +173,7 @@ export default tseslint.config(
   // --- The API boundary -----------------------------------------------------
   //
   // The contract is the innermost thing here. It states the wire shapes and is
-  // authoritative about them (architecture decision record (ADR) 0025), so it must not depend on the client
+  // authoritative about them (architecture decision record (ADR) 0025). So it must not depend on the client
   // that happens to use them - the backend vendors this one file and nothing
   // else, and an import would drag the whole tree along with it.
   {

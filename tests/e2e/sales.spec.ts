@@ -35,7 +35,7 @@ test.describe('sales browsing', () => {
     expect(response?.status()).toBe(200);
 
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('Current sales');
-    // Germany sorts before the European Union and Japan, so it is the default
+    // Germany sorts before the European Union and Japan. So it is the default
     // pair, and the page says so rather than leaving it to be inferred.
     await expect(page.getByText('Showing Germany prices, in EUR.')).toBeVisible();
 

@@ -68,7 +68,7 @@ This Worker has **no database binding, no provider credentials and no secrets**.
 It reaches the backend over a Cloudflare service binding, through a client that
 exposes three named read operations and accepts no caller-supplied path. There
 is no generic proxy and there must never be one: the backend has no public
-hostname, so a proxy here would be the only route to a service that is otherwise
+hostname. So a proxy here would be the only route to a service that is otherwise
 unreachable from the internet.
 
 Those properties are enforced by
@@ -91,7 +91,7 @@ do not exist:
   `frame-ancestors`, `base-uri`, `object-src` and `form-action`.
 - **`script-src` is deliberately absent** from that policy. Doing it properly
   needs nonces or hashes for the pre-paint theme script and for Astro's island
-  hydration, and a policy containing `unsafe-inline` is a policy that says
+  hydration. A policy containing `unsafe-inline` is a policy that says
   nothing. Shipping one that only looked strict would be worse than shipping
   none. This is tracked, and it is the most valuable open hardening item.
 - **Staging is private** behind Cloudflare Access, and additionally sends

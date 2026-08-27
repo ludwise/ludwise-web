@@ -50,7 +50,7 @@ rather than Google Fonts. That divergence is asserted explicitly, and
 value, not a radius, a shadow, a font size, a duration or an easing curve.
 `tests/architecture/design-system.test.ts` fails the build on any raw color in
 `src/components/`, `src/layouts/` or `src/pages/`. A literal is a value that
-belongs to one theme only, and it is invisible in review because it looks
+belongs to one theme only. It is invisible in review because it looks
 correct in whichever theme the author was viewing.
 
 Layout values with no token — `flex: 1`, `overflow: hidden`, `aspect-ratio` —
@@ -195,7 +195,7 @@ These are additions, recorded here rather than invented silently:
 - **`game/GameCard` renders one variant and four fewer props.** The handoff's
   card carries artwork, a rating summary and a price signal. None of those
   exists in the canonical model, and the product rules forbid rendering a value
-  that is not there, so each is absent rather than stubbed with a placeholder.
+  that is not there. So each is absent rather than stubbed with a placeholder.
   Only the `standard` variant is built, because the handoff is explicit that
   exactly three exist and a fourth needs a system change — the other two arrive
   with a surface that renders them. It adds two things: freshness, which the
@@ -208,7 +208,7 @@ These are additions, recorded here rather than invented silently:
   measures 4.19:1, below WCAG 1.4.3's 4.5:1.
 - **No `PromoSlot` and no affiliate disclosure on `/sales`.** The handoff's
   sales design has an ad unit in its aside. There is no advertising integration
-  and there are no affiliate links, so an empty promo box would be decoration
+  and there are no affiliate links. So an empty promo box would be decoration
   and a disclosure describing a relationship that does not exist would be a
   false statement. The aside keeps only the "Legitimate stores only" note,
   which is a claim the data actually supports.

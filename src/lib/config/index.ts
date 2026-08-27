@@ -45,7 +45,7 @@ export interface AppConfig {
    *
    * Configurable because the right value differs by environment rather than by
    * opinion: a local backend running under `wrangler dev` with a cold isolate
-   * is legitimately slower than a deployed one, and a developer should not have
+   * is legitimately slower than a deployed one. A developer should not have
    * to see timeout pages because of it.
    */
   readonly backendTimeoutMs: number;
@@ -113,7 +113,7 @@ function isAbsoluteHttpUrl(value: string): boolean {
  *
  * The backend reports its own environment on `/api/health`, and the site
  * compares it to its own once per isolate. A mismatch is a deployment fault
- * rather than a request fault, so it fails every request rather than the
+ * rather than a request fault. So it fails every request rather than the
  * unlucky one that noticed - a site that half-works against the wrong backend
  * is harder to diagnose than one that refuses.
  *

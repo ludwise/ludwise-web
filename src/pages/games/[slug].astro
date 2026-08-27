@@ -22,7 +22,7 @@ try {
 
   failureCode = error.code;
   // Never 400 here. A slug is a path segment rather than a filter a visitor
-  // chose from a form, so there is no control for them to correct and no advice
+  // chose from a form. So there is no control for them to correct and no advice
   // worth rendering - the honest answer is that we could not load the page.
   Astro.response.status = 503;
   Astro.locals.logger.error(EVENTS.APPLICATION_QUERY_FAILED, 'Game detail query failed', {

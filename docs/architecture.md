@@ -48,7 +48,7 @@ This repository owns every decision about presentation:
 **The frontend renders backend decisions rather than recreating them.** That is
 the rule with teeth. `discountPercentage` arrives computed because whether
 something is a sale depends on availability, on both prices being present, and
-on the currency's exponent being known — a second implementation here would
+on the currency's exponent being known. A second implementation here would
 disagree with the first the moment either changed. Offer ordering arrives
 ordered for the same reason.
 
@@ -124,7 +124,7 @@ with no other public surface.
 - Every read happens during SSR. There is no client-side data fetching.
 - Both Workers must live in the same Cloudflare account, and the backend must
   exist before this Worker is deployed. That is now stricter: Wrangler refuses a
-  binding naming an entrypoint the target Worker does not export, so a backend
+  binding naming an entrypoint the target Worker does not export. So a backend
   that has not yet published `VisitorRead` fails this deploy rather than serving
   a broken site. **Deploy the backend first.**
 - Binding changes are two-phase: add the binding in one release, use it in the
@@ -164,7 +164,7 @@ backend reached its dependency and the dependency failed, and retrying
 immediately adds load to something already struggling.
 
 Nothing method-aware appears in that logic because every request is a GET. When
-a write appears, the retry rule must not simply be widened — an unsafe request
+a write appears, the retry rule must not simply be widened. An unsafe request
 needs an idempotency key before it may be retried at all.
 
 ### Unavailable is not empty
@@ -180,7 +180,7 @@ following a good link that their link is broken.
 
 `src/lib/api/contract.ts` is the **authoritative** statement of the wire shape,
 and it lives here rather than in the backend on purpose: this repository must
-build without access to the private one, so it cannot import those types and
+build without access to the private one. So it cannot import those types and
 cannot be generated from a schema that is not present.
 
 The backend vendors this file into its own `tests/contract/` and proves
@@ -249,7 +249,7 @@ mistake invisible in the file where it happens.
 A service binding names a Worker script, so there is no URL a mistyped variable
 could redirect. `assertEnvironmentsMatch` in `src/lib/config/index.ts` is the
 second line: it refuses to serve a page built from one environment's site and
-another's data, and the only permitted crossing is local → staging, which is a
+another's data. The only permitted crossing is local → staging, which is a
 real workflow reading disposable data. Nothing may read production.
 
 ## Observability
@@ -273,7 +273,7 @@ This repository owns visitor analytics. The backend owns operational telemetry.
 
 Before the split both lived in one Worker, and a page view could plausibly have
 been counted twice. After it there is exactly one page-view event per page,
-emitted here — the backend sees API reads and has no way to know a page was
+emitted here. The backend sees API reads and has no way to know a page was
 rendered.
 
 The event carries a route **template** and nothing else. No referrer, no visitor
@@ -292,7 +292,7 @@ before the split, so the migration is provably behavior-preserving.
 
 That is a starting point rather than a conclusion. Adding a short cache later is
 unusually safe here because every price carries `observedAtMs` and the interface
-renders freshness from it — a cached response is honest about its own age. When
+renders freshness from it. A cached response is honest about its own age. When
 it happens, two rules are non-negotiable: never cache across different
 market/currency inputs, and never let a shared cache hold a response carrying a
 request id.
@@ -305,7 +305,7 @@ place.
 
 SSR-first, deliberately. The only client-side JavaScript is the header island
 and the pre-paint theme script. There is no client-side router, no data
-fetching in the browser, and no state management library — a visitor comparing
+fetching in the browser, and no state management library. A visitor comparing
 prices should not download the catalog to read one page.
 
 One backend request per page, except a rejected filter combination, which costs

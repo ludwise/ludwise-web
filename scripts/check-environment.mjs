@@ -20,12 +20,12 @@ import { readFileSync } from 'node:fs';
  * The named entrypoint every environment must bind to.
  *
  * Not the default one. The backend's default entrypoint is what its operations
- * custom domain serves, and it has no `/v1` at all - binding to it would answer
+ * custom domain serves. It has no `/v1` at all - binding to it would answer
  * 404 for every read. The read contract lives behind this named
  * `WorkerEntrypoint`, which no hostname reaches (architecture decision record (ADR) 0028).
  *
  * Wrangler refuses to deploy a binding naming an entrypoint the target Worker
- * does not export, so a missing one is a failed deploy rather than a broken
+ * does not export. So a missing one is a failed deploy rather than a broken
  * site. This check moves that failure earlier, and catches the other direction
  * too: a binding that quietly lost its `entrypoint` would deploy happily and
  * 404 every page.

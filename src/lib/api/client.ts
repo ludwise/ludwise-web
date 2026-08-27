@@ -44,7 +44,7 @@ export interface ClientOptions {
    * The origin to resolve paths against.
    *
    * A service binding ignores the host and dispatches to the bound script, but
-   * `fetch` still requires an absolute URL, so this exists to satisfy the URL
+   * `fetch` still requires an absolute URL. So this exists to satisfy the URL
    * parser rather than to route anything. It is not a secret and is not a
    * reachable address.
    */
@@ -90,7 +90,7 @@ const defaultSleep = (ms: number): Promise<void> =>
  * Only two are, and both mean the backend did not answer: the binding was
  * unavailable, or it timed out. A rejection is never retried - it would be
  * refused again at double the load. Nor is a 5xx carrying a backend code:
- * `ERR_APP_INFRASTRUCTURE` means the database failed, and the backend is better
+ * `ERR_APP_INFRASTRUCTURE` means the database failed. The backend is better
  * placed than this client to decide whether to ask it twice.
  *
  * Not method-aware, because every request is a GET. A write must not simply
@@ -155,7 +155,7 @@ function searchParams(input: GameSearchInput): URLSearchParams {
  * `min` and `max` are whole major units here and minor units on `/v1/games`.
  * The input field names carry the unit for exactly this reason: reusing the
  * parameter name for a different unit would be a hundredfold error in a
- * visitor-facing filter, and the field name is what stops the two being
+ * visitor-facing filter. The field name is what stops the two being
  * confused at a call site.
  *
  * There is no `q` and no `discounted`, because sales has no name search and

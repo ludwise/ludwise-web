@@ -131,7 +131,7 @@ describe('the frontend has no data access of its own', () => {
  * Bindings are reached in one place.
  *
  * Not a style rule. `cloudflare:workers` is how the service binding is
- * obtained, and a page that could reach it directly could construct its own
+ * obtained. A page that could reach it directly could construct its own
  * client with its own path - which is the generic-proxy shape this whole design
  * refuses. Confining it to middleware means the allowlist in `client.ts` is the
  * only way to name a backend route.
@@ -166,7 +166,7 @@ describe('cloudflare bindings are reached only from the composition root', () =>
  * up in a page. Those have to be got right once.
  *
  * It is also the security boundary. `client.ts` exposes three named operations
- * and no path parameter, so there is no way to ask the backend for `/ops` or
+ * and no path parameter. So there is no way to ask the backend for `/ops` or
  * for an internal route - which is what stops this Worker from becoming an open
  * proxy into a service that has no other public surface.
  */

@@ -25,7 +25,7 @@ export const PAIR_SEPARATOR = '|';
 /**
  * Reads a combined `market|currency` value, as the filter form's one
  * market/currency control submits it (#2: a single control offering only
- * the pairs that hold a sale, so a visitor cannot submit a market and a
+ * the pairs that hold a sale. So a visitor cannot submit a market and a
  * currency that were never paired). `undefined` for anything that is not
  * exactly two non-empty sides - not a value to guess at a meaning for -
  * which falls the caller back to `market` / `currency` read separately.

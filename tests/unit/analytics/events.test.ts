@@ -83,7 +83,7 @@ describe('isDocumentResponse', () => {
     ['a not-found page', 404],
     ['a server failure page', 500],
   ])('does not count %s as a page view even when it renders html', (_label, status) => {
-    // A redirect is not a page anyone read, and an error page is a failure -
+    // A redirect is not a page anyone read. An error page is a failure -
     // counting either inflates the denominator of every funnel measured
     // against page views.
     const response = new Response('<p>x</p>', {

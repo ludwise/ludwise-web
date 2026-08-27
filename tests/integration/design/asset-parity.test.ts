@@ -11,7 +11,7 @@ import { describe, expect, it } from 'vitest';
  *
  * The favicon is the logo mark, and the logo mark belongs to the handoff. Two
  * copies of a brand asset in one repository diverge the moment someone nudges
- * a color in whichever one they have open, and the divergence is invisible
+ * a color in whichever one they have open. The divergence is invisible
  * until a designer notices the browser tab does not match the header.
  *
  * Byte-identical rather than visually similar, for the same reason the tokens

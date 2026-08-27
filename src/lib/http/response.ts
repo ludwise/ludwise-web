@@ -8,7 +8,7 @@ const HTML_CONTENT_TYPE = 'text/html';
  * Whether a response is a page a visitor actually read.
  *
  * Narrower than "the content type is HTML", on purpose. A redirect is not a
- * page anyone read, and an error page is a failure rather than a visit -
+ * page anyone read. An error page is a failure rather than a visit -
  * counting either inflates the denominator of every funnel measured against
  * page views, and does it in a way that looks like traffic growth.
  *

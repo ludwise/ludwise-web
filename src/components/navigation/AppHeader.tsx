@@ -67,7 +67,7 @@ function IconGlyph({
  * Fixed at the reference's `<Wordmark size="md" />`. The header exposes no size
  * or tone knob, matching a prop contract that has none. The href is the one
  * departure: the reference's `#` was a placeholder for a specimen with no
- * router, and this is the second tab stop on every real page.
+ * router. This is the second tab stop on every real page.
  */
 const WORDMARK_PX = 19;
 const WORDMARK_TILE_RATIO = 1.22;
@@ -233,7 +233,7 @@ export function useIsCompactHeader(breakpoint: number = DEFAULT_COMPACT_BREAKPOI
  * behavior that closes it.
  *
  * A non-modal disclosure, not a modal dialog: opening it never moves focus
- * into the panel, so there is no focus trap and nothing to restore — only a
+ * into the panel. So there is no focus trap and nothing to restore — only a
  * place for focus to land when Escape closes it, which
  * accessibility.md § Focus and keyboard requires. Escape is listened for on
  * the document rather than the panel because focus may be on the trigger,
@@ -307,7 +307,7 @@ function useHeaderTheme(initial: Theme, onThemeToggle: (() => void) | undefined)
  * The `data-compact` attribute value, or `undefined` to leave it off.
  *
  * Which layout renders is CSS's job, never this component's: `useIsCompactHeader`
- * resolves in an effect, so it answers `false` during rendering and through the
+ * resolves in an effect. So it answers `false` during rendering and through the
  * whole pre-hydration window, and a layout only correct after hydration would
  * break the server-rendered HTML PRODUCT.md §83 and §89 require.
  *

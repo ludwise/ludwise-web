@@ -5,7 +5,7 @@
  * reason this file matters: a staging site reading production data publishes
  * production prices on a hostname that is not meant to be public, and makes
  * staging's own data untrustworthy for the testing it exists to do. It is the
- * single worst configuration mistake available in this architecture, so it is
+ * single worst configuration mistake available in this architecture. So it is
  * the one with a test naming every combination rather than a representative
  * sample.
  */

@@ -7,7 +7,7 @@ import { defineConfig, devices } from '@playwright/test';
  * backend, so a suite running against the site alone would be testing something
  * other than what is deployed. `scripts/fake-backend.ts` answers `/v1` with the
  * contract's own shapes, which makes the suite deterministic - a real backend's
- * catalog changes as ingestion runs, so an assertion about what is on the
+ * catalog changes as ingestion runs. So an assertion about what is on the
  * page would be an assertion about what Steam was selling that morning.
  *
  * Chromium only. A second engine doubles the slowest step in CI to re-answer a

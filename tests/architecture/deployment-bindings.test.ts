@@ -232,7 +232,7 @@ describe('the generated deployment configuration', () => {
 
   it.runIf(config)('reaches the backend through the named visitor-read entrypoint', () => {
     // The security property of ADR 0028 from this side. The backend's default
-    // entrypoint has no `/v1` at all, so a binding without this field would 404
+    // entrypoint has no `/v1` at all. So a binding without this field would 404
     // every page - and would mean the read contract was expected to be routed.
     const backend = (config?.services ?? []).find((s) => s.binding === 'BACKEND');
 

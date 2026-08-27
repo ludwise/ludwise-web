@@ -7,7 +7,7 @@
  * first paint is too late by definition.
  *
  * `readThemeCookie` is a sanitiser rather than a convenience. The value is
- * caller-controlled and ends up in an attribute on `<html>`, so it answers
+ * caller-controlled and ends up in an attribute on `<html>`. So it answers
  * only with a member of a closed set or with null - never with what it was
  * given.
  */

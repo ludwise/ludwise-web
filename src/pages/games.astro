@@ -41,7 +41,7 @@ try {
 
   if (error.isRejection) {
     // A rejected filter combination is something a visitor did, not something
-    // that broke, so it is a warning rather than an error - an alert on every
+    // that broke. So it is a warning rather than an error - an alert on every
     // mistyped year would bury the failures that matter.
     locals.logger.warn(EVENTS.APPLICATION_QUERY_FAILED, 'Game search filters were rejected', {
       error_category: 'application',

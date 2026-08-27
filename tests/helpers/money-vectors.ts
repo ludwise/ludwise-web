@@ -4,7 +4,7 @@
  * Architecture decision record 0023 accepts that this one function exists twice - once in the backend's
  * private domain layer, once in the public web client that cannot import it.
  * This is the mitigation: both repositories drive their own implementation over
- * this exact table, so the two agree because each was checked against one
+ * this exact table. So the two agree because each was checked against one
  * statement of the answer rather than because somebody diffed them once.
  *
  * Checked in to both repositories and must stay byte-identical. Changing it in
@@ -64,7 +64,7 @@ export const MONEY_VECTORS: readonly MoneyVector[] = [
 /**
  * Inputs both implementations must refuse rather than render.
  *
- * Each produced a corrupt string before it was a guard, and the corruption is
+ * Each produced a corrupt string before it was a guard. The corruption is
  * recorded so a future reader can see these are not defensive decoration. The
  * two repositories throw different error types - the backend raises its own
  * `DomainError`, the web client a plain `RangeError` - so the shared assertion

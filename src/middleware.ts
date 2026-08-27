@@ -10,7 +10,7 @@
  *
  * Correlation runs first and cannot fail, so a configuration failure still
  * produces a response carrying a request id. Configuration precedes logging
- * because the logger's level comes from it, and the backend client is last
+ * because the logger's level comes from it. The backend client is last
  * because it needs both the timeout and the correlation identifiers.
  */
 
@@ -44,7 +44,7 @@ const HEALTH_ROUTE = '/api/health';
  *
  * Not a real address and not reachable. A service binding dispatches to the
  * bound script and ignores the host entirely, but `fetch` still requires an
- * absolute URL, so this exists to satisfy the URL parser. Written as a
+ * absolute URL. So this exists to satisfy the URL parser. Written as a
  * `.invalid` name - reserved by RFC 2606 and guaranteed never to resolve - so
  * that a bug which somehow sent this over the network fails immediately and
  * loudly rather than reaching something real.
@@ -264,7 +264,7 @@ const backend = defineMiddleware((context, next) => {
  * not a URL, so nothing a mistyped variable could redirect (architecture decision record 0024).
  *
  * Locally, `wrangler dev` provides that binding whether or not anything runs
- * behind it, so a request over it fails with a 503 from Wrangler that looks
+ * behind it. So a request over it fails with a 503 from Wrangler that looks
  * exactly like a backend outage. `BACKEND_DEV_URL` therefore wins in
  * development, pointing at a local backend or `scripts/fake-backend.ts`.
  *

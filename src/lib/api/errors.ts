@@ -100,7 +100,7 @@ const LOCAL_CODES: Readonly<Record<ApiFailureKind, string>> = {
  *
  * Keyed on the code rather than the HTTP status, because the code is the part
  * the contract promises is stable. Two codes are free to share a status later
- * without this table noticing, and a status is free to change without a client
+ * without this table noticing. A status is free to change without a client
  * misclassifying the failure.
  *
  * An unrecognised code is `unavailable` rather than a guess: it means the

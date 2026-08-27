@@ -4,7 +4,7 @@
  * Source SVGs are vendored at design/system/assets/icons/. The inner markup is
  * inlined here, verbatim from design/system/components/foundation.md, so an
  * icon renders with no network request and inherits `currentColor`. Stroke
- * width is normalized to 1.75 at every size — that is what reads correctly
+ * width is normalized to 1.75 at every size. That is what reads correctly
  * both at 14px in a table cell and at 24px in a header.
  *
  * This module is framework-neutral on purpose: `Icon.astro` (static pages)

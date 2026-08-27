@@ -19,7 +19,7 @@ import { THEME_COOKIE_NAME } from '../../src/lib/http/theme.js';
 const THEMES = ['light', 'dark'] as const;
 
 // Imported rather than retyped: Architecture decision record 0013 makes the point that the cookie name
-// should be defined once, and a test hard-coding 'theme' is a third place for
+// should be defined once. A test hard-coding 'theme' is a third place for
 // it to drift.
 const THEME_COOKIE = THEME_COOKIE_NAME;
 const BASE_URL = 'http://localhost:4321';

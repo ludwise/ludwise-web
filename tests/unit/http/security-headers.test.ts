@@ -10,7 +10,7 @@ import {
  * These headers are the site's clickjacking, sniffing and referrer-leak
  * defences, applied to every Worker response. A public site shipping this
  * with no test at all is exactly the gap a code review misses once and an
- * incident finds later, so each header is asserted for the property it
+ * incident finds later. So each header is asserted for the property it
  * exists to buy - not merely that a key with some value is present.
  */
 

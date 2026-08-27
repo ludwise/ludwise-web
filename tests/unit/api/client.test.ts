@@ -2,7 +2,7 @@
  * The client's behavior when things go wrong, which is most of what it is for.
  *
  * The happy path is four lines of `fetch` and `json()`. Everything else in
- * `client.ts` exists for a failure, and every one of those failures has a
+ * `client.ts` exists for a failure. Every one of those failures has a
  * rendering consequence: a timeout must not look like an empty catalog, a
  * rejection must not be retried, a malformed response must not be trusted, and
  * nothing the backend said may reach a page.

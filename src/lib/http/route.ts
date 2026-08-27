@@ -32,7 +32,7 @@ export function sanitizePathname(pathname: string): string {
  * Prefers the framework route pattern, for example /games/[slug].
  *
  * The pattern is absent for unmatched requests, which are exactly the ones most
- * worth seeing, so the sanitised pathname is the fallback rather than an error.
+ * worth seeing. So the sanitised pathname is the fallback rather than an error.
  */
 export function routeTemplate(input: { routePattern?: string | undefined; url: URL }): RouteInfo {
   if (input.routePattern && input.routePattern.length > 0) {

@@ -45,7 +45,7 @@ const SALES_ADVICE: Readonly<Record<string, string>> = {
  * without its currency is refused on both sides - and two fields sharing one
  * sentence would otherwise print it twice.
  *
- * Order follows the table rather than the response, so the same mistake reads
+ * Order follows the table rather than the response. So the same mistake reads
  * the same way every time regardless of the order the backend happened to
  * validate in.
  */
