@@ -89,7 +89,7 @@ The earlier design bound the backend's **default** entrypoint and reasoned that
 The backend's own hostname is a Cloudflare **custom domain**, and a custom domain
 sends every path on the hostname to the default entrypoint. `/v1` was reachable
 from the internet the whole time. The only thing refusing it was the backend's
-site-wide Access guard — which was refusing this site's reads too, because a
+site-wide Access guard — which was refusing this site's reads too. This is because a
 binding carries no Access identity, so every server-rendered page got 403.
 
 The backend Worker is still Internet-routed through its default entrypoint. What
@@ -104,12 +104,12 @@ test rather than asserted in a document:
   `scripts/check-environment.mjs` both require.
 
 It is an invocation boundary, not a sandbox: a named entrypoint shares its
-Worker's bindings, so this limits who may call rather than what the called code
+Worker's bindings. So this limits who may call rather than what the called code
 may reach. What keeps D1 away from this repository is that this Worker has no
 database binding, which the same test asserts.
 
 **A service binding bypasses Cloudflare Access.** Access is an edge control and
-a binding dispatches straight to the target script, so a request arriving over
+a binding dispatches straight to the target script. So a request arriving over
 the binding has been authenticated by nothing. That is why `/ops` authorization
 lives in the backend's own middleware and must never move to the edge — and why
 the API client in this repository exposes three named operations and no path
@@ -159,7 +159,7 @@ unbounded retry chain turns one slow backend into a queue of Workers all
 waiting, which converts a degraded dependency into an outage of this site too.
 
 A rejection is never retried — the request was refused for what it contained.
-A 5xx carrying a backend error code is never retried either: it means the
+A 5xx carrying a backend error code is never retried either. It means the
 backend reached its dependency and the dependency failed, and retrying
 immediately adds load to something already struggling.
 
@@ -172,14 +172,14 @@ needs an idempotency key before it may be retried at all.
 This is the distinction the whole error layer exists to preserve. A failed read
 **throws**. It never returns an empty view. Rendering "no games found" when the
 truth is "we could not ask" is a false claim about the market rather than a
-cosmetic slip, and the same applies to sales, offers, and a game detail page —
-where a failure must never render as a 404, because that tells a visitor
+cosmetic slip. The same applies to sales, offers, and a game detail page —
+where a failure must never render as a 404. This is because that tells a visitor
 following a good link that their link is broken.
 
 ## The contract
 
 `src/lib/api/contract.ts` is the **authoritative** statement of the wire shape,
-and it lives here rather than in the backend on purpose: this repository must
+and it lives here rather than in the backend on purpose. This repository must
 build without access to the private one. So it cannot import those types and
 cannot be generated from a schema that is not present.
 
@@ -255,7 +255,7 @@ real workflow reading disposable data. Nothing may read production.
 ## Observability
 
 One log record per request, carrying `request_id`, `trace_id` and `span_id`.
-Both are forwarded to the backend as `x-request-id` and `traceparent`, so the
+Both are forwarded to the backend as `x-request-id` and `traceparent`. So the
 two Workers' records join into one trace — without that, splitting the
 repositories would have doubled the logging bill for less than it bought.
 

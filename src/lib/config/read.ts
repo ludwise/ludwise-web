@@ -25,7 +25,7 @@ let cached: AppConfig | undefined;
  * which tests with no Workers runtime could not use anyway.
  *
  * `wrangler types` narrows `process.env` to the literals in `wrangler.jsonc`,
- * but `loadConfig` takes the widest shape on purpose: it must be able to see a
+ * but `loadConfig` takes the widest shape on purpose. It must be able to see a
  * value that is missing or wrong, since that is what it exists to report. Those
  * literal types describe what the configuration file says, not what the runtime
  * received.

@@ -4,7 +4,7 @@ import { expect, test, type Page } from '@playwright/test';
 /**
  * What the site says when LUDWISE has ingested nothing at all.
  *
- * Its own suite and its own backend mode, because this state is a property of
+ * Its own suite and its own backend mode. This is because this state is a property of
  * the whole catalog rather than of one request.
  *
  * "No games are on sale right now" is a claim about the market, true only once

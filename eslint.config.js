@@ -16,7 +16,7 @@ import ludwise from './eslint-rules/max-comment-block-lines.js';
 //
 // This repository's layering is much simpler than the backend's, and
 // deliberately so: there is no domain, no persistence and no provider layer
-// here, because those are the things the split moved out. What is left is a
+// here. This is because those are the things the split moved out. What is left is a
 // contract, a client, some presentation, and the rule that keeps them apart.
 
 const platformNeutral = {
@@ -29,7 +29,7 @@ const platformNeutral = {
 };
 
 // The one restriction helper. There is no directory-zone list here as there is
-// in the backend, and that absence is the split working: the layers a zone list
+// in the backend. That absence is the split working: the layers a zone list
 // would separate - domain, persistence, providers - are exactly what moved to
 // the private repository. The rules that remain are scoped by `files` because
 // what they constrain is which *files* may import a thing, not which
@@ -99,7 +99,7 @@ export default tseslint.config(
   // TypeScript parser where they are written in it, and no type-aware rules.
   //
   // `scripts/**/*.ts` is here rather than in the src/ block above for a
-  // specific reason: those files are run with `node --experimental-strip-types`
+  // specific reason. Those files are run with `node --experimental-strip-types`
   // and are not part of the build. Linting them under the type-aware configuration
   // fails at parse time for want of a tsconfig project that includes them.
   {
@@ -175,7 +175,7 @@ export default tseslint.config(
   // The contract is the innermost thing here. It states the wire shapes and is
   // authoritative about them (architecture decision record (ADR) 0025). So it must not depend on the client
   // that happens to use them - the backend vendors this one file and nothing
-  // else, and an import would drag the whole tree along with it.
+  // else. An import would drag the whole tree along with it.
   {
     files: ['src/lib/api/contract.ts'],
     rules: {

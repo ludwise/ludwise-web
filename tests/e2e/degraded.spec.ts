@@ -11,7 +11,7 @@ import { expect, test, type Page } from '@playwright/test';
  * a cosmetic slip.
  *
  * Run under `playwright.states.config.ts` with the backend in `unavailable`
- * mode: the socket is destroyed rather than answered with a 503, because a 503
+ * mode. The socket is destroyed rather than answered with a 503, because a 503
  * is the backend telling us something and this is the backend not being there,
  * a different path through the client.
  */

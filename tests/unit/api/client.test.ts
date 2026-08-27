@@ -3,7 +3,7 @@
  *
  * The happy path is four lines of `fetch` and `json()`. Everything else in
  * `client.ts` exists for a failure. Every one of those failures has a
- * rendering consequence: a timeout must not look like an empty catalog, a
+ * rendering consequence. A timeout must not look like an empty catalog, a
  * rejection must not be retried, a malformed response must not be trusted, and
  * nothing the backend said may reach a page.
  *
@@ -401,7 +401,7 @@ describe('nothing the backend said reaches a caller', () => {
 describe('the operations it will perform', () => {
   it('are three, and none takes a path', () => {
     // The allowlist as an object shape. A client that could be handed a path
-    // would be a proxy, and a proxy reachable from a page is how /ops and
+    // would be a proxy. A proxy reachable from a page is how /ops and
     // internal routes become publicly reachable through the front door.
     const client = clientOver(vi.fn() as unknown as typeof fetch);
     expect(Object.keys(client).sort()).toEqual(['browseSales', 'getGameDetail', 'searchGames']);

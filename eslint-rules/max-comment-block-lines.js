@@ -3,7 +3,7 @@
  *
  * A long run of line comments means either the code is not saying what it does,
  * or a contract is being described where documentation tooling cannot read it.
- * A long doc comment means something else: an essay has grown where a contract
+ * A long doc comment means something else. An essay has grown where a contract
  * belongs, usually by absorbing worked examples a test already asserts or a
  * rationale an architecture decision record (ADR) already owns.
  *

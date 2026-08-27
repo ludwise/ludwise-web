@@ -49,7 +49,7 @@ export function buildIdentity(packageJsonUrl) {
  * The identity as bundler `define` entries.
  *
  * Every value is JSON-stringified because `define` is raw text substitution in
- * both bundlers: an unquoted value is injected as a bare identifier, which
+ * both bundlers. An unquoted value is injected as a bare identifier, which
  * esbuild rejects outright ("must be an entity name or JS literal") and Vite
  * would happily inject as a syntax error.
  *

@@ -45,7 +45,7 @@ application / domain / D1 / providers
 ```
 
 Every read happens during server-side rendering. The browser never calls the
-API — there is no URL for it to call, because the reads answer on a named
+API — there is no URL for it to call. This is because the reads answer on a named
 Worker entrypoint that no hostname reaches. That single decision is why this
 repository contains no CORS configuration, no API key, and no client-side data
 fetching.
@@ -99,7 +99,7 @@ Individually:
 | `pnpm test:e2e`        | Playwright, including accessibility in both themes |
 | `pnpm build`           | the Worker bundle                                  |
 
-The architecture tests are worth knowing about before you add a file: they fail
+The architecture tests are worth knowing about before you add a file. They fail
 if anything calls `fetch` outside the API client, imports a Cloudflare binding
 outside `src/middleware.ts`, or names something that looks like a credential.
 See [`tests/architecture/boundaries.test.ts`](tests/architecture/boundaries.test.ts),

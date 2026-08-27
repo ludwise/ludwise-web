@@ -2,7 +2,7 @@
  * What the deployed Worker is actually allowed to hold.
  *
  * `boundaries.test.ts` proves the *source* reaches nothing private. This proves
- * the same of the *deployment*: a binding is capability, and one that appears in
+ * the same of the *deployment*. A binding is capability, and one that appears in
  * the generated configuration is usable at runtime whether or not any source
  * file mentions it. The file read is `dist/server/wrangler.json`, which
  * @astrojs/cloudflare produces by merging `wrangler.jsonc` with its own
@@ -116,7 +116,7 @@ const ALLOWED_BINDINGS = new Set(['ASSETS', 'BACKEND']);
  *
  * `kv_namespaces` is the one that actually fired. The rest are the other ways a
  * public web client could grow direct state or direct data access, which is the
- * thing the split exists to prevent: this repository reads through `/v1` or it
+ * thing the split exists to prevent. This repository reads through `/v1` or it
  * does not read at all.
  */
 const MUST_BE_EMPTY = [

@@ -53,7 +53,7 @@ deployments of it once they exist.
 
 **Out of scope:** the LUDWISE backend is a separate, private repository and is
 not published here. A finding in the backend reached _through_ this site is
-firmly in scope and worth reporting — a finding you inferred about the backend
+firmly in scope and worth reporting. A finding you inferred about the backend
 in isolation is better reported the same way, and will be routed.
 
 Also out of scope: vulnerabilities in Cloudflare, GitHub or third-party services

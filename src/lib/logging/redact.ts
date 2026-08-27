@@ -74,7 +74,7 @@ function looksSecret(value: string): boolean {
  * projected log field rather than a whole context object - can apply the same
  * secret-detection and truncation rule without walking a full object through
  * `redact()`. Both paths share one rule for what counts as a credential and
- * how long a value survives, so no caller quietly ends up with a second,
+ * how long a value survives. So no caller quietly ends up with a second,
  * looser one.
  */
 export function redactString(value: string, maxLength: number): string {

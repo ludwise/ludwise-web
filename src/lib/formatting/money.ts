@@ -59,7 +59,7 @@ export interface MoneyFormatInput {
  *
  * `minimumFractionDigits` and `maximumFractionDigits` are both pinned to the
  * currency's own exponent rather than left to `Intl`'s default. `Intl` knows
- * the conventional exponent for a currency code, and the backend knows the one
+ * the conventional exponent for a currency code. The backend knows the one
  * the price was actually recorded in - and where those disagree, the recorded
  * one is the fact. Pinning both bounds to the same value also stops `Intl`
  * rounding a three-decimal amount to two, which would display a price that is

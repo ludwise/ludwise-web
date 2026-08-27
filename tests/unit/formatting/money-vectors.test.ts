@@ -26,7 +26,7 @@ describe('formatAmountMinor agrees with the shared vectors', () => {
 
   it.each(REJECTED_MONEY_VECTORS)('refuses $amountMinor at $minorUnit ($why)', (vector) => {
     // Thrown, not rendered. Each of these produced a corrupt string before the
-    // guard existed, and a corrupt price on a price-comparison site is worse
+    // guard existed. A corrupt price on a price-comparison site is worse
     // than an error a developer sees immediately.
     expect(() => formatAmountMinor(vector.amountMinor, vector.minorUnit)).toThrow();
   });

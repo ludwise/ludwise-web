@@ -4,7 +4,7 @@ import { defineConfig, devices } from '@playwright/test';
  * One browser, and two servers.
  *
  * The second server is the point. This repository is a site that talks to a
- * backend, so a suite running against the site alone would be testing something
+ * backend. So a suite running against the site alone would be testing something
  * other than what is deployed. `scripts/fake-backend.ts` answers `/v1` with the
  * contract's own shapes, which makes the suite deterministic - a real backend's
  * catalog changes as ingestion runs. So an assertion about what is on the

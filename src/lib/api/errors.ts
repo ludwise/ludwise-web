@@ -103,7 +103,7 @@ const LOCAL_CODES: Readonly<Record<ApiFailureKind, string>> = {
  * without this table noticing. A status is free to change without a client
  * misclassifying the failure.
  *
- * An unrecognised code is `unavailable` rather than a guess: it means the
+ * An unrecognised code is `unavailable` rather than a guess. It means the
  * response did not come from the backend's own error path, and inventing a
  * classification for it would put a fabricated diagnosis into a log.
  */
@@ -174,7 +174,7 @@ export function toLogContext(error: LudwiseApiError): Record<string, unknown> {
  * Whether an unknown thrown value is one of ours.
  *
  * `instanceof` rather than a duck-typed check, and it is safe here because
- * there is exactly one module realm: this is not a library being loaded twice.
+ * there is exactly one module realm. This is not a library being loaded twice.
  */
 export function isApiError(error: unknown): error is LudwiseApiError {
   return error instanceof LudwiseApiError;

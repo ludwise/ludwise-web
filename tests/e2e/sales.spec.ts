@@ -9,7 +9,7 @@ import { expect, test, type Page } from '@playwright/test';
  * discounted game whose price rank and discount rank disagree - without it,
  * sorting "by discount" and sorting "by price" can render the same order and
  * still look correct. Asserting only that the sales show up would pass
- * against a query that returned the whole catalog, so every test here that
+ * against a query that returned the whole catalog. So every test here that
  * checks a card also checks something absent.
  */
 
@@ -17,7 +17,7 @@ const THEME_COOKIE = 'theme';
 const THEMES = ['light', 'dark'] as const;
 
 // The one accepted exception, excluded here for the same reason
-// tests/e2e/shell.spec.ts excludes it: the logotype's accent is brand, it is
+// tests/e2e/shell.spec.ts excludes it. The logotype's accent is brand, it is
 // decorative, and the wordmark reads without it.
 const LOGOTYPE = '.lw-header__wordmark-accent';
 

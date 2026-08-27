@@ -6,7 +6,7 @@ import { execSync } from 'node:child_process';
  *
  * `tests/architecture/boundaries.test.ts` checks `src/`. This checks
  * *everything tracked*, including documentation, workflows, fixtures and
- * configuration - which is where a leak would actually be, because those are
+ * configuration - which is where a leak would actually be. This is because those are
  * the files nobody thinks of as code.
  *
  * Run against `git ls-files` rather than the filesystem, so anything gitignored
@@ -86,7 +86,7 @@ const PATTERNS = [
  * Matches that are structurally incapable of being the secret they resemble.
  *
  * Each of these is justified by what the value *is*, not by which file it sits
- * in, so a real credential in the same file is still caught. That distinction
+ * in. So a real credential in the same file is still caught. That distinction
  * matters: exempting `correlation.test.ts` because it trips the hex rule would
  * also exempt a genuine key pasted into it next year.
  */

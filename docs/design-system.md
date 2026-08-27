@@ -72,7 +72,7 @@ selects one.
 The value is resolved server-side from a `theme` cookie and rendered into the
 first response. A visitor with no cookie gets no attribute, and a pre-paint
 script in `<head>` resolves `prefers-color-scheme` before anything is drawn.
-**Never add client-side theme detection that runs after paint** — a flash of
+**Never add client-side theme detection that runs after paint**. A flash of
 the wrong theme over a price comparison is a defect, not a polish item.
 
 Read and write the cookie through `src/lib/http/theme.ts`. `readThemeCookie` is
@@ -111,7 +111,7 @@ price and freshness semantics and have no data to display yet.
 raw — 55 KB over the wire — of React and its runtime, which is 59% of the
 weight of a page. That buys a theme toggle and a menu disclosure.
 
-That ratio is stated here rather than left to be discovered, because the second
+That ratio is stated here rather than left to be discovered. This is because the second
 island is the decision that matters and it should be a decision. Adding one
 costs nothing extra in framework bytes, since React already ships. Adding the
 _first_ one to a page that had none costs all of it. So the question for any new
@@ -197,9 +197,9 @@ These are additions, recorded here rather than invented silently:
   exists in the canonical model, and the product rules forbid rendering a value
   that is not there. So each is absent rather than stubbed with a placeholder.
   Only the `standard` variant is built, because the handoff is explicit that
-  exactly three exist and a fourth needs a system change — the other two arrive
+  exactly three exist and a fourth needs a system change. The other two arrive
   with a surface that renders them. It adds two things: freshness, which the
-  handoff puts on `GameRow` and not on `GameCard`, because every number on a
+  handoff puts on `GameRow` and not on `GameCard`. This is because every number on a
   sale card is commercial data and §55 requires that a visitor is not misled
   into thinking stale data was freshly verified. It also adds an edition label,
   because one game can carry several offers and the card shows one of them (§37).

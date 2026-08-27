@@ -6,7 +6,7 @@ import { THEME_COOKIE_NAME } from '../../src/lib/http/theme.js';
 /**
  * The one end-to-end specification.
  *
- * It answers what no other layer can: that the application boots in a real
+ * It answers what no other layer can. That the application boots in a real
  * engine, that the shell renders, that navigation works, and that an
  * accessibility audit finds nothing. Everything cheaper to assert elsewhere is
  * asserted elsewhere - this is not where features get tested.

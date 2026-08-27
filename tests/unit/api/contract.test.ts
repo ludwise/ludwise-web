@@ -47,7 +47,7 @@ describe('API_ERROR_CODES', () => {
 describe('REFUSABLE_FIELDS', () => {
   it('is a superset of every field the filter-advice tables know how to word', () => {
     // adviseGameSearch and adviseSales silently drop a field this list does not
-    // recognize, so a field present in the advice tables but absent here would
+    // recognize. So a field present in the advice tables but absent here would
     // never actually be reachable from a real backend rejection.
     const advisedGameFields = [
       'page',

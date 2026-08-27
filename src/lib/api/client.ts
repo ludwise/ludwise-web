@@ -119,7 +119,7 @@ function put(params: URLSearchParams, name: string, value: string | number | und
 /**
  * The `/v1/games` query string.
  *
- * The parameter names are the contract, not the field names: a visitor sees
+ * The parameter names are the contract, not the field names. A visitor sees
  * exactly these in their address bar, and the backend route reads exactly
  * these. `minPriceMinor` becoming `min` is the mapping, and it is written out
  * here rather than derived so that reading this function tells you what goes on
@@ -204,7 +204,7 @@ interface RequestSpec {
  *
  * Split out so the retry loop reads as a loop rather than as control flow
  * threaded through error handling, and so the timeout is unambiguously
- * per-attempt: two attempts each get the full budget, which is what "the
+ * per-attempt. Two attempts each get the full budget, which is what "the
  * backend has N milliseconds to answer" should mean.
  */
 async function attempt<T>(

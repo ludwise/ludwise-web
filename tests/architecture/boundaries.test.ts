@@ -3,7 +3,7 @@
  *
  * The backend has a `publication.test.ts` that answers "may this file be
  * published?" against an allowlist that grows. This is the mirror image and a
- * simpler question: everything here is already public, so what has to be
+ * simpler question: everything here is already public. So what has to be
  * proved is that nothing private ever arrives.
  *
  * That difference is why this file exists rather than being a copy. A rule
@@ -37,7 +37,7 @@ const sourceFiles = listSourceFiles('src');
  * "optional-because-sometimes-uninteresting", forty URL-safe characters and so
  * indistinguishable from a Cloudflare API token to a regex.
  *
- * Rewording the comments is the wrong fix twice over: it makes them worse to
+ * Rewording the comments is the wrong fix twice over. It makes them worse to
  * protect the test, and leaves the next accurate comment about a forbidden
  * thing failing the build. A rule about code should read code.
  */
@@ -160,7 +160,7 @@ describe('cloudflare bindings are reached only from the composition root', () =>
 /**
  * There is exactly one way to talk to the backend.
  *
- * The rule that a scattered `fetch` would break is not tidiness: each call site
+ * The rule that a scattered `fetch` would break is not tidiness. Each call site
  * is a place where a timeout is forgotten, a correlation header is not
  * forwarded, a malformed response is trusted, or a backend error message ends
  * up in a page. Those have to be got right once.

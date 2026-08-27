@@ -32,7 +32,7 @@ function isTheme(value: string): value is Theme {
 /**
  * The recorded preference, or null when the visitor has none.
  *
- * Null is a distinct answer from either theme: it is what tells the document
+ * Null is a distinct answer from either theme. It is what tells the document
  * to let the pre-paint script resolve `prefers-color-scheme` instead of
  * asserting a preference the visitor never expressed.
  */

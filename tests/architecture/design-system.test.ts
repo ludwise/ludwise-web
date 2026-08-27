@@ -70,7 +70,7 @@ function stripComments(source: string): string {
  *
  * `listSourceFiles` deliberately answers "what does the import graph contain",
  * so it looks at `.ts`, `.tsx` and `.astro` only. That is the wrong question
- * here, and the gap was real: a React island cannot use Astro's scoped
+ * here, and the gap was real. A React island cannot use Astro's scoped
  * `<style>`, so `AppHeader.css` exists as a plain stylesheet - and both focus
  * breaches an accessibility review found were in it, unscanned.
  */

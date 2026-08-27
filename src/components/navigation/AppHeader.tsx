@@ -308,7 +308,7 @@ function useHeaderTheme(initial: Theme, onThemeToggle: (() => void) | undefined)
  *
  * Which layout renders is CSS's job, never this component's: `useIsCompactHeader`
  * resolves in an effect. So it answers `false` during rendering and through the
- * whole pre-hydration window, and a layout only correct after hydration would
+ * whole pre-hydration window. A layout only correct after hydration would
  * break the server-rendered HTML PRODUCT.md §83 and §89 require.
  *
  * `compact` is the escape hatch the prop contract documents. Supplied, this
