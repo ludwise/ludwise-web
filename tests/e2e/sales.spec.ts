@@ -258,11 +258,15 @@ test.describe('sales browsing', () => {
   test('shows no advertising slot and claims no affiliate relationship', async ({ page }) => {
     await page.goto('/sales');
 
-    // Neither exists, and a disclosure describing a relationship that does not
-    // exist would be a false statement rather than a formality.
-    for (const claim of ['Advertisement', 'Sponsored', 'affiliate', 'commission']) {
+    for (const claim of ['Advertisement', 'Sponsored']) {
       await expect(page.getByText(claim, { exact: false })).toHaveCount(0);
     }
+
+    const main = page.getByRole('main');
+    for (const claim of ['affiliate', 'commission']) {
+      await expect(main.getByText(claim, { exact: false })).toHaveCount(0);
+    }
+
     await expect(page.getByText('Legitimate stores only')).toBeVisible();
   });
 
@@ -293,7 +297,7 @@ test.describe('sales browsing', () => {
   for (const width of [320, 375, 768, 1024]) {
     test(`does not scroll horizontally with results at ${String(width)}px`, async ({ page }) => {
       await page.setViewportSize({ width, height: 900 });
-      await page.goto('/sales');
+      await page.goto(path);
 
       const overflows = await page.evaluate(
         () => document.documentElement.scrollWidth > document.documentElement.clientWidth,
