@@ -23,12 +23,14 @@ const formatDate = (date: Date) =>
       <dt>Version</dt>
       <dd>{version}</dd>
     </div>
-    {effectiveDate && (
-      <div>
-        <dt>Effective</dt>
-        <dd>{formatDate(effectiveDate)}</dd>
-      </div>
-    )}
+    {
+      effectiveDate && (
+        <div>
+          <dt>Effective</dt>
+          <dd>{formatDate(effectiveDate)}</dd>
+        </div>
+      )
+    }
     <div>
       <dt>Last updated</dt>
       <dd>{formatDate(lastUpdated)}</dd>

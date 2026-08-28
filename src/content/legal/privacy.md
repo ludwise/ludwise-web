@@ -1,4 +1,5 @@
 ---
+ste-prose: descriptive
 title: Privacy Policy
 description: How LUDWISE will explain its processing of personal information.
 version: 0.1-draft
@@ -28,7 +29,7 @@ This section will describe how long LUDWISE keeps each type of information.
 
 ## Your rights
 
-This section will describe applicable privacy rights and how users can use them.
+This section will describe applicable privacy rights and how visitors can use them.
 
 ## Contact
 

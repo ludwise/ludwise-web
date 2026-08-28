@@ -1,4 +1,5 @@
 ---
+ste-prose: descriptive
 title: Cookie Policy
 description: How LUDWISE will explain cookies and similar storage.
 version: 0.1-draft
@@ -28,7 +29,7 @@ This section will describe advertising-related storage before advertising is ena
 
 ## Managing choices
 
-This section will explain how users can manage applicable consent choices.
+This section will explain how visitors can manage applicable consent choices.
 
 ## Changes to this policy
 

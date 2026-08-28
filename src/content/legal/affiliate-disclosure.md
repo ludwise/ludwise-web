@@ -1,4 +1,5 @@
 ---
+ste-prose: descriptive
 title: Affiliate Disclosure
 description: How LUDWISE will explain affiliate relationships and commissions.
 version: 0.1-draft
@@ -24,7 +25,7 @@ This section will state how affiliate relationships affect rankings and recommen
 
 ## Prices
 
-This section will explain that affiliate relationships do not change the price shown to a user.
+This section will explain that affiliate relationships do not change the price shown to a visitor.
 
 ## Store relationships
 

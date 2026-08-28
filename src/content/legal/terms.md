@@ -1,4 +1,5 @@
 ---
+ste-prose: descriptive
 title: Terms of Service
 description: The rules that will govern use of LUDWISE.
 version: 0.1-draft
