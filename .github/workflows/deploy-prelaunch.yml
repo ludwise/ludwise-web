@@ -66,6 +66,13 @@ jobs:
             sleep 5
           done
 
+      - name: Verify robots policy
+        run: |
+          robots="$(curl -fsS https://ludwise.com/robots.txt)"
+          printf '%s\n' "${robots}"
+          printf '%s\n' "${robots}" | grep -qx 'User-agent: \*'
+          printf '%s\n' "${robots}" | grep -qx 'Allow: /'
+
       - name: Confirm application routes are unavailable
         run: |
           for path in /games /sales /api/health /ops /v1/games; do
