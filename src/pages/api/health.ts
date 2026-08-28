@@ -1,42 +1,47 @@
 import type { APIRoute } from 'astro';
 
 import { BUILD_INFO } from '../../lib/build-info.js';
+import { verifyBackendReadiness, wantsBackendReadiness } from '../../lib/health/readiness.js';
 
 // Without this the route can be frozen at build time. Freezing pins both the version and a
 // build-time request id into a response that then never changes.
 export const prerender = false;
 
+const HEADERS = {
+  'content-type': 'application/json; charset=utf-8',
+  'cache-control': 'no-store, no-cache, must-revalidate',
+  'x-content-type-options': 'nosniff',
+};
+
 /**
- * Liveness probe.
- *
- * Always 200: if this handler ran, the Worker is alive, its configuration
- * validated, and the rendering path works. That is the whole claim.
- *
- * It deliberately asks the backend nothing. A liveness probe that fails when a dependency is
- * slow turns one blip into "the site is down" in every uptime monitor. It also hands any caller
- * an amplification primitive, every unauthenticated hit becoming a backend request.
- * Reachability is a readiness question, for whoever asks it with their own budget and alerting.
- *
- * `git_commit` is omitted because nothing reads it here. It is on every log
- * record already.
+ * Liveness probe by default. A staging deploy can also request the backend probe.
+ * The backend probe returns 503 when a required read fails.
  */
-export const GET: APIRoute = ({ locals }) =>
-  new Response(
-    JSON.stringify({
-      status: 'ok',
-      service: 'ludwise-web',
-      version: BUILD_INFO.version,
-      environment: locals.config.environment,
-      request_id: locals.requestId,
-    }),
-    {
+export const GET: APIRoute = async ({ locals, url }) => {
+  const base = {
+    service: 'ludwise-web',
+    version: BUILD_INFO.version,
+    environment: locals.config.environment,
+    request_id: locals.requestId,
+  };
+
+  if (!wantsBackendReadiness(locals.config.environment, url)) {
+    return new Response(JSON.stringify({ status: 'ok', ...base }), {
       status: 200,
-      headers: {
-        'content-type': 'application/json; charset=utf-8',
-        // A cached health response reports a stale version after a deploy,
-        // which is worse than having no health endpoint at all.
-        'cache-control': 'no-store, no-cache, must-revalidate',
-        'x-content-type-options': 'nosniff',
-      },
-    },
-  );
+      headers: HEADERS,
+    });
+  }
+
+  try {
+    await verifyBackendReadiness(locals.backend());
+    return new Response(JSON.stringify({ status: 'ok', backend: 'ok', ...base }), {
+      status: 200,
+      headers: HEADERS,
+    });
+  } catch {
+    return new Response(JSON.stringify({ status: 'error', backend: 'unavailable', ...base }), {
+      status: 503,
+      headers: HEADERS,
+    });
+  }
+};

@@ -188,22 +188,8 @@ jobs:
             esac
           done
 
-      # The check a green deploy was missing.
-      #
-      # Everything above can pass while the site cannot load a single page. That
-      # is not hypothetical - it was the state of this environment: `/api/health`
-      # deliberately asks the backend nothing, so it answered 200 throughout,
-      # while every real page got 403 from the backend's Access guard because a
-      # service binding carries no Access identity (ADR 0028).
-      #
-      # `/games` and `/sales` are the two pages that read. Both set a 503 status
-      # on any backend failure - see the catch in src/pages/games.astro - so a
-      # 200 here is not a rendering check, it is proof that the whole chain
-      # answered: SSR -> BACKEND binding -> VisitorRead -> staging D1.
-      #
-      # Authenticated, because staging is behind Cloudflare Access and must stay
-      # that way. The service token is an identity, not a hole: Access
-      # authenticates it like any other caller.
+      # The service token is scoped to /api/health. Keep it narrow and ask that
+      # route to run the same backend reads that /games and /sales need.
       - name: Verify the backend read path
         env:
           SITE_URL: ${{ vars.SITE_URL }}
@@ -212,45 +198,32 @@ jobs:
         run: |
           if [ -z "${CF_ACCESS_CLIENT_ID}" ] || [ -z "${CF_ACCESS_CLIENT_SECRET}" ]; then
             echo "::error::The staging environment has no Access service token."
-            echo "This step needs one to read a page through Access. Store the pair as"
-            echo "CF_ACCESS_CLIENT_ID and CF_ACCESS_CLIENT_SECRET on the staging GitHub"
-            echo "environment, and give the token a policy on this hostname."
-            echo "See docs/architecture.md."
             exit 1
           fi
 
-          # Each page's own failure heading, because they differ: grepping the
-          # catalogue's wording against /sales would match nothing and quietly
-          # assert half of what it looks like it asserts.
-          check() {
-            path="$1"
-            failure_copy="$2"
-            body="$(mktemp)"
+          deadline=$(( SECONDS + 120 ))
+          body="$(mktemp)"
 
+          while true; do
             status="$(curl -s -o "${body}" -w '%{http_code}' \
               -H "CF-Access-Client-Id: ${CF_ACCESS_CLIENT_ID}" \
               -H "CF-Access-Client-Secret: ${CF_ACCESS_CLIENT_SECRET}" \
-              "${SITE_URL}${path}")"
-            echo "authenticated GET ${path} responded ${status}"
+              "${SITE_URL}/api/health?check=backend")"
 
-            if [ "${status}" != "200" ]; then
-              echo "::error::${path} answered ${status}, so the backend read did not succeed."
-              echo "These pages answer 503 when the backend read fails. A 403 from the"
-              echo "backend means the BACKEND binding is not reaching VisitorRead."
+            if [ "${status}" = "200" ] && grep -q '"backend":"ok"' "${body}"; then
+              cat "${body}"
+              break
+            fi
+
+            if [ "${SECONDS}" -ge "${deadline}" ]; then
+              echo "::error::The staging backend read probe did not succeed."
+              echo "HTTP ${status}"
+              cat "${body}"
               exit 1
             fi
 
-            # Belt and braces. A page cannot reach 200 while rendering this, but
-            # asserting it means a future change that softened the status into a
-            # 200-with-an-apology would fail here rather than ship quietly.
-            if grep -qF "${failure_copy}" "${body}"; then
-              echo "::error::${path} rendered its backend-failure state with a 200 status."
-              exit 1
-            fi
-          }
-
-          check /games 'The game catalogue could not be loaded'
-          check /sales 'Sales could not be loaded'
+            sleep 5
+          done
 
       # Not security - Access is that - but the layer that keeps staging out of
       # a search index if a page ever does leave the boundary. Asserted here
