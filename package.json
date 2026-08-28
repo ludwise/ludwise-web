@@ -20,7 +20,7 @@
     "sync": "astro sync",
     "cf-typegen": "wrangler types",
     "format": "prettier --write .",
-    "format:check": "prettier --check .",
+    "format:check": "prettier --check . || (prettier --write src/components/legal/PolicyToc.astro && git diff -- src/components/legal/PolicyToc.astro && exit 1)",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "check:ste": "node scripts/ste/cli.mjs check",
