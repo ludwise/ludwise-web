@@ -1,0 +1,78 @@
+name: Deploy prelaunch
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - prelaunch/**
+      - wrangler.prelaunch.jsonc
+      - .github/workflows/deploy-prelaunch.yml
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy prelaunch to Cloudflare
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: production
+      url: https://ludwise.com
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+
+      - name: Install Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Deploy
+        run: pnpm exec wrangler deploy --config wrangler.prelaunch.jsonc
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+
+      - name: Verify homepage
+        run: |
+          deadline=$(( SECONDS + 120 ))
+
+          while true; do
+            body="$(curl -sf https://ludwise.com/ || true)"
+            if printf '%s' "${body}" | grep -q 'Coming soon'; then
+              break
+            fi
+            if [ "${SECONDS}" -ge "${deadline}" ]; then
+              echo "::error::The prelaunch homepage did not become available."
+              exit 1
+            fi
+            sleep 5
+          done
+
+      - name: Confirm application routes are unavailable
+        run: |
+          for path in /games /sales /api/health /ops /v1/games; do
+            status="$(curl -s -o /dev/null -w '%{http_code}' "https://ludwise.com${path}")"
+            echo "GET ${path} responded ${status}"
+            [ "${status}" = "404" ] || {
+              echo "::error::${path} must return 404 during prelaunch."
+              exit 1
+            }
+          done

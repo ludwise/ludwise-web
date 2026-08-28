@@ -1,0 +1,15 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "ludwise-web-production",
+  "compatibility_date": "2026-08-28",
+  "workers_dev": false,
+  "assets": {
+    "directory": "./prelaunch",
+  },
+  "routes": [
+    {
+      "pattern": "ludwise.com",
+      "custom_domain": true,
+    },
+  ],
+}
