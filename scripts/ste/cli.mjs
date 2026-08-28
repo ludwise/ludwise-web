@@ -54,7 +54,7 @@ const trackedFiles = (rootDir) =>
 const emit = (result, documents, scope, format) => {
   const summary = summarize(result, documents, scope);
   if (format === 'json') return formatJson(result, summary);
-  if (format === 'markdown') return formatMarkdown(summary);
+  if (format === 'markdown') return formatMarkdown(result, summary);
   return formatText(result, summary);
 };
 
@@ -92,6 +92,7 @@ const runOverText = (documents, options, path) => {
 
   const result = {
     diagnostics,
+    semanticReviews: [],
     filesChecked: 1,
     unitsChecked: units.length,
     unsupportedUnits: 0,
