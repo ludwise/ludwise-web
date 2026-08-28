@@ -1,0 +1,96 @@
+---
+interface Props {
+  title: string;
+  description: string;
+  version: string;
+  status: 'draft' | 'current' | 'superseded';
+  lastUpdated: Date;
+  effectiveDate?: Date | undefined;
+}
+
+const { title, description, version, status, lastUpdated, effectiveDate } = Astro.props;
+const formatDate = (date: Date) =>
+  new Intl.DateTimeFormat('en', { dateStyle: 'long', timeZone: 'UTC' }).format(date);
+---
+
+<header class="lw-policy-header">
+  {status === 'draft' && <p class="lw-policy-header__status">Draft for review</p>}
+  <h1>{title}</h1>
+  <p class="lw-policy-header__description">{description}</p>
+
+  <dl class="lw-policy-header__meta">
+    <div>
+      <dt>Version</dt>
+      <dd>{version}</dd>
+    </div>
+    {
+      effectiveDate && (
+        <div>
+          <dt>Effective</dt>
+          <dd>{formatDate(effectiveDate)}</dd>
+        </div>
+      )
+    }
+    <div>
+      <dt>Last updated</dt>
+      <dd>{formatDate(lastUpdated)}</dd>
+    </div>
+  </dl>
+</header>
+
+<style>
+  .lw-policy-header {
+    display: grid;
+    gap: var(--space-4);
+    padding-bottom: var(--space-8);
+    border-bottom: 1px solid var(--color-border-subtle);
+  }
+
+  .lw-policy-header__status {
+    width: fit-content;
+    margin: 0;
+    padding: var(--space-1) var(--space-2);
+    border: 1px solid var(--color-status-warning-border);
+    border-radius: var(--radius-badge);
+    background: var(--color-status-warning-surface);
+    color: var(--color-status-warning-text);
+    font: var(--text-label-sm);
+  }
+
+  h1 {
+    margin: 0;
+    color: var(--color-text-primary);
+    font: var(--text-heading-xl);
+  }
+
+  .lw-policy-header__description {
+    max-width: 60ch;
+    margin: 0;
+    color: var(--color-text-secondary);
+    font: var(--text-body-lg);
+  }
+
+  .lw-policy-header__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-4) var(--space-8);
+    margin: 0;
+  }
+
+  .lw-policy-header__meta div {
+    display: grid;
+    gap: var(--space-1);
+  }
+
+  dt {
+    color: var(--color-text-tertiary);
+    font: var(--text-label-sm);
+  }
+
+  dd {
+    margin: 0;
+    color: var(--color-text-primary);
+    font: var(--text-body-sm);
+    font-variant-numeric: tabular-nums;
+  }
+</style>
