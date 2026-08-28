@@ -1,12 +1,23 @@
 ---
+import { getCollection } from 'astro:content';
+
 import PageContainer from '../layout/PageContainer.astro';
 
-const LEGAL_LINKS = [
-  { label: 'Terms', href: '/legal/terms' },
-  { label: 'Privacy', href: '/legal/privacy' },
-  { label: 'Cookies', href: '/legal/cookies' },
-  { label: 'Affiliate Disclosure', href: '/legal/affiliate-disclosure' },
-];
+const legalPolicies = await getCollection('legal');
+const isProduction = Astro.locals.config.environment === 'production';
+
+const legalLinks = legalPolicies
+  .filter(
+    (policy) =>
+      policy.data.footer &&
+      policy.data.status !== 'superseded' &&
+      (!isProduction || policy.data.status === 'current'),
+  )
+  .sort((a, b) => a.data.order - b.data.order)
+  .map((policy) => ({
+    label: policy.data.navLabel,
+    href: `/legal/${policy.id}`,
+  }));
 
 const year = new Date().getFullYear();
 ---
@@ -19,7 +30,7 @@ const year = new Date().getFullYear();
       <nav class="lw-site-footer__navigation" aria-label="Footer">
         <ul>
           {
-            LEGAL_LINKS.map((link) => (
+            legalLinks.map((link) => (
               <li>
                 <a href={link.href}>{link.label}</a>
               </li>
