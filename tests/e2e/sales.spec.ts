@@ -297,7 +297,7 @@ test.describe('sales browsing', () => {
   for (const width of [320, 375, 768, 1024]) {
     test(`does not scroll horizontally with results at ${String(width)}px`, async ({ page }) => {
       await page.setViewportSize({ width, height: 900 });
-      await page.goto(path);
+      await page.goto('/sales');
 
       const overflows = await page.evaluate(
         () => document.documentElement.scrollWidth > document.documentElement.clientWidth,
