@@ -134,6 +134,13 @@
       "reason": "Workflow and template files are machine configuration. Phase 2 governs the prose values inside them."
     },
     {
+      "id": "prelaunch-machine-text",
+      "paths": ["prelaunch/robots.txt"],
+      "unit": "prose",
+      "class": "STE-EXEMPT",
+      "reason": "The robots file contains machine-readable crawler directives, not prose."
+    },
+    {
       "id": "recorded-fixtures",
       "paths": ["tests/fixtures/**"],
       "unit": "prose",
