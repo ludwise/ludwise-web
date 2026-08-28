@@ -9,11 +9,7 @@ ste-prose: descriptive
 **Do not open a public issue for a security vulnerability.** A public report
 starts a race between everyone who reads it and the fix.
 
-Email **git@danielkindl.dev** with `SECURITY` in the subject line.
-
-> This is a personal address rather than a dedicated security contact. Replacing
-> it with an alias, or enabling GitHub private vulnerability reporting, is
-> tracked as remaining setup.
+Email **security@ludwise.com** with `SECURITY` in the subject line.
 
 Please include:
 
