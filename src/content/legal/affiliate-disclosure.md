@@ -1,6 +1,9 @@
 ---
 ste-prose: descriptive
 title: Affiliate Disclosure
+navLabel: Affiliate Disclosure
+footer: true
+order: 40
 description: How LUDWISE will explain affiliate relationships and commissions.
 version: 0.1-draft
 status: draft
