@@ -19,9 +19,7 @@ const items = Astro.props.headings.filter((heading) => heading.depth === 2);
       <ol>
         {
           items.map((heading) => (
-            <li>
-              <a href={`#${heading.slug}`}>{heading.text}</a>
-            </li>
+            <li><a href={`#${heading.slug}`}>{heading.text}</a></li>
           ))
         }
       </ol>
