@@ -61,7 +61,6 @@ const unitsFor = (assignment, source, file) => {
           supported: true,
           unread: 0,
           prose: declaredProseKind(source),
-          reviewRequired: 0,
         }
       : { units: [], supported: false, unread: 1 };
   }
@@ -72,17 +71,14 @@ const unitsFor = (assignment, source, file) => {
       units: coverage === 'none' ? [] : extractComments(source, file),
       supported: coverage !== 'none',
       unread: coverage === 'full' ? 0 : 1,
-      reviewRequired: 0,
     };
   }
   if (assignment.unit === 'strings') {
     const coverage = stringCoverage(file);
-    const units = coverage === 'none' ? [] : extractStrings(source, file);
     return {
-      units,
+      units: coverage === 'none' ? [] : extractStrings(source, file),
       supported: coverage !== 'none',
       unread: coverage === 'full' ? 0 : 1,
-      reviewRequired: units.filter((unit) => unit.reviewRequired === true).length,
     };
   }
   return { units: [], supported: false, unread: 1 };
@@ -91,13 +87,23 @@ const unitsFor = (assignment, source, file) => {
 const exceptionAllows = (exception, file, rule) =>
   matchesAnyGlob(file, exception.scope?.paths ?? []) && (exception.rules ?? []).includes(rule);
 
+const semanticReviewFor = (file, source, assignment, proseUnit) => ({
+  file,
+  ...positionOf(source, proseUnit.start),
+  contentClass: assignment.contentClass,
+  unit: assignment.unit,
+  kind: proseUnit.kind,
+  text: proseUnit.text,
+  reason: 'runtime-composed-visitor-text',
+});
+
 export const checkFiles = ({ rootDir, files, documents, allFiles = files }) => {
   const { policy, terminology, conformance, exceptions } = documents;
   const diagnostics = [];
+  const semanticReviews = [];
   let filesChecked = 0;
   let unitsChecked = 0;
   let unsupportedUnits = 0;
-  let reviewRequiredUnits = 0;
 
   for (const file of files) {
     const assignments = classify(file, policy).assignments.filter(
@@ -147,13 +153,18 @@ export const checkFiles = ({ rootDir, files, documents, allFiles = files }) => {
         continue;
       }
 
-      const { units, supported, unread, prose, reviewRequired = 0 } = extracted;
+      const { units, supported, unread, prose } = extracted;
       unsupportedUnits += unread;
-      reviewRequiredUnits += reviewRequired;
       if (!supported) continue;
 
       touched = true;
       unitsChecked += units.length;
+
+      for (const proseUnit of units) {
+        if (proseUnit.reviewRequired === true) {
+          semanticReviews.push(semanticReviewFor(file, source, assignment, proseUnit));
+        }
+      }
 
       const found = runRules(units, {
         policy,
@@ -208,13 +219,18 @@ export const checkFiles = ({ rootDir, files, documents, allFiles = files }) => {
     (left, right) =>
       left.file.localeCompare(right.file) || left.line - right.line || left.column - right.column,
   );
+  semanticReviews.sort(
+    (left, right) =>
+      left.file.localeCompare(right.file) || left.line - right.line || left.column - right.column,
+  );
 
   return {
     diagnostics: kept,
+    semanticReviews,
     filesChecked,
     unitsChecked,
     unsupportedUnits,
-    reviewRequiredUnits,
+    reviewRequiredUnits: semanticReviews.length,
     implementedRules: IMPLEMENTED_RULE_IDS,
   };
 };

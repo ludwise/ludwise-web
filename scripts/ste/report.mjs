@@ -37,7 +37,7 @@ export const summarize = (result, documents, scope) => {
     filesChecked: result.filesChecked,
     unitsChecked: result.unitsChecked,
     unsupportedUnits: result.unsupportedUnits,
-    reviewRequiredUnits: result.reviewRequiredUnits ?? 0,
+    reviewRequiredUnits: result.semanticReviews?.length ?? result.reviewRequiredUnits ?? 0,
     violations: result.diagnostics.length,
     byRule: Object.fromEntries(countBy(result.diagnostics, 'rule')),
     byFile: Object.fromEntries(countBy(result.diagnostics, 'file')),
@@ -87,6 +87,24 @@ const caveat = (summary) => {
   ];
 };
 
+const appendSemanticReviews = (lines, result, format) => {
+  const reviews = result.semanticReviews ?? [];
+  if (reviews.length === 0) return;
+
+  lines.push('', 'Semantic review findings:');
+  for (const review of reviews) {
+    const location = `${review.file}:${review.line}:${review.column}`;
+    const text = oneLine(review.text);
+    if (format === 'markdown') {
+      lines.push(
+        `- \`${location}\` \`${review.kind}\` \`${review.reason}\` — ${text.replace(/`/g, "'")}`,
+      );
+    } else {
+      lines.push(`  ${location}  ${review.kind}  [${review.reason}]  ${text}`);
+    }
+  }
+};
+
 export const formatText = (result, summary) => {
   const lines = [];
 
@@ -104,6 +122,7 @@ export const formatText = (result, summary) => {
     `Files read: ${summary.filesChecked}. Prose units: ${summary.unitsChecked}. Units without extraction support: ${summary.unsupportedUnits}.`,
   );
   lines.push(`Units requiring semantic review: ${summary.reviewRequiredUnits}.`);
+  appendSemanticReviews(lines, result, 'text');
 
   if (summary.violations > 0) {
     lines.push('');
@@ -121,7 +140,7 @@ export const formatText = (result, summary) => {
   return lines.join('\n');
 };
 
-export const formatMarkdown = (summary) => {
+export const formatMarkdown = (result, summary) => {
   const lines = [
     '### Controlled language audit',
     '',
@@ -136,6 +155,8 @@ export const formatMarkdown = (summary) => {
     ...caveat(summary).map((one) => `- ${one}`),
   ];
 
+  appendSemanticReviews(lines, result, 'markdown');
+
   if (summary.violations > 0) {
     lines.push('', '| Count | Rule |', '| ---: | --- |');
     for (const [rule, count] of Object.entries(summary.byRule))
@@ -146,7 +167,15 @@ export const formatMarkdown = (summary) => {
 };
 
 export const formatJson = (result, summary) =>
-  JSON.stringify({ summary, diagnostics: result.diagnostics }, null, 2);
+  JSON.stringify(
+    {
+      summary,
+      diagnostics: result.diagnostics,
+      semanticReviews: result.semanticReviews ?? [],
+    },
+    null,
+    2,
+  );
 
 export const formatMatrix = (documents) => {
   const lines = [

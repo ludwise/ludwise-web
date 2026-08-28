@@ -43,6 +43,12 @@ It detects configured spelling variants for part of rule 1.14.
 It detects recorded technical-noun synonyms for part of rule 1.11.
 It detects recorded phrasal verbs for part of rule 9.3.
 
+## Semantic review
+
+The checker lists each runtime-composed visitor string that requires semantic review.
+Each finding gives the file, line, column, unit kind, reason, and extracted text.
+A semantic review finding is not a deterministic violation.
+
 ## Controlled dictionary
 
 Part 2 is normative for lexical conformance.
