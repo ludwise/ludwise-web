@@ -1,0 +1,96 @@
+---
+import PageContainer from '../layout/PageContainer.astro';
+import PolicyHeader from './PolicyHeader.astro';
+import PolicyToc from './PolicyToc.astro';
+
+interface Heading {
+  depth: number;
+  slug: string;
+  text: string;
+}
+
+interface Props {
+  title: string;
+  description: string;
+  version: string;
+  status: 'draft' | 'current' | 'superseded';
+  lastUpdated: Date;
+  effectiveDate?: Date | undefined;
+  headings: Heading[];
+}
+
+const props = Astro.props;
+---
+
+<PageContainer width="reading">
+  <article class="lw-policy">
+    <PolicyHeader
+      title={props.title}
+      description={props.description}
+      version={props.version}
+      status={props.status}
+      lastUpdated={props.lastUpdated}
+      effectiveDate={props.effectiveDate}
+    />
+
+    <PolicyToc headings={props.headings} />
+
+    <div class="lw-policy__content">
+      <slot />
+    </div>
+  </article>
+</PageContainer>
+
+<style>
+  .lw-policy {
+    display: grid;
+    gap: var(--space-8);
+  }
+
+  .lw-policy__content {
+    color: var(--color-text-primary);
+    font: var(--text-body-md);
+  }
+
+  .lw-policy__content :global(h2) {
+    margin: var(--space-10) 0 var(--space-4);
+    color: var(--color-text-primary);
+    font: var(--text-heading-lg);
+    scroll-margin-top: var(--space-20);
+  }
+
+  .lw-policy__content :global(h3) {
+    margin: var(--space-8) 0 var(--space-3);
+    color: var(--color-text-primary);
+    font: var(--text-heading-md);
+    scroll-margin-top: var(--space-20);
+  }
+
+  .lw-policy__content :global(p),
+  .lw-policy__content :global(ul),
+  .lw-policy__content :global(ol) {
+    margin: 0 0 var(--space-4);
+  }
+
+  .lw-policy__content :global(ul),
+  .lw-policy__content :global(ol) {
+    padding-left: var(--space-6);
+  }
+
+  .lw-policy__content :global(li + li) {
+    margin-top: var(--space-2);
+  }
+
+  .lw-policy__content :global(a) {
+    color: var(--color-text-link);
+    text-underline-offset: 0.18em;
+  }
+
+  .lw-policy__content :global(a:hover) {
+    color: var(--color-text-link-hover);
+  }
+
+  .lw-policy__content :global(strong) {
+    font-weight: var(--font-weight-semibold);
+  }
+</style>
