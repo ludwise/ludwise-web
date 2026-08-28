@@ -1,6 +1,9 @@
 ---
 ste-prose: descriptive
 title: Terms of Service
+navLabel: Terms
+footer: true
+order: 10
 description: The rules that will govern use of LUDWISE.
 version: 0.1-draft
 status: draft
