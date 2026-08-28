@@ -1,6 +1,9 @@
 ---
 ste-prose: descriptive
 title: Cookie Policy
+navLabel: Cookies
+footer: true
+order: 30
 description: How LUDWISE will explain cookies and similar storage.
 version: 0.1-draft
 status: draft

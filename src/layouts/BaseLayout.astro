@@ -1,5 +1,6 @@
 ---
 import { AppHeader } from '../components/navigation/AppHeader.tsx';
+import SiteFooter from '../components/navigation/SiteFooter.astro';
 import { readThemeCookie } from '../lib/http/theme.js';
 import '../styles/global.css';
 
@@ -130,6 +131,8 @@ const indexable = Astro.locals.config.environment === 'production';
       <slot />
     </main>
 
+    <SiteFooter />
+
     <style is:global>
       /* Single shared definition in src/styles/skip-link.css, referenced with
          @import rather than copy-pasted: OperationsLayout.astro renders the
@@ -141,7 +144,15 @@ const indexable = Astro.locals.config.environment === 'production';
       @import '../styles/skip-link.css';
     </style>
     <style>
+      body {
+        display: flex;
+        min-height: 100vh;
+        min-height: 100dvh;
+        flex-direction: column;
+      }
+
       main {
+        flex: 1;
         padding-block: var(--space-8) var(--space-16);
       }
     </style>

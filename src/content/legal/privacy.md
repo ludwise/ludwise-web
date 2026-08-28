@@ -1,6 +1,9 @@
 ---
 ste-prose: descriptive
 title: Privacy Policy
+navLabel: Privacy
+footer: true
+order: 20
 description: How LUDWISE will explain its processing of personal information.
 version: 0.1-draft
 status: draft

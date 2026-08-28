@@ -1,0 +1,101 @@
+---
+import { getCollection } from 'astro:content';
+
+import PageContainer from '../layout/PageContainer.astro';
+
+const legalPolicies = await getCollection('legal');
+const isProduction = Astro.locals.config.environment === 'production';
+
+const legalLinks = legalPolicies
+  .filter(
+    (policy) =>
+      policy.data.footer &&
+      policy.data.status !== 'superseded' &&
+      (!isProduction || policy.data.status === 'current'),
+  )
+  .sort((a, b) => a.data.order - b.data.order)
+  .map((policy) => ({
+    label: policy.data.navLabel,
+    href: `/legal/${policy.id}`,
+  }));
+
+const year = new Date().getFullYear();
+---
+
+<footer class="lw-site-footer">
+  <PageContainer width="wide">
+    <div class="lw-site-footer__inner">
+      <a class="lw-site-footer__brand" href="/" aria-label="LUDWISE home">LUDWISE</a>
+
+      <nav class="lw-site-footer__navigation" aria-label="Footer">
+        <ul>
+          {
+            legalLinks.map((link) => (
+              <li>
+                <a href={link.href}>{link.label}</a>
+              </li>
+            ))
+          }
+        </ul>
+      </nav>
+
+      <p class="lw-site-footer__copyright">© {year} LUDWISE</p>
+    </div>
+  </PageContainer>
+</footer>
+
+<style>
+  .lw-site-footer {
+    border-top: 1px solid var(--color-border-subtle);
+    background: var(--color-background-secondary);
+  }
+
+  .lw-site-footer__inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4) var(--space-8);
+    padding-block: var(--space-6);
+  }
+
+  .lw-site-footer__brand {
+    color: var(--color-text-primary);
+    font: var(--text-heading-sm);
+    letter-spacing: var(--letter-spacing-heading);
+    text-decoration: none;
+  }
+
+  .lw-site-footer__navigation ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3) var(--space-5);
+    list-style: none;
+  }
+
+  .lw-site-footer__navigation a,
+  .lw-site-footer__copyright {
+    color: var(--color-text-secondary);
+    font: var(--text-body-sm);
+  }
+
+  .lw-site-footer__navigation a {
+    text-decoration-color: transparent;
+  }
+
+  .lw-site-footer__navigation a:hover {
+    color: var(--color-text-link-hover);
+    text-decoration-color: currentColor;
+  }
+
+  .lw-site-footer__copyright {
+    white-space: nowrap;
+  }
+
+  @media (max-width: 767px) {
+    .lw-site-footer__inner {
+      align-items: flex-start;
+      flex-direction: column;
+    }
+  }
+</style>
