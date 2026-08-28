@@ -1,0 +1,115 @@
+@import url('/styles/global.css');
+
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  min-height: 100vh;
+  min-height: 100svh;
+  margin: 0;
+  display: grid;
+  place-items: center;
+  background: var(--color-background-primary);
+  color: var(--color-text-primary);
+}
+
+.prelaunch {
+  width: calc(100% - 2 * var(--layout-gutter-mobile));
+  max-width: var(--layout-max-width-reading);
+  padding-block: var(--space-16);
+  text-align: center;
+}
+
+.wordmark {
+  --wordmark-size: 19px;
+  --wordmark-mark-size: 23px;
+  --wordmark-mark-radius: 5px;
+  --wordmark-step-size: 15px;
+
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-20);
+}
+
+.wordmark__mark {
+  width: var(--wordmark-mark-size);
+  height: var(--wordmark-mark-size);
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--wordmark-mark-radius);
+  background: var(--color-accent-primary);
+}
+
+.wordmark__mark svg {
+  width: var(--wordmark-step-size);
+  height: var(--wordmark-step-size);
+  stroke: var(--ludwise-neutral-1000);
+  stroke-width: 2.2;
+  stroke-linecap: square;
+}
+
+.wordmark__text {
+  font-family: var(--font-family-display);
+  font-size: var(--wordmark-size);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-flat);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.wordmark__text span {
+  color: var(--color-accent-primary);
+}
+
+.eyebrow {
+  margin: 0 0 var(--space-5);
+  color: var(--color-accent-primary);
+  font: var(--text-label-sm);
+  letter-spacing: var(--letter-spacing-caps);
+  text-transform: uppercase;
+}
+
+h1 {
+  margin: 0;
+  font: var(--text-display);
+  letter-spacing: var(--letter-spacing-display);
+  text-wrap: balance;
+}
+
+.intro {
+  margin: var(--space-8) 0 0;
+  color: var(--color-text-secondary);
+  font: var(--text-body-lg);
+  text-wrap: balance;
+}
+
+.contact {
+  margin: var(--space-8) 0 0;
+  font: var(--text-label-lg);
+}
+
+.contact a {
+  color: var(--color-text-link);
+  text-decoration-color: var(--color-accent-primary);
+  text-underline-offset: var(--space-1);
+}
+
+.contact a:hover {
+  color: var(--color-text-link-hover);
+}
+
+.contact a:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-border-focus);
+  outline-offset: var(--focus-ring-offset);
+}
+
+footer {
+  margin-top: var(--space-16);
+  color: var(--color-text-tertiary);
+  font: var(--text-caption);
+}

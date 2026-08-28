@@ -1,0 +1,27 @@
+/* LUDWISE shape. Low radii: rounding costs vertical rhythm and makes dense
+   tables read as a pile of pills. Nothing above 12px except full pills. */
+:root{
+--radius-none:0px;
+--radius-xs:2px;
+--radius-sm:4px;
+--radius-md:6px;
+--radius-lg:10px;
+--radius-xl:12px;
+--radius-full:999px;
+
+--radius-button:var(--radius-md);
+--radius-input:var(--radius-md);
+--radius-card:var(--radius-lg);
+--radius-artwork:var(--radius-md);
+--radius-badge:var(--radius-sm);
+--radius-chip:var(--radius-full);
+--radius-popover:var(--radius-lg);
+--radius-modal:var(--radius-xl);
+
+--border-width-hairline:1px;
+--border-width-strong:2px;
+--border-width-identity:3px;
+
+--focus-ring-width:2px;
+--focus-ring-offset:2px;
+}

@@ -1,0 +1,29 @@
+/* LUDWISE layout. Two content widths, because a discovery grid and a comparison
+   table do not want the same measure. */
+:root{
+--layout-max-width-wide:1440px;   /* discovery grids, sales, search results */
+--layout-max-width-standard:1200px; /* game detail, comparison, account */
+--layout-max-width-reading:720px;  /* editorial, docs, legal, long prose */
+--layout-gutter-mobile:var(--space-4);
+--layout-gutter-tablet:var(--space-6);
+--layout-gutter-desktop:var(--space-8);
+--layout-header-height:60px;
+--layout-grid-columns:12; /* @kind other */
+--layout-grid-gap:var(--space-6);
+--layout-grid-gap-compact:var(--space-4);
+
+/* Breakpoints. Four, named by intent. Values are min-widths. */
+--breakpoint-sm:480px;   /* large phone */
+--breakpoint-md:768px;   /* tablet portrait — grids gain columns */
+--breakpoint-lg:1024px;  /* laptop — tables stop transforming into cards */
+--breakpoint-xl:1280px;  /* desktop — detail pages gain the side rail */
+--breakpoint-2xl:1600px; /* large desktop — grid widens, no new layout */
+
+/* Game artwork aspect ratios. Never crop outside these. */
+--aspect-capsule:1.5; /* @kind other */      /* 3:2  grid card header */
+--aspect-header:2.1455; /* @kind other */    /* 460:215 store header art */
+--aspect-hero:2.6667; /* @kind other */      /* 8:3  detail page hero */
+--aspect-cover:0.6667; /* @kind other */     /* 2:3  vertical library cover */
+--aspect-screenshot:1.7778; /* @kind other *//* 16:9 */
+--aspect-store-logo:1; /* @kind other */
+}
