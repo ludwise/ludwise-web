@@ -1,0 +1,35 @@
+/* LUDWISE spacing. 4px base. space.05 (2px) exists only for optical nudges
+   inside chips and badges. Nothing outside this scale is permitted. */
+:root{
+--space-0:0px;
+--space-05:2px;
+--space-1:4px;
+--space-2:8px;
+--space-3:12px;
+--space-4:16px;
+--space-5:20px;
+--space-6:24px;
+--space-8:32px;
+--space-10:40px;
+--space-12:48px;
+--space-16:64px;
+--space-20:80px;
+--space-24:96px;
+
+/* Density. Set --density-scale on a surface to switch a whole subtree.
+   comfortable = default reading and discovery. compact = comparison tables,
+   offer lists, dense result grids. */
+--density-row-height-comfortable:56px; /* @kind spacing */
+--density-row-height-compact:40px; /* @kind spacing */
+--density-cell-padding-y-comfortable:var(--space-3);
+--density-cell-padding-y-compact:var(--space-2);
+--density-cell-padding-x:var(--space-4);
+--density-stack-comfortable:var(--space-4);
+--density-stack-compact:var(--space-2);
+
+/* Minimum interactive target. WCAG 2.2 AA target size is 24px; LUDWISE requires
+   40px on pointer surfaces and 44px on touch. */
+--target-min:40px;
+--target-min-touch:44px;
+--target-min-inline:24px;
+}

@@ -23,6 +23,11 @@ design/
 src/styles/tokens/
 src/styles/global.css
 
+# The prelaunch copies use the same bytes as the adopted production tokens.
+# tests/architecture/prelaunch-design-system.test.ts enforces that parity.
+prelaunch/styles/tokens/
+prelaunch/styles/global.css
+
 # Responses recorded from the backend's real routes, and byte-identical to the
 # copy in its tests/contract/corpus/. The fake backend replays them, so they are
 # a transcript rather than a formatted document - and Prettier collapses a short
