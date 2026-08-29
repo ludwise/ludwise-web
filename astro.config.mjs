@@ -11,7 +11,7 @@ import {
 } from './i18n.config.ts';
 import { buildDefines, buildIdentity } from './scripts/build-identity.mjs';
 
-const SERVER_OPTIMIZED_DEPS = [
+const CLOUDFLARE_SSR_OPTIMIZED_DEPS = [
   'react',
   'react/jsx-runtime',
   'react/jsx-dev-runtime',
@@ -20,25 +20,7 @@ const SERVER_OPTIMIZED_DEPS = [
   'astro/assets/services/noop',
   'astro/logger/json',
 ];
-
-const ASTRO_I18N_VIRTUAL_MODULES = ['astro:i18n', 'astro/virtual-modules/i18n.js'];
-
-function stabilizeCloudflareSsrDeps() {
-  return {
-    name: 'ludwise:cloudflare-ssr-deps',
-    /** @param {string} environmentName */
-    configEnvironment(environmentName) {
-      if (environmentName === 'client') return;
-      return {
-        resolve: { dedupe: ['react', 'react-dom'] },
-        optimizeDeps: {
-          include: SERVER_OPTIMIZED_DEPS,
-          exclude: ASTRO_I18N_VIRTUAL_MODULES,
-        },
-      };
-    },
-  };
-}
+const CLOUDFLARE_SSR_EXCLUDED_DEPS = ['astro:i18n', 'astro/virtual-modules/i18n.js'];
 
 // This file is evaluated by Node during `astro dev|build`, so Node built-ins are
 // available here. That is NOT true of anything in src/, which runs in
@@ -88,7 +70,10 @@ export default defineConfig({
     routing: LOCALE_ROUTING,
   },
   vite: {
-    plugins: [stabilizeCloudflareSsrDeps()],
+    optimizeDeps: {
+      include: CLOUDFLARE_SSR_OPTIMIZED_DEPS,
+      exclude: CLOUDFLARE_SSR_EXCLUDED_DEPS,
+    },
     resolve: { dedupe: ['react', 'react-dom'] },
     define: {
       // Already passed through `JSON.stringify` by buildDefines: `define` is raw text
