@@ -1,5 +1,8 @@
 ---
 ste-prose: descriptive
+policyId: cookies
+locale: en
+translationStatus: source
 title: Cookie Policy
 navLabel: Cookies
 footer: true

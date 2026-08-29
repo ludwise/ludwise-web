@@ -3,6 +3,11 @@ import { getCollection } from 'astro:content';
 import { getRelativeLocaleUrl } from 'astro:i18n';
 
 import { messages as m, type Locale } from '../../i18n/index.js';
+import {
+  assertLegalPolicies,
+  legalPolicyLocale,
+  selectLegalFooterPolicies,
+} from '../../lib/legal/policies.js';
 import PageContainer from '../layout/PageContainer.astro';
 
 interface Props {
@@ -13,19 +18,12 @@ const { locale } = Astro.props;
 const messageOptions = { locale } as const;
 const legalPolicies = await getCollection('legal');
 const isProduction = Astro.locals.config.environment === 'production';
+assertLegalPolicies(legalPolicies);
 
-const legalLinks = legalPolicies
-  .filter(
-    (policy) =>
-      policy.data.footer &&
-      policy.data.status !== 'superseded' &&
-      (!isProduction || policy.data.status === 'current'),
-  )
-  .sort((a, b) => a.data.order - b.data.order)
-  .map((policy) => ({
-    label: policy.data.navLabel,
-    href: getRelativeLocaleUrl(locale, `legal/${policy.id}`),
-  }));
+const legalLinks = selectLegalFooterPolicies(legalPolicies, locale, isProduction).map((policy) => ({
+  label: policy.data.navLabel,
+  href: getRelativeLocaleUrl(legalPolicyLocale(policy), `legal/${policy.data.policyId}`),
+}));
 
 const homeHref = getRelativeLocaleUrl(locale);
 const year = new Date().getFullYear();

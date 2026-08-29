@@ -1,5 +1,9 @@
 ---
+import { formatDate } from '../../i18n/format.js';
+import { messages as m, type Locale } from '../../i18n/index.js';
+
 interface Props {
+  locale: Locale;
   title: string;
   description: string;
   version: string;
@@ -8,32 +12,37 @@ interface Props {
   effectiveDate?: Date | undefined;
 }
 
-const { title, description, version, status, lastUpdated, effectiveDate } = Astro.props;
-const formatDate = (date: Date) =>
-  new Intl.DateTimeFormat('en', { dateStyle: 'long', timeZone: 'UTC' }).format(date);
+const { locale, title, description, version, status, lastUpdated, effectiveDate } = Astro.props;
+const messageOptions = { locale } as const;
+const displayDate = (date: Date) =>
+  formatDate(date, locale, { dateStyle: 'long', timeZone: 'UTC' });
 ---
 
 <header class="lw-policy-header">
-  {status === 'draft' && <p class="lw-policy-header__status">Draft for review</p>}
+  {
+    status === 'draft' && (
+      <p class="lw-policy-header__status">{m.legal_draft_for_review({}, messageOptions)}</p>
+    )
+  }
   <h1>{title}</h1>
   <p class="lw-policy-header__description">{description}</p>
 
   <dl class="lw-policy-header__meta">
     <div>
-      <dt>Version</dt>
+      <dt>{m.legal_version_label({}, messageOptions)}</dt>
       <dd>{version}</dd>
     </div>
     {
       effectiveDate && (
         <div>
-          <dt>Effective</dt>
-          <dd>{formatDate(effectiveDate)}</dd>
+          <dt>{m.legal_effective_label({}, messageOptions)}</dt>
+          <dd>{displayDate(effectiveDate)}</dd>
         </div>
       )
     }
     <div>
-      <dt>Last updated</dt>
-      <dd>{formatDate(lastUpdated)}</dd>
+      <dt>{m.legal_last_updated_label({}, messageOptions)}</dt>
+      <dd>{displayDate(lastUpdated)}</dd>
     </div>
   </dl>
 </header>

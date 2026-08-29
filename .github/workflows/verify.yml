@@ -1,8 +1,5 @@
 name: Verify
 
-# The full validation suite, factored out so that CI and both deployment
-# workflows run the identical thing. A deployment that validated with a slightly
-# different pipeline than the one guarding pull requests is not validated.
 on:
   workflow_call:
 
@@ -23,16 +20,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          # This job runs pull request code and never pushes, so the credential
-          # is removed from the workspace.
           persist-credentials: false
 
-      # Must precede setup-node: its pnpm cache resolution shells out to
-      # `pnpm store path`, which fails opaquely if pnpm is not installed yet.
       - name: Install pnpm
         uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
-        # No version input: packageManager in package.json is the single source
-        # of truth, which keeps CI and local machines in lockstep.
 
       - name: Install Node
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
@@ -43,20 +34,12 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      # Generates .astro/types.d.ts. Without it, astro check and type-aware lint
-      # fail with confusing "cannot find module astro:middleware" errors that do
-      # not reproduce locally, because a local .astro/ survives from a dev run.
       - name: Sync Astro types
         run: pnpm run sync
 
-      # worker-configuration.d.ts is generated from wrangler.jsonc and is not
-      # committed, so a fresh clone has no binding types at all until this runs.
-      # It must precede typecheck for the same reason the Astro sync does.
       - name: Generate Cloudflare binding types
         run: pnpm run cf-typegen
 
-      # Ordered cheapest and most likely to fail first. Running the formatting
-      # check after a build would waste a minute on every formatting typo.
       - name: Check formatting
         run: pnpm run format:check
 
@@ -64,133 +47,43 @@ jobs:
         run: pnpm run lint
 
       - name: Typecheck
-        run: pnpm run typecheck
+        run: pnpm exec astro check
 
       - name: Typecheck tests
-        run: pnpm run typecheck:tests
+        run: pnpm exec tsc -p tsconfig.test.json --noEmit
 
-      # Unit, architecture and contract tests. The architecture suite is the one
-      # that matters most on a public repository: it fails if anything calls
-      # fetch outside the API client, imports a Cloudflare binding outside the
-      # composition root, or commits something shaped like a credential.
       - name: Test
-        run: pnpm run test:coverage
+        run: pnpm exec vitest run --coverage
 
       - name: Build
-        run: pnpm run build
+        run: pnpm exec astro build
 
-      # Re-run, after the build, the one suite whose subject the build produces.
-      #
-      # `dist/server/wrangler.json` is written by @astrojs/cloudflare merging its
-      # own defaults into `wrangler.jsonc`, so it does not exist during the Test
-      # step above and every rule in that file skips there. Without this step
-      # they never assert in CI at all - the suite reports passes and skips for a
-      # file it never opened, which is the same blind spot that let a SESSION KV
-      # binding appear on a site with no sessions.
-      #
-      # The environment variable turns that skip into a failure, so deleting or
-      # reordering this step breaks the build rather than restoring the gap.
       - name: Verify deployment bindings
         env:
           LUDWISE_REQUIRE_BUILD_OUTPUT: '1'
         run: pnpm exec vitest run tests/architecture/deployment-bindings.test.ts
 
-      # The local config needs one, and it carries no secret - this Worker has
-      # none. Copied rather than committed so the file stays gitignored, which
-      # is what keeps the habit right in a public repository.
       - name: Prepare local configuration
         run: cp .dev.vars.example .dev.vars
 
-      # Cloudflare dev runs a separate Vite optimizer for the workerd SSR
-      # environment. A dependency discovered during concurrent requests can
-      # invalidate that graph while another request is rendering. Exercise each
-      # server-rendered route once, then again after all dependencies are known,
-      # before paying to install Chromium. The same populated fake backend used
-      # by Playwright keeps this deterministic and makes every route return 200.
-      - name: Warm and verify dev SSR graph
-        run: |
-          set -euo pipefail
-          astro_log="$RUNNER_TEMP/astro-ssr-graph.log"
-          backend_log="$RUNNER_TEMP/backend-ssr-graph.log"
+      # The script clears Vite's optimizer cache before and after this probe.
+      # Concurrent requests therefore exercise the cold dependency graph, and
+      # Playwright also starts with no graph populated by this earlier check.
+      - name: Verify cold concurrent dev SSR
+        run: node scripts/check-dev-ssr.mjs
 
-          LUDWISE_FAKE_BACKEND_MODE=populated LUDWISE_FAKE_BACKEND_PORT=8788 \
-            node --experimental-strip-types scripts/e2e-backend.ts >"$backend_log" 2>&1 &
-          backend_pid=$!
-
-          pnpm run i18n:compile
-          pnpm exec astro dev --port 4321 >"$astro_log" 2>&1 &
-          astro_pid=$!
-
-          cleanup() {
-            kill "$astro_pid" "$backend_pid" 2>/dev/null || true
-            wait "$astro_pid" 2>/dev/null || true
-            wait "$backend_pid" 2>/dev/null || true
-          }
-          trap cleanup EXIT
-
-          ready=false
-          for _ in $(seq 1 30); do
-            if curl --silent --fail http://localhost:8788/v1/games >/dev/null && \
-              curl --silent --fail http://localhost:4321/api/health >/dev/null; then
-              ready=true
-              break
-            fi
-            if ! kill -0 "$astro_pid" 2>/dev/null || ! kill -0 "$backend_pid" 2>/dev/null; then
-              cat "$backend_log"
-              cat "$astro_log"
-              exit 1
-            fi
-            sleep 1
-          done
-
-          if [ "$ready" != true ]; then
-            cat "$backend_log"
-            cat "$astro_log"
-            exit 1
-          fi
-
-          for pass in 1 2; do
-            for path in / /games /sales /games/canonical-demo; do
-              echo "SSR graph pass $pass: $path"
-              if ! curl --silent --show-error --fail "http://localhost:4321$path" >/dev/null; then
-                cat "$backend_log"
-                cat "$astro_log"
-                exit 1
-              fi
-            done
-          done
-
-          if grep -Eq 'Uncaught exception|Invalid hook call|Unable to render' "$astro_log"; then
-            cat "$astro_log"
-            exit 1
-          fi
-
-      # Only Chromium. A second engine doubles the slowest step in this job to
-      # re-answer a question about our own markup rather than about a browser.
       - name: Install the end-to-end browser
         run: pnpm exec playwright install --with-deps chromium
 
-      # Three suites, three backend states, run separately because each state is
-      # a property of the whole backend process rather than of one request.
-      #
-      # The fake backend replays responses recorded from the real backend's own
-      # routes (docs/architecture.md), so this proves the interface renders what
-      # the backend actually sends - without needing the private repository, a
-      # database, or any credential.
       - name: Run end-to-end and accessibility tests
-        run: pnpm run test:e2e
+        run: pnpm exec playwright test
 
       - name: Run the empty-catalogue tests
-        run: pnpm run test:e2e:empty
+        run: pnpm exec playwright test --config=playwright.states.config.ts
 
-      # The most important of the three. It asserts that a backend outage
-      # renders as "we could not load this" rather than as "there are no games",
-      # which is the distinction the whole error layer exists to preserve.
       - name: Run the backend-unavailable tests
-        run: pnpm run test:e2e:degraded
+        run: node scripts/run-degraded.mjs
 
-      # The trace of a failed run, which is the difference between diagnosing a
-      # CI-only failure and re-running the job hoping it explains itself.
       - name: End-to-end failure traces
         if: failure()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -200,59 +93,24 @@ jobs:
           retention-days: 7
           if-no-files-found: ignore
 
-      # Resolves wrangler.jsonc exactly as a real deploy would, for both
-      # environments, and stops immediately before uploading. This is what
-      # catches a malformed service binding, a route claimed by two Workers, or
-      # a typo in an environment block while it is still a pull request.
-      #
-      # It contacts no Cloudflare API and needs no token, which is why it can run
-      # on pull requests at all. The account id is a repository variable, passed
-      # only so Wrangler never has to look one up.
       - name: Validate deployment configuration
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
         run: |
           for target in staging production; do
             echo "::group::wrangler dry-run ($target)"
-            CLOUDFLARE_ENV="$target" pnpm run build
+            CLOUDFLARE_ENV="$target" pnpm exec astro build
             pnpm exec wrangler deploy --dry-run
-
-            # The bindings the Worker actually ships with, checked per
-            # environment and only ever after a build. The adapter merges its
-            # own additions into dist/server/wrangler.json, so this is the first
-            # point at which the real deployment configuration exists - the
-            # `Test` step above runs before any build and the suite skips there
-            # by design.
-            #
-            # Inside the loop rather than after it because the file is
-            # overwritten on each pass: run once at the end and only production
-            # would ever be examined.
             pnpm exec vitest run tests/architecture/deployment-bindings.test.ts
             echo "::endgroup::"
           done
 
-      # The audit that only matters because this repository is public: a commit
-      # that lands here cannot be unpublished. It scans everything git tracks -
-      # documentation, workflows, fixtures and configuration, not only src/ -
-      # because those are the files nobody thinks of as code, and therefore the
-      # ones a credential ends up in.
-      #
-      # Only BLOCKING findings fail. An IMPORTANT one is a judgement call, and a
-      # check that failed on every judgement call would be switched off within a
-      # week.
       - name: Audit what this repository publishes
         run: node scripts/audit-public.mjs
 
-      # The public-repository check that no other step performs: that the built
-      # client bundle carries nothing it should not. The architecture suite
-      # checks the source; this checks the artifact, which is what a visitor
-      # actually receives.
       - name: Check the built bundle for leakage
         run: node scripts/check-bundle.mjs
 
-  # A separate job so the check has a stable name that branch protection can
-  # require after phase 2. It needs no browser and no build, so it answers in
-  # about a minute while the suite above is still running.
   language:
     name: Language
     runs-on: ubuntu-latest
@@ -278,19 +136,12 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      # The checker's own tests, the policy files and the terminology schema.
-      # These run before the prose check so a broken policy fails as a broken
-      # policy rather than as a mass of prose violations.
       - name: Test the language checker
         run: pnpm exec vitest run tests/unit/scripts/ste
 
-      # Phase 1 gates only the paths that docs/language/policy.json declares.
-      # Setting rollout.mode to "enforce" widens this to every classified file.
       - name: Check the governed prose
         run: pnpm run check:ste
 
-      # The repository-wide audit is the input for phase 2. It reports and does
-      # not gate, so a legacy violation cannot block this pull request.
       - name: Audit the repository
         if: always()
         run: node scripts/ste/cli.mjs audit --format markdown >> "$GITHUB_STEP_SUMMARY"

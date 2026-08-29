@@ -1,5 +1,5 @@
 ---
-import { formatNumber, formatPercentFromWhole } from '../../i18n/format.js';
+import { formatPercentFromWhole } from '../../i18n/format.js';
 import { messages as m, resolveLocale } from '../../i18n/index.js';
 
 interface Props {
@@ -13,9 +13,7 @@ const locale = resolveLocale(Astro.currentLocale);
 const messageOptions = { locale } as const;
 const visualText = rounded === null ? null : formatPercentFromWhole(-rounded, locale);
 const accessibleText =
-  rounded === null
-    ? null
-    : m.price_percent_off({ percentage: formatNumber(rounded, locale) }, messageOptions);
+  rounded === null ? null : m.price_percent_off({ percentage: rounded }, messageOptions);
 ---
 
 {

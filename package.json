@@ -14,7 +14,7 @@
     "node": ">=24.0.0"
   },
   "scripts": {
-    "dev": "pnpm run i18n:compile && astro dev",
+    "dev": "node scripts/run-with-i18n-watch.mjs astro dev",
     "build": "pnpm run i18n:compile && astro build",
     "preview": "astro preview",
     "sync": "pnpm run i18n:compile && astro sync",
@@ -30,12 +30,12 @@
     "typecheck": "pnpm run i18n:compile && astro check",
     "typecheck:tests": "pnpm run i18n:compile && tsc -p tsconfig.test.json --noEmit",
     "test": "pnpm run i18n:compile && vitest run",
-    "test:watch": "pnpm run i18n:compile && vitest",
+    "test:watch": "node scripts/run-with-i18n-watch.mjs vitest",
     "test:coverage": "pnpm run i18n:compile && vitest run --coverage",
     "test:e2e": "pnpm run i18n:compile && playwright test",
     "test:e2e:empty": "pnpm run i18n:compile && playwright test --config=playwright.states.config.ts",
     "test:e2e:degraded": "pnpm run i18n:compile && node scripts/run-degraded.mjs",
-    "check": "pnpm run format:check && pnpm run lint && pnpm run check:ste && pnpm run cf-typegen && pnpm run typecheck && pnpm run typecheck:tests && pnpm run test && pnpm run build",
+    "check": "pnpm run i18n:compile && pnpm run format:check && pnpm run lint && pnpm run check:ste && pnpm run cf-typegen && pnpm exec astro check && pnpm exec tsc -p tsconfig.test.json --noEmit && pnpm exec vitest run && pnpm exec astro build",
     "prepare": "husky"
   },
   "dependencies": {

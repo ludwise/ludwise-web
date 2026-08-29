@@ -10,17 +10,7 @@ import {
   SUPPORTED_LOCALES,
 } from './i18n.config.ts';
 import { buildDefines, buildIdentity } from './scripts/build-identity.mjs';
-
-const CLOUDFLARE_SSR_OPTIMIZED_DEPS = [
-  'react',
-  'react/jsx-runtime',
-  'react/jsx-dev-runtime',
-  'react-dom',
-  'react-dom/server',
-  'astro/assets/services/noop',
-  'astro/logger/json',
-];
-const CLOUDFLARE_SSR_EXCLUDED_DEPS = ['astro:i18n', 'astro/virtual-modules/i18n.js'];
+import { CLOUDFLARE_SSR_VITE_CONFIG } from './scripts/vite/cloudflare-ssr.mjs';
 
 // This file is evaluated by Node during `astro dev|build`, so Node built-ins are
 // available here. That is NOT true of anything in src/, which runs in
@@ -34,50 +24,19 @@ export default defineConfig({
   trailingSlash: 'never',
   adapter: cloudflare({ imageService: 'compile' }),
   integrations: [react()],
-  // No sessions, stated explicitly, because the default is not "off".
-  //
-  // @astrojs/cloudflare enables KV-backed sessions whenever `session` is not
-  // literally false, and writes `kv_namespaces: [{ binding: "SESSION" }]` into
-  // the generated dist/server/wrangler.json - for a feature nothing here uses.
-  // It announces itself as one info line in a build log ("Enabling sessions
-  // with Cloudflare KV") and is otherwise invisible.
-  //
-  // To be accurate about the cost: this does not break a deploy. Wrangler
-  // auto-provisions the namespace on first deploy, prefixed with the Worker
-  // name, so it would simply work. The objection is that it creates a real
-  // stateful KV namespace per environment - infrastructure that would hold
-  // visitor session data - because a default went unexamined. The backend
-  // repository hit the same default earlier and chose to declare the binding
-  // instead, which is the right call there. Here the honest answer is that we
-  // do not want the store at all.
-  //
-  // This site is server-rendered and anonymous: no login, no cart, no
-  // per-visitor state. The one preference it keeps (theme) is a cookie read in
-  // middleware. Sessions would be a store nothing ever writes to.
-  //
-  // If sessions are ever genuinely needed, turning this back on is one line.
-  // It will then be a deliberate decision with a namespace behind it.
   session: false,
-  // Spread rather than assign: Astro types `site` as string, and an explicit
-  // undefined fails typecheck. Absent locally, set from SITE_URL in CI/deploy.
-  // It is what `<link rel="canonical">` is built from, so a build that forgot
-  // it produces relative canonicals rather than wrong absolute ones.
   ...(process.env.SITE_URL ? { site: process.env.SITE_URL } : {}),
   i18n: {
     defaultLocale: DEFAULT_LOCALE,
     locales: [...SUPPORTED_LOCALES],
-    fallback: LOCALE_FALLBACKS,
+    // Astro derives fallback keys from literal locale types. The runtime locale
+    // source is validated JSON, so that literal union is intentionally absent.
+    fallback: /** @type {never} */ (LOCALE_FALLBACKS),
     routing: LOCALE_ROUTING,
   },
   vite: {
-    optimizeDeps: {
-      include: CLOUDFLARE_SSR_OPTIMIZED_DEPS,
-      exclude: CLOUDFLARE_SSR_EXCLUDED_DEPS,
-    },
-    resolve: { dedupe: ['react', 'react-dom'] },
+    ...CLOUDFLARE_SSR_VITE_CONFIG,
     define: {
-      // Already passed through `JSON.stringify` by buildDefines: `define` is raw text
-      // substitution, so a bare identifier would be injected and fail to parse.
       ...buildDefines(buildIdentity(new URL('./package.json', import.meta.url))),
     },
   },

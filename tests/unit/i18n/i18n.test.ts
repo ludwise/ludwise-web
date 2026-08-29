@@ -34,7 +34,9 @@ describe('localization boundary', () => {
     expect(m.price_discounted({ current: '$9.99', regular: '$12.99' }, options)).toBe(
       'Discounted price $9.99. Regular price $12.99.',
     );
-    expect(m.price_percent_off({ percentage: '50' }, options)).toBe('50 percent off');
+    expect(m.price_percent_off({ percentage: 50 }, options)).toBe('50 percent off');
+    expect(m.price_regular_price_label({}, options)).toBe('Regular price:');
+    expect(m.legal_last_updated_label({}, options)).toBe('Last updated');
   });
 
   it('uses the explicit locale for Intl formatting helpers', () => {
