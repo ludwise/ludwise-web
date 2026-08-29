@@ -41,6 +41,9 @@ export default defineConfig({
   testIgnore: ['**/degraded.spec.ts', '**/empty.spec.ts'],
   fullyParallel: true,
   forbidOnly: Boolean(process.env.CI),
+  // The Cloudflare dev runner shares one module graph and is not safe for
+  // concurrent SSR requests. One worker keeps a module-load failure isolated.
+  workers: process.env.CI ? 1 : undefined,
   // A red CI run needs the first actionable failure, not every timeout caused
   // by the same broken server. Green runs still execute the complete suite.
   maxFailures: process.env.CI ? 1 : 0,
