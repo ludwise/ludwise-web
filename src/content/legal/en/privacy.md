@@ -1,7 +1,6 @@
 ---
 ste-prose: descriptive
 policyId: privacy
-locale: en
 translationStatus: source
 title: Privacy Policy
 navLabel: Privacy

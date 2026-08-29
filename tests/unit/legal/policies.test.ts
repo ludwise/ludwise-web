@@ -10,18 +10,24 @@ import {
   type LegalPolicyEntry,
 } from '../../../src/lib/legal/policies.js';
 
-const policy = (overrides: Partial<LegalPolicyEntry['data']> = {}): LegalPolicyEntry => ({
-  data: {
-    policyId: 'privacy',
-    locale: baseLocale,
-    translationStatus: 'source',
-    footer: true,
-    order: 20,
-    status: 'current',
-    version: '2026-08-28',
-    ...overrides,
-  },
-});
+const policy = (
+  overrides: Partial<LegalPolicyEntry['data']> & { id?: string; locale?: string } = {},
+): LegalPolicyEntry => {
+  const { id, locale = baseLocale, ...dataOverrides } = overrides;
+  const policyId = dataOverrides.policyId ?? 'privacy';
+  return {
+    id: id ?? `${locale}/${policyId}`,
+    data: {
+      policyId,
+      translationStatus: 'source',
+      footer: true,
+      order: 20,
+      status: 'current',
+      version: '2026-08-28',
+      ...dataOverrides,
+    },
+  };
+};
 
 describe('localized legal policy selection', () => {
   it('accepts one source policy per policy and locale', () => {
@@ -31,6 +37,15 @@ describe('localized legal policy selection', () => {
   it('rejects duplicate policy and locale identities', () => {
     expect(() => assertLegalPolicies([policy(), policy()])).toThrow(
       'Duplicate legal policy locale',
+    );
+  });
+
+  it('requires the path locale and policy ID layout', () => {
+    expect(() => assertLegalPolicies([policy({ id: 'privacy' })])).toThrow(
+      'Legal policy path must be',
+    );
+    expect(() => assertLegalPolicies([policy({ id: 'en/terms', policyId: 'privacy' })])).toThrow(
+      'Legal policy path differs from its policy ID',
     );
   });
 

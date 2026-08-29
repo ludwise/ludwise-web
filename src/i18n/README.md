@@ -20,6 +20,11 @@ The default locale has no URL prefix. Astro adds a prefix for each other locale.
 Astro uses a rewrite fallback to serve the canonical page implementation for a
 localized URL. A locale does not require a copy of each page.
 
+Localized authored content uses the same path shape as legal content:
+`src/content/<collection>/<locale>/<id>`. A content loader can derive the
+document locale from that path. The Inlang locale list remains authoritative for
+application routing and message compilation.
+
 Do not add a second locale until the locale activation checks pass. The checks
 require page text to use the message catalog. They also require internal page
 links and form actions to use locale-aware URLs. This prevents mixed-language
@@ -32,7 +37,9 @@ a localized value with provenance.
 The English catalog follows the user-facing language policy. A translation must
 preserve the approved meaning.
 
-Legal content has a separate locale and translation status. A missing or stale
-legal translation redirects to the source-language policy. The site does not
-serve a source policy with a different document language. A production
-translation must be current, approved, and record the current source version.
+Legal content uses `src/content/legal/<locale>/<policyId>.md`. The
+directory supplies the document locale, while frontmatter records the policy
+identity and translation status. A missing or stale legal translation redirects
+to the source-language policy. The site does not serve a source policy with a
+different document language. A production translation must be current,
+approved, and record the current source version.

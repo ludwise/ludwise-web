@@ -5,7 +5,6 @@ export type LegalTranslationStatus = 'source' | 'draft' | 'approved';
 
 export interface LegalPolicyData {
   policyId: string;
-  locale: string;
   translationStatus: LegalTranslationStatus;
   footer: boolean;
   order: number;
@@ -15,42 +14,66 @@ export interface LegalPolicyData {
 }
 
 export interface LegalPolicyEntry {
+  id: string;
   data: LegalPolicyData;
 }
+
+interface LegalPolicyPath {
+  locale: string;
+  policyId: string;
+}
+
+const legalPolicyPath = (policy: LegalPolicyEntry): LegalPolicyPath => {
+  const parts = policy.id.split('/');
+  if (parts.length !== 2 || parts.some((part) => part.length === 0)) {
+    throw new Error(`Legal policy path must be <locale>/<policyId>.md: ${policy.id}`);
+  }
+
+  return { locale: parts[0]!, policyId: parts[1]! };
+};
 
 export function assertLegalPolicies(policies: readonly LegalPolicyEntry[]): void {
   const identities = new Set<string>();
   const policyIds = new Set<string>();
 
   for (const policy of policies) {
-    policyIds.add(policy.data.policyId);
-    const identity = `${policy.data.policyId}:${policy.data.locale}`;
+    const path = legalPolicyPath(policy);
+    if (path.policyId !== policy.data.policyId) {
+      throw new Error(
+        `Legal policy path differs from its policy ID: ${policy.id} (${policy.data.policyId})`,
+      );
+    }
+
+    policyIds.add(path.policyId);
+    const identity = `${path.policyId}:${path.locale}`;
     if (identities.has(identity)) {
       throw new Error(`Duplicate legal policy locale: ${identity}`);
     }
     identities.add(identity);
 
-    const isSourceLocale = policy.data.locale === baseLocale;
+    const isSourceLocale = path.locale === baseLocale;
     if (isSourceLocale !== (policy.data.translationStatus === 'source')) {
       throw new Error(`Invalid legal translation status: ${identity}`);
     }
   }
 
   for (const policyId of policyIds) {
-    const source = policies.find(
-      (policy) => policy.data.policyId === policyId && policy.data.locale === baseLocale,
-    );
+    const source = policies.find((policy) => {
+      const path = legalPolicyPath(policy);
+      return path.policyId === policyId && path.locale === baseLocale;
+    });
     if (source === undefined) throw new Error(`Missing source legal policy: ${policyId}`);
 
-    for (const translation of policies.filter((policy) => policy.data.policyId === policyId)) {
+    for (const translation of policies.filter(
+      (policy) => legalPolicyPath(policy).policyId === policyId,
+    )) {
+      const locale = legalPolicyPath(translation).locale;
       if (
-        translation.data.locale !== baseLocale &&
+        locale !== baseLocale &&
         (typeof translation.data.sourceVersion !== 'string' ||
           translation.data.sourceVersion.length === 0)
       ) {
-        throw new Error(
-          `Missing source version for legal translation: ${policyId}:${translation.data.locale}`,
-        );
+        throw new Error(`Missing source version for legal translation: ${policyId}:${locale}`);
       }
       if (
         translation.data.footer !== source.data.footer ||
@@ -63,10 +86,11 @@ export function assertLegalPolicies(policies: readonly LegalPolicyEntry[]): void
 }
 
 export function legalPolicyLocale(policy: LegalPolicyEntry): Locale {
-  if (!isLocale(policy.data.locale)) {
-    throw new RangeError(`Legal policy locale is not enabled: ${policy.data.locale}`);
+  const locale = legalPolicyPath(policy).locale;
+  if (!isLocale(locale)) {
+    throw new RangeError(`Legal policy locale is not enabled: ${locale}`);
   }
-  return policy.data.locale;
+  return locale;
 }
 
 export function canServeLegalPolicy(
@@ -79,7 +103,9 @@ export function canServeLegalPolicy(
   if (source.data.status !== 'current') return false;
   if (policy.data.status !== 'current') return false;
 
-  if (policy.data.locale === baseLocale) return policy.data.translationStatus === 'source';
+  if (legalPolicyPath(policy).locale === baseLocale) {
+    return policy.data.translationStatus === 'source';
+  }
 
   return (
     policy.data.translationStatus === 'approved' &&
@@ -93,19 +119,21 @@ export function selectLegalPolicy<T extends LegalPolicyEntry>(
   locale: string,
   production: boolean,
 ): T | undefined {
-  const source = policies.find(
-    (policy) => policy.data.policyId === policyId && policy.data.locale === baseLocale,
-  );
+  const source = policies.find((policy) => {
+    const path = legalPolicyPath(policy);
+    return path.policyId === policyId && path.locale === baseLocale;
+  });
   if (source === undefined) return undefined;
 
   const candidates = policies.filter(
     (policy) =>
-      policy.data.policyId === policyId && canServeLegalPolicy(policy, source, production),
+      legalPolicyPath(policy).policyId === policyId &&
+      canServeLegalPolicy(policy, source, production),
   );
 
   return (
-    candidates.find((policy) => policy.data.locale === locale) ??
-    candidates.find((policy) => policy.data.locale === baseLocale)
+    candidates.find((policy) => legalPolicyPath(policy).locale === locale) ??
+    candidates.find((policy) => legalPolicyPath(policy).locale === baseLocale)
   );
 }
 
@@ -116,7 +144,9 @@ export function selectLegalFooterPolicies<T extends LegalPolicyEntry>(
 ): T[] {
   const ids = [
     ...new Set(
-      policies.filter((policy) => policy.data.footer).map((policy) => policy.data.policyId),
+      policies
+        .filter((policy) => policy.data.footer)
+        .map((policy) => legalPolicyPath(policy).policyId),
     ),
   ];
 

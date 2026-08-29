@@ -6,7 +6,6 @@ const legal = defineCollection({
   loader: glob({ pattern: '**/*.md', base: './src/content/legal' }),
   schema: z.object({
     policyId: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
-    locale: z.string().min(2),
     translationStatus: z.enum(['source', 'draft', 'approved']),
     title: z.string().min(1),
     navLabel: z.string().min(1),
