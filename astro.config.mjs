@@ -3,7 +3,42 @@ import cloudflare from '@astrojs/cloudflare';
 import react from '@astrojs/react';
 import { defineConfig } from 'astro/config';
 
+import {
+  DEFAULT_LOCALE,
+  LOCALE_FALLBACKS,
+  LOCALE_ROUTING,
+  SUPPORTED_LOCALES,
+} from './i18n.config.ts';
 import { buildDefines, buildIdentity } from './scripts/build-identity.mjs';
+
+const SERVER_OPTIMIZED_DEPS = [
+  'react',
+  'react/jsx-runtime',
+  'react/jsx-dev-runtime',
+  'react-dom',
+  'react-dom/server',
+  'astro/assets/services/noop',
+  'astro/logger/json',
+];
+
+const ASTRO_I18N_VIRTUAL_MODULES = ['astro:i18n', 'astro/virtual-modules/i18n.js'];
+
+function stabilizeCloudflareSsrDeps() {
+  return {
+    name: 'ludwise:cloudflare-ssr-deps',
+    /** @param {string} environmentName */
+    configEnvironment(environmentName) {
+      if (environmentName === 'client') return;
+      return {
+        resolve: { dedupe: ['react', 'react-dom'] },
+        optimizeDeps: {
+          include: SERVER_OPTIMIZED_DEPS,
+          exclude: ASTRO_I18N_VIRTUAL_MODULES,
+        },
+      };
+    },
+  };
+}
 
 // This file is evaluated by Node during `astro dev|build`, so Node built-ins are
 // available here. That is NOT true of anything in src/, which runs in
@@ -14,6 +49,7 @@ import { buildDefines, buildIdentity } from './scripts/build-identity.mjs';
 // main -> production branch model depends on. It is runtime configuration instead.
 export default defineConfig({
   output: 'server',
+  trailingSlash: 'never',
   adapter: cloudflare({ imageService: 'compile' }),
   integrations: [react()],
   // No sessions, stated explicitly, because the default is not "off".
@@ -46,13 +82,14 @@ export default defineConfig({
   // it produces relative canonicals rather than wrong absolute ones.
   ...(process.env.SITE_URL ? { site: process.env.SITE_URL } : {}),
   i18n: {
-    // English is the initial language, but routing is locale-aware from the
-    // start so adding a locale is configuration rather than a refactor.
-    defaultLocale: 'en',
-    locales: ['en'],
-    routing: { prefixDefaultLocale: false },
+    defaultLocale: DEFAULT_LOCALE,
+    locales: [...SUPPORTED_LOCALES],
+    fallback: LOCALE_FALLBACKS,
+    routing: LOCALE_ROUTING,
   },
   vite: {
+    plugins: [stabilizeCloudflareSsrDeps()],
+    resolve: { dedupe: ['react', 'react-dom'] },
     define: {
       // Already passed through `JSON.stringify` by buildDefines: `define` is raw text
       // substitution, so a bare identifier would be injected and fail to parse.

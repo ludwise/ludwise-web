@@ -50,6 +50,7 @@ export default defineConfig({
   testMatch: MODE === 'empty' ? '**/empty.spec.ts' : '**/degraded.spec.ts',
   fullyParallel: true,
   forbidOnly: Boolean(process.env.CI),
+  maxFailures: process.env.CI ? 1 : 0,
   retries: 0,
   reporter: process.env.CI ? [['github'], ['list']] : [['list']],
   use: {

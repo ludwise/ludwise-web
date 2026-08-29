@@ -10,6 +10,7 @@
 import { lstatSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
+import { extractMessageCatalogStrings, isMessageCatalogFile } from './catalogs.mjs';
 import { classificationCoverage, classify } from './classify.mjs';
 import {
   commentCoverage,
@@ -74,6 +75,14 @@ const unitsFor = (assignment, source, file) => {
     };
   }
   if (assignment.unit === 'strings') {
+    if (isMessageCatalogFile(file)) {
+      return {
+        units: extractMessageCatalogStrings(source, file),
+        supported: true,
+        unread: 0,
+      };
+    }
+
     const coverage = stringCoverage(file);
     return {
       units: coverage === 'none' ? [] : extractStrings(source, file),

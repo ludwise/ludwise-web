@@ -41,6 +41,9 @@ export default defineConfig({
   testIgnore: ['**/degraded.spec.ts', '**/empty.spec.ts'],
   fullyParallel: true,
   forbidOnly: Boolean(process.env.CI),
+  // A red CI run needs the first actionable failure, not every timeout caused
+  // by the same broken server. Green runs still execute the complete suite.
+  maxFailures: process.env.CI ? 1 : 0,
   retries: 0,
   reporter: process.env.CI ? [['github'], ['list']] : [['list']],
   use: {
@@ -61,8 +64,8 @@ export default defineConfig({
     },
     {
       command: 'pnpm exec astro dev --port 4321',
-      // The health endpoint cannot answer until configuration has validated. So waiting on it
-      // means the site is genuinely ready rather than merely bound to a port.
+      // Do not use a rendered page for readiness. The cold-SSR CI gate checks
+      // the first page request separately so this probe cannot warm or mask it.
       url: `${BASE_URL}/api/health`,
       reuseExistingServer: !process.env.CI,
       timeout: 120_000,

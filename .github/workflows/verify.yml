@@ -95,16 +95,56 @@ jobs:
           LUDWISE_REQUIRE_BUILD_OUTPUT: '1'
         run: pnpm exec vitest run tests/architecture/deployment-bindings.test.ts
 
-      # Only Chromium. A second engine doubles the slowest step in this job to
-      # re-answer a question about our own markup rather than about a browser.
-      - name: Install the end-to-end browser
-        run: pnpm exec playwright install --with-deps chromium
-
       # The local config needs one, and it carries no secret - this Worker has
       # none. Copied rather than committed so the file stays gitignored, which
       # is what keeps the habit right in a public repository.
       - name: Prepare local configuration
         run: cp .dev.vars.example .dev.vars
+
+      # The React/Cloudflare regression happens on the first rendered request.
+      # Check that request before downloading a browser or starting Playwright.
+      # The health probe does not render React, so it cannot warm the SSR graph.
+      - name: Check cold dev SSR
+        run: |
+          set -euo pipefail
+          log="$RUNNER_TEMP/astro-cold-ssr.log"
+          pnpm run i18n:compile
+          pnpm exec astro dev --port 4321 >"$log" 2>&1 &
+          astro_pid=$!
+
+          cleanup() {
+            kill "$astro_pid" 2>/dev/null || true
+            wait "$astro_pid" 2>/dev/null || true
+          }
+          trap cleanup EXIT
+
+          ready=false
+          for _ in $(seq 1 30); do
+            if curl --silent --fail http://localhost:4321/api/health >/dev/null; then
+              ready=true
+              break
+            fi
+            if ! kill -0 "$astro_pid" 2>/dev/null; then
+              cat "$log"
+              exit 1
+            fi
+            sleep 1
+          done
+
+          if [ "$ready" != true ]; then
+            cat "$log"
+            exit 1
+          fi
+
+          if ! curl --silent --show-error --fail http://localhost:4321/ >/dev/null; then
+            cat "$log"
+            exit 1
+          fi
+
+      # Only Chromium. A second engine doubles the slowest step in this job to
+      # re-answer a question about our own markup rather than about a browser.
+      - name: Install the end-to-end browser
+        run: pnpm exec playwright install --with-deps chromium
 
       # Three suites, three backend states, run separately because each state is
       # a property of the whole backend process rather than of one request.

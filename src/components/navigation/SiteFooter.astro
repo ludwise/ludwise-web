@@ -1,8 +1,16 @@
 ---
 import { getCollection } from 'astro:content';
+import { getRelativeLocaleUrl } from 'astro:i18n';
 
+import { messages as m, type Locale } from '../../i18n/index.js';
 import PageContainer from '../layout/PageContainer.astro';
 
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const messageOptions = { locale } as const;
 const legalPolicies = await getCollection('legal');
 const isProduction = Astro.locals.config.environment === 'production';
 
@@ -16,18 +24,25 @@ const legalLinks = legalPolicies
   .sort((a, b) => a.data.order - b.data.order)
   .map((policy) => ({
     label: policy.data.navLabel,
-    href: `/legal/${policy.id}`,
+    href: getRelativeLocaleUrl(locale, `legal/${policy.id}`),
   }));
 
+const homeHref = getRelativeLocaleUrl(locale);
 const year = new Date().getFullYear();
 ---
 
 <footer class="lw-site-footer">
   <PageContainer width="wide">
     <div class="lw-site-footer__inner">
-      <a class="lw-site-footer__brand" href="/" aria-label="LUDWISE home">LUDWISE</a>
+      <a
+        class="lw-site-footer__brand"
+        href={homeHref}
+        aria-label={m.shell_brand_home_label({}, messageOptions)}
+      >
+        LUDWISE
+      </a>
 
-      <nav class="lw-site-footer__navigation" aria-label="Footer">
+      <nav class="lw-site-footer__navigation" aria-label={m.shell_footer_label({}, messageOptions)}>
         <ul>
           {
             legalLinks.map((link) => (

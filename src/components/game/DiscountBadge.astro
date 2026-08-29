@@ -1,4 +1,7 @@
 ---
+import { formatNumber, formatPercentFromWhole } from '../../i18n/format.js';
+import { messages as m, resolveLocale } from '../../i18n/index.js';
+
 interface Props {
   percentage?: number | null | undefined;
   size?: 'sm' | 'md' | undefined;
@@ -6,13 +9,19 @@ interface Props {
 
 const { percentage, size = 'md' } = Astro.props;
 const rounded = percentage == null ? null : Math.round(percentage);
+const locale = resolveLocale(Astro.currentLocale);
+const messageOptions = { locale } as const;
+const visualText = rounded === null ? null : formatPercentFromWhole(-rounded, locale);
+const accessibleText =
+  rounded === null
+    ? null
+    : m.price_percent_off({ percentage: formatNumber(rounded, locale) }, messageOptions);
 ---
 
 {
-  rounded !== null && rounded > 0 && (
-    <span class="lw-discount-badge" data-size={size} aria-label={`${rounded} percent off`}>
-      {'−'}
-      {rounded}%
+  rounded !== null && rounded > 0 && visualText !== null && accessibleText !== null && (
+    <span class="lw-discount-badge" data-size={size} aria-label={accessibleText}>
+      {visualText}
     </span>
   )
 }

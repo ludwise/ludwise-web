@@ -54,7 +54,7 @@
     "strings": {
       "summary": "Only the human-readable string literals in the file are controlled prose.",
       "checkerSupport": "partial",
-      "checkerSupportReason": "The extractor reads template text, a visitor-visible attribute and a named string constant. A string that a runtime value composes is reviewed rather than measured."
+      "checkerSupportReason": "The extractor reads supported template strings and message catalog values. A string that a runtime value composes is reviewed rather than measured."
     }
   },
   "proseBearingExtensions": [
@@ -134,6 +134,13 @@
       "reason": "Workflow and template files are machine configuration. Phase 2 governs the prose values inside them."
     },
     {
+      "id": "localization-machine-config",
+      "paths": ["project.inlang/**/*.{js,json}"],
+      "unit": "prose",
+      "class": "STE-EXEMPT",
+      "reason": "Localization project files are machine configuration."
+    },
+    {
       "id": "prelaunch-machine-text",
       "paths": ["prelaunch/robots.txt"],
       "unit": "prose",
@@ -169,11 +176,12 @@
         "src/components/**/*.astro",
         "src/layouts/**/*.astro",
         "src/**/*.{tsx,jsx}",
+        "messages/**/*.json",
         "src/lib/http/filter-advice.ts"
       ],
       "unit": "strings",
       "class": "STE-DERIVED",
-      "reason": "Most visitor-visible strings are written in a template. src/lib/http/filter-advice.ts is the one module that holds visitor sentences instead."
+      "reason": "Visitor text can live in templates, React islands, localization catalogs, or the filter advice module."
     },
     {
       "id": "script-comments",
@@ -193,7 +201,7 @@
     },
     {
       "id": "root-config-comments",
-      "paths": ["*.{js,mjs,cjs,ts,mts,cts}"],
+      "paths": ["*.{js,mjs,cjs,ts,mts,cts}", "project.inlang/**/*.{js,mjs,cjs,ts,mts,cts}"],
       "unit": "comments",
       "class": "STE-STRICT",
       "prose": "descriptive",
