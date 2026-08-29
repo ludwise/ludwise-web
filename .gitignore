@@ -7,6 +7,7 @@ dist/
 .astro/
 .output/
 .vercel/
+src/paraglide/
 
 # Cloudflare / Wrangler
 .wrangler/
@@ -46,3 +47,8 @@ test-results/
 playwright-report/
 .playwright/
 corpus-misses.log 
+
+# Generated localization state
+project.inlang/.meta.json
+project.inlang/cache/
+project.inlang/README.md

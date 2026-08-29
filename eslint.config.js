@@ -44,6 +44,7 @@ export default tseslint.config(
       '.wrangler/**',
       'coverage/**',
       'node_modules/**',
+      'src/paraglide/**',
       'test-results/**',
       'playwright-report/**',
       'worker-configuration.d.ts',

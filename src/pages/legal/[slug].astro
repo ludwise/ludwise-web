@@ -1,19 +1,32 @@
 ---
-import { getEntry, render } from 'astro:content';
+import { getCollection, render } from 'astro:content';
+import { getRelativeLocaleUrl } from 'astro:i18n';
+
 import Policy from '../../components/legal/Policy.astro';
+import { resolveLocale } from '../../i18n/index.js';
+import {
+  assertLegalPolicies,
+  legalPolicyLocale,
+  selectLegalPolicy,
+} from '../../lib/legal/policies.js';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 
 export const prerender = false;
 
 const { slug } = Astro.params;
-const policy = slug ? await getEntry('legal', slug) : undefined;
+const locale = resolveLocale(Astro.currentLocale);
+const isProduction = Astro.locals.config.environment === 'production';
+const policies = await getCollection('legal');
+assertLegalPolicies(policies);
+const policy = slug ? selectLegalPolicy(policies, slug, locale, isProduction) : undefined;
 
 if (!policy) {
-  return Astro.redirect('/404');
+  return Astro.redirect(getRelativeLocaleUrl(locale, '404'));
 }
 
-if (Astro.locals.config.environment === 'production' && policy.data.status !== 'current') {
-  return Astro.redirect('/404');
+const contentLocale = legalPolicyLocale(policy);
+if (contentLocale !== locale) {
+  return Astro.redirect(getRelativeLocaleUrl(contentLocale, `legal/${policy.data.policyId}`));
 }
 
 const { Content, headings } = await render(policy);
@@ -21,6 +34,7 @@ const { Content, headings } = await render(policy);
 
 <BaseLayout title={`${policy.data.title} — LUDWISE`} description={policy.data.description}>
   <Policy
+    locale={locale}
     title={policy.data.title}
     description={policy.data.description}
     version={policy.data.version}

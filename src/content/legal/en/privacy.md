@@ -1,5 +1,7 @@
 ---
 ste-prose: descriptive
+policyId: privacy
+translationStatus: source
 title: Privacy Policy
 navLabel: Privacy
 footer: true

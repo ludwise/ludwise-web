@@ -1,4 +1,5 @@
-import { readFileSync, readdirSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
 import { dirname, join, posix, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -77,25 +78,22 @@ export function importsInFile(file: string): string[] {
 }
 
 /**
- * Every source file in a repository-relative directory, as POSIX paths.
+ * Every non-ignored source file in a repository-relative directory.
  *
- * Sorted, so a failure lists the same files in the same order on every
- * machine and a diff of two runs is readable.
+ * Git supplies the ignore semantics. Generated files stay outside these rules.
+ * A new untracked source file is still scanned before commit.
  */
 export function listSourceFiles(directory: string): string[] {
-  const absolute = join(REPO_ROOT, directory);
-  const found: string[] = [];
-
-  for (const entry of readdirSync(absolute, { withFileTypes: true })) {
-    const child = posix.join(directory, entry.name);
-    if (entry.isDirectory()) {
-      found.push(...listSourceFiles(child));
-    } else if (SCANNED_EXTENSIONS.some((extension) => entry.name.endsWith(extension))) {
-      found.push(child);
-    }
-  }
-
-  return found.sort();
+  return execFileSync(
+    'git',
+    ['ls-files', '--cached', '--others', '--exclude-standard', '-z', '--', directory],
+    { cwd: REPO_ROOT, encoding: 'utf8' },
+  )
+    .split('\0')
+    .filter(
+      (file) => file.length > 0 && SCANNED_EXTENSIONS.some((extension) => file.endsWith(extension)),
+    )
+    .sort();
 }
 
 /**

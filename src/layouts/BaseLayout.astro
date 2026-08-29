@@ -1,6 +1,9 @@
 ---
+import { getRelativeLocaleUrl } from 'astro:i18n';
+
 import { AppHeader } from '../components/navigation/AppHeader.tsx';
 import SiteFooter from '../components/navigation/SiteFooter.astro';
+import { getTextDirection, messages as m, resolveLocale } from '../i18n/index.js';
 import { readThemeCookie } from '../lib/http/theme.js';
 import '../styles/global.css';
 
@@ -11,18 +14,32 @@ interface Props {
   activeNavId?: string | undefined;
 }
 
-/**
- * Primary destinations. The design system caps these at three to five and
- * puts everything else one level down. There are three real ones today, and a
- * nav item pointing at a route that does not exist is worse than a short nav.
- */
-const NAV_ITEMS = [
-  { id: 'home', label: 'Home', href: '/' },
-  { id: 'games', label: 'Games', href: '/games' },
-  { id: 'sales', label: 'Sales', href: '/sales' },
+const { title, description, activeNavId } = Astro.props;
+const locale = resolveLocale(Astro.currentLocale);
+const messageOptions = { locale } as const;
+
+const homeHref = getRelativeLocaleUrl(locale);
+const gamesHref = getRelativeLocaleUrl(locale, 'games');
+const salesHref = getRelativeLocaleUrl(locale, 'sales');
+
+const navItems = [
+  { id: 'home', label: m.shell_navigation_home({}, messageOptions), href: homeHref },
+  { id: 'games', label: m.shell_navigation_games({}, messageOptions), href: gamesHref },
+  { id: 'sales', label: m.shell_navigation_sales({}, messageOptions), href: salesHref },
 ];
 
-const { title, description, activeNavId } = Astro.props;
+const headerCopy = {
+  primaryNavigationLabel: m.shell_navigation_primary_label({}, messageOptions),
+  homeLabel: m.shell_brand_home_label({}, messageOptions),
+  searchLabel: m.shell_search_label({}, messageOptions),
+  clearSearchLabel: m.shell_search_clear_label({}, messageOptions),
+  switchToLightThemeLabel: m.shell_theme_switch_to_light({}, messageOptions),
+  switchToDarkThemeLabel: m.shell_theme_switch_to_dark({}, messageOptions),
+  accountLabel: m.shell_account_label({}, messageOptions),
+  signInLabel: m.shell_sign_in({}, messageOptions),
+  menuLabel: m.shell_menu_label({}, messageOptions),
+};
+
 const canonical = new URL(Astro.url.pathname, Astro.site ?? Astro.url.origin);
 
 // Resolved server-side so the first response carries the right theme. `null` is
@@ -37,7 +54,7 @@ const indexable = Astro.locals.config.environment === 'production';
 ---
 
 <!doctype html>
-<html lang={Astro.currentLocale ?? 'en'} data-theme={theme ?? undefined}>
+<html lang={locale} dir={getTextDirection(locale)} data-theme={theme ?? undefined}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -109,14 +126,16 @@ const indexable = Astro.locals.config.environment === 'production';
     }
   </head>
   <body>
-    <a class="lw-skip-link" href="#main-content">Skip to content</a>
+    <a class="lw-skip-link" href="#main-content">{m.shell_skip_to_content({}, messageOptions)}</a>
 
     <AppHeader
       client:load
-      items={NAV_ITEMS}
+      items={navItems}
       activeId={activeNavId}
+      homeHref={homeHref}
+      copy={headerCopy}
       theme={theme ?? 'light'}
-      searchAction="/games"
+      searchAction={gamesHref}
       searchValue={Astro.url.searchParams.get('q') ?? undefined}
     />
 
@@ -131,7 +150,7 @@ const indexable = Astro.locals.config.environment === 'production';
       <slot />
     </main>
 
-    <SiteFooter />
+    <SiteFooter locale={locale} />
 
     <style is:global>
       /* Single shared definition in src/styles/skip-link.css, referenced with

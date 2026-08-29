@@ -50,6 +50,10 @@ export default defineConfig({
   testMatch: MODE === 'empty' ? '**/empty.spec.ts' : '**/degraded.spec.ts',
   fullyParallel: true,
   forbidOnly: Boolean(process.env.CI),
+  // The Cloudflare development runner shares one module graph and is not safe
+  // for concurrent SSR requests. One worker keeps a module-load failure isolated.
+  ...(process.env.CI ? { workers: 1 } : {}),
+  maxFailures: process.env.CI ? 1 : 0,
   retries: 0,
   reporter: process.env.CI ? [['github'], ['list']] : [['list']],
   use: {

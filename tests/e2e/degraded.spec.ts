@@ -58,15 +58,16 @@ test.describe('the backend is unavailable', () => {
       // visitor following a good link that their link is broken.
       expect(response?.status()).toBe(503);
 
-      const body = await page.content();
+      const body = await response?.text();
       for (const claim of FALSE_CLAIMS) {
         expect(body, `${path} claimed: ${claim}`).not.toContain(claim);
       }
     });
 
     test(`${path} discloses nothing about why`, async ({ page }) => {
-      await page.goto(path);
-      const body = await page.content();
+      const response = await page.goto(path);
+      expect(response?.status()).toBe(503);
+      const body = await response?.text();
 
       for (const leak of LEAKS) {
         expect(body, `${path} leaked ${leak}`).not.toContain(leak);

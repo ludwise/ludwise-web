@@ -1,4 +1,6 @@
 ---
+import { messages as m, type Locale } from '../../i18n/index.js';
+
 interface Heading {
   depth: number;
   slug: string;
@@ -6,16 +8,19 @@ interface Heading {
 }
 
 interface Props {
+  locale: Locale;
   headings: Heading[];
 }
 
-const items = Astro.props.headings.filter((heading) => heading.depth === 2);
+const { locale, headings } = Astro.props;
+const messageOptions = { locale } as const;
+const items = headings.filter((heading) => heading.depth === 2);
 ---
 
 {
   items.length > 0 && (
-    <nav class="lw-policy-toc" aria-label="Policy contents">
-      <p class="lw-policy-toc__title">On this page</p>
+    <nav class="lw-policy-toc" aria-label={m.legal_contents_label({}, messageOptions)}>
+      <p class="lw-policy-toc__title">{m.legal_on_this_page({}, messageOptions)}</p>
       <ol>
         {items.map((heading) => (
           <li>

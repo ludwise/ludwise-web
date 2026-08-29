@@ -75,14 +75,14 @@ const WORDMARK_GAP_RATIO = 0.42;
 const WORDMARK_TILE_RADIUS_RATIO = 0.22;
 const WORDMARK_STEP_RATIO = 0.64;
 
-function HeaderWordmark() {
+function HeaderWordmark({ href, label }: { href: string; label: string }) {
   const tileSize = Math.round(WORDMARK_PX * WORDMARK_TILE_RATIO);
   const gap = Math.round(WORDMARK_PX * WORDMARK_GAP_RATIO);
   const radius = Math.round(tileSize * WORDMARK_TILE_RADIUS_RATIO);
   const stepSize = tileSize * WORDMARK_STEP_RATIO;
 
   return (
-    <a href="/" aria-label="LUDWISE — home" className="lw-header__wordmark" style={{ gap }}>
+    <a href={href} aria-label={label} className="lw-header__wordmark" style={{ gap }}>
       <span
         aria-hidden="true"
         className="lw-header__mark"
@@ -115,9 +115,9 @@ interface SearchFieldProps {
    *  The previous results stay on screen — never blank them. */
   loading?: boolean | undefined;
   size?: 'sm' | 'md' | 'lg' | undefined;
-  placeholder?: string | undefined;
-  /** Accessible name. Defaults to "Search games". */
-  label?: string | undefined;
+  placeholder: string;
+  label: string;
+  clearLabel: string;
   name?: string | undefined;
 }
 
@@ -130,10 +130,11 @@ function SearchField({
   value,
   onChange,
   onClear,
-  placeholder = 'Search games',
+  placeholder,
+  label,
+  clearLabel,
   size = 'md',
   loading = false,
-  label = 'Search games',
   name = 'q',
 }: SearchFieldProps) {
   const hasValue = value != null && value.length > 0;
@@ -160,7 +161,7 @@ function SearchField({
       {hasValue && onClear && (
         <button
           type="button"
-          aria-label="Clear search"
+          aria-label={clearLabel}
           onClick={onClear}
           className="lw-search__clear"
         >
@@ -177,6 +178,18 @@ export interface NavItem {
   href?: string | undefined;
 }
 
+export interface AppHeaderCopy {
+  primaryNavigationLabel: string;
+  homeLabel: string;
+  searchLabel: string;
+  clearSearchLabel: string;
+  switchToLightThemeLabel: string;
+  switchToDarkThemeLabel: string;
+  accountLabel: string;
+  signInLabel: string;
+  menuLabel: string;
+}
+
 export interface AppHeaderProps {
   items: NavItem[];
   activeId?: string | undefined;
@@ -184,6 +197,8 @@ export interface AppHeaderProps {
    *  navigation is prevented. Omit for a real multi-page app, where the href
    *  navigates normally. */
   onNavigate?: ((id: string) => void) | undefined;
+  homeHref: string;
+  copy: AppHeaderCopy;
   searchValue?: string | undefined;
   /** Native GET destination for the server-rendered search form. */
   searchAction?: string | undefined;
@@ -323,6 +338,8 @@ export function AppHeader({
   items,
   activeId,
   onNavigate,
+  homeHref,
+  copy,
   searchValue,
   searchAction,
   onSearchChange,
@@ -349,7 +366,10 @@ export function AppHeader({
   // Both variants are rendered. CSS decides which is visible. `variant` reaches
   // nothing but this nav's own classes, so hydration has nothing to get wrong.
   const renderNav = (variant: 'bar' | 'panel') => (
-    <nav aria-label="Primary" className={`lw-header__nav lw-header__nav--${variant}`}>
+    <nav
+      aria-label={copy.primaryNavigationLabel}
+      className={`lw-header__nav lw-header__nav--${variant}`}
+    >
       {items.map((item) => {
         const active = item.id === activeId;
         return (
@@ -383,7 +403,7 @@ export function AppHeader({
     ) : null;
 
   const themeToggleLabel =
-    currentTheme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme';
+    currentTheme === 'dark' ? copy.switchToLightThemeLabel : copy.switchToDarkThemeLabel;
 
   const hasSearch = searchAction !== undefined || onSearchChange !== undefined;
   const renderSearch = (size: 'sm' | 'md') => {
@@ -392,13 +412,16 @@ export function AppHeader({
         value={searchValue}
         onChange={onSearchChange}
         onClear={onSearchClear}
+        placeholder={copy.searchLabel}
+        label={copy.searchLabel}
+        clearLabel={copy.clearSearchLabel}
         size={size}
       />
     );
     return searchAction === undefined ? (
       field
     ) : (
-      <form action={searchAction} method="get" aria-label="Search games">
+      <form action={searchAction} method="get" aria-label={copy.searchLabel}>
         {field}
       </form>
     );
@@ -408,7 +431,7 @@ export function AppHeader({
     <header className="lw-header" data-compact={compactOverride}>
       <div className="lw-header__bar">
         <div className="lw-header__logo">
-          <HeaderWordmark />
+          <HeaderWordmark href={homeHref} label={copy.homeLabel} />
         </div>
 
         {renderNav('bar')}
@@ -443,15 +466,15 @@ export function AppHeader({
               (authed ? (
                 <button
                   type="button"
-                  aria-label="Account"
-                  title="Account"
+                  aria-label={copy.accountLabel}
+                  title={copy.accountLabel}
                   className="lw-header__icon-button"
                 >
                   <IconGlyph name="user" size={16} />
                 </button>
               ) : (
                 <button type="button" className="lw-header__signin">
-                  Sign in
+                  {copy.signInLabel}
                 </button>
               ))}
 
@@ -469,8 +492,8 @@ export function AppHeader({
             <button
               ref={menuButtonRef}
               type="button"
-              aria-label="Menu"
-              title="Menu"
+              aria-label={copy.menuLabel}
+              title={copy.menuLabel}
               aria-expanded={menuOpen}
               aria-controls="lw-header-menu"
               onClick={toggleMenu}

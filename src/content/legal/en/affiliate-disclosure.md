@@ -1,5 +1,7 @@
 ---
 ste-prose: descriptive
+policyId: affiliate-disclosure
+translationStatus: source
 title: Affiliate Disclosure
 navLabel: Affiliate Disclosure
 footer: true

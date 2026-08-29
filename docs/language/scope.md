@@ -25,10 +25,10 @@ file can hold a strict comment and a derived string at the same time.
 | ---------- | ------------------------------------------ | --------------- |
 | `prose`    | The whole file is controlled prose.        | Markdown only   |
 | `comments` | Only the comments in the file are prose.   | Full            |
-| `strings`  | Only the human-readable strings are prose. | None            |
+| `strings`  | Only the human-readable strings are prose. | Partial         |
 
-The checker counts every unit that it cannot read, and it prints the count. It
-never reports such a unit as clean.
+The checker reads the supported visitor strings. It counts each unsupported
+string unit, and it never reports an unsupported unit as clean.
 
 ## What `STE-STRICT` covers
 
@@ -49,16 +49,17 @@ a review comment. No repository check can read those before they are posted, so
 
 Text that a visitor reads. The rules are in
 [user-facing-text.md](user-facing-text.md). This repository is the public
-website. The class covers the strings in every Astro page, layout and component,
-in the one React island, and in `src/lib/http/filter-advice.ts`.
+website. The class covers strings in Astro pages, layouts, components, the
+React island, localization catalogs, and `src/lib/http/filter-advice.ts`.
 
-That last file is the only module that holds visitor sentences rather than a
-template. Every other visitor string is written where it is rendered.
+Localization catalogs centralize reusable visitor text. They do not change its
+content class. A catalog source string uses the same user-facing pipeline as a
+string in a template.
 
 [content-style.md](../../design/system/guidelines/content-style.md) fixes some
 strings exactly. A fixed string is reused word for word, and it is not a
-candidate for a rewrite in this profile. It is quoted external text, and the
-checker never reads a string literal in any case.
+candidate for a rewrite in this profile. It is quoted external text. The
+checker still reads it when its source format has extractor support.
 
 ## What `STE-EXEMPT` covers
 

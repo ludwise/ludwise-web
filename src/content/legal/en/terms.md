@@ -1,5 +1,7 @@
 ---
 ste-prose: descriptive
+policyId: terms
+translationStatus: source
 title: Terms of Service
 navLabel: Terms
 footer: true
