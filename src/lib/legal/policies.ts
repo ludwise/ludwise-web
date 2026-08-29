@@ -9,7 +9,9 @@ export interface LegalPolicyData {
   translationStatus: LegalTranslationStatus;
   footer: boolean;
   order: number;
+  version: string;
   status: LegalPolicyStatus;
+  sourceVersion?: string | undefined;
 }
 
 export interface LegalPolicyEntry {
@@ -42,6 +44,15 @@ export function assertLegalPolicies(policies: readonly LegalPolicyEntry[]): void
 
     for (const translation of policies.filter((policy) => policy.data.policyId === policyId)) {
       if (
+        translation.data.locale !== baseLocale &&
+        (typeof translation.data.sourceVersion !== 'string' ||
+          translation.data.sourceVersion.length === 0)
+      ) {
+        throw new Error(
+          `Missing source version for legal translation: ${policyId}:${translation.data.locale}`,
+        );
+      }
+      if (
         translation.data.footer !== source.data.footer ||
         translation.data.order !== source.data.order
       ) {
@@ -58,12 +69,22 @@ export function legalPolicyLocale(policy: LegalPolicyEntry): Locale {
   return policy.data.locale;
 }
 
-export function canServeLegalPolicy(policy: LegalPolicyEntry, production: boolean): boolean {
+export function canServeLegalPolicy(
+  policy: LegalPolicyEntry,
+  source: LegalPolicyEntry,
+  production: boolean,
+): boolean {
   if (policy.data.status === 'superseded') return false;
   if (!production) return true;
+  if (source.data.status !== 'current') return false;
   if (policy.data.status !== 'current') return false;
 
-  return policy.data.locale === baseLocale || policy.data.translationStatus === 'approved';
+  if (policy.data.locale === baseLocale) return policy.data.translationStatus === 'source';
+
+  return (
+    policy.data.translationStatus === 'approved' &&
+    policy.data.sourceVersion === source.data.version
+  );
 }
 
 export function selectLegalPolicy<T extends LegalPolicyEntry>(
@@ -72,8 +93,14 @@ export function selectLegalPolicy<T extends LegalPolicyEntry>(
   locale: string,
   production: boolean,
 ): T | undefined {
+  const source = policies.find(
+    (policy) => policy.data.policyId === policyId && policy.data.locale === baseLocale,
+  );
+  if (source === undefined) return undefined;
+
   const candidates = policies.filter(
-    (policy) => policy.data.policyId === policyId && canServeLegalPolicy(policy, production),
+    (policy) =>
+      policy.data.policyId === policyId && canServeLegalPolicy(policy, source, production),
   );
 
   return (

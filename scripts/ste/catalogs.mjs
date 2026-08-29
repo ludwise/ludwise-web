@@ -58,11 +58,72 @@ const patternText = (value) => {
   return { text, keptIndexes, reviewRequired };
 };
 
-const findLiteral = (source, value, from) => {
-  const encoded = JSON.stringify(value);
-  const literalStart = source.indexOf(encoded, from);
-  if (literalStart === -1) throw new Error('A message value could not be mapped to its source.');
-  return { literalStart, next: literalStart + encoded.length };
+const jsonStringToken = (source, start, end) => {
+  const value = [];
+  const map = [];
+
+  for (let index = start + 1; index < end; index += 1) {
+    if (source[index] !== '\\') {
+      value.push(source[index]);
+      map.push(index);
+      continue;
+    }
+
+    const escape = source[index + 1];
+    if (escape === 'u') {
+      value.push(String.fromCharCode(Number.parseInt(source.slice(index + 2, index + 6), 16)));
+      map.push(index);
+      index += 5;
+      continue;
+    }
+
+    const decoded = JSON.parse('"' + source.slice(index, index + 2) + '"');
+    value.push(decoded);
+    for (let offset = 0; offset < decoded.length; offset += 1) map.push(index);
+    index += 1;
+  }
+
+  return { value: value.join(''), map, start: start + 1, end: end + 1 };
+};
+
+const scanJsonStringTokens = (source) => {
+  const tokens = [];
+  let previousKey = null;
+
+  for (let index = 0; index < source.length; index += 1) {
+    if (source[index] !== '"') continue;
+
+    const start = index;
+    index += 1;
+    while (index < source.length) {
+      if (source[index] === '\\') {
+        index += 2;
+        continue;
+      }
+      if (source[index] === '"') break;
+      index += 1;
+    }
+    if (index >= source.length)
+      throw new Error('A message catalog contains an unterminated string.');
+
+    const token = jsonStringToken(source, start, index);
+    const next = source.slice(index + 1).search(/\S/u);
+    const nextCharacter = next === -1 ? undefined : source[index + 1 + next];
+    if (nextCharacter === ':') {
+      previousKey = token.value;
+      continue;
+    }
+    if (previousKey !== '$schema') tokens.push(token);
+    previousKey = null;
+  }
+
+  return tokens;
+};
+
+const findStringToken = (tokens, value, from) => {
+  const found = tokens.find((token) => token.start >= from && token.value === value);
+  if (found === undefined) throw new Error('A message value could not be mapped to its source.');
+  return found;
 };
 
 const assertStringArray = (value, field) => {
@@ -98,17 +159,18 @@ export const extractMessageCatalogStrings = (source, path) => {
 
   const parsed = JSON.parse(source);
   const units = [];
+  const tokens = scanJsonStringTokens(source);
   let searchFrom = 0;
 
   const addValue = (value) => {
     if (typeof value !== 'string') {
       throw new Error('Unsupported non-string Inlang message value.');
     }
-    const located = findLiteral(source, value, searchFrom);
-    searchFrom = located.next;
+    const located = findStringToken(tokens, value, searchFrom);
+    searchFrom = located.end;
     const normalized = patternText(value);
-    const start = located.literalStart + 1;
-    const map = normalized.keptIndexes.map((index) => start + index);
+    const map = normalized.keptIndexes.map((index) => located.map[index]);
+    const start = map[0] ?? located.start;
     units.push(messageUnit(normalized.text, map, start, normalized.reviewRequired));
   };
 

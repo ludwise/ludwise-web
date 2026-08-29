@@ -14,6 +14,7 @@ const legal = defineCollection({
     order: z.number().int().nonnegative(),
     description: z.string().min(1),
     version: z.string().min(1),
+    sourceVersion: z.string().min(1).optional(),
     status: z.enum(['draft', 'current', 'superseded']),
     lastUpdated: z.coerce.date(),
     effectiveDate: z.coerce.date().optional(),

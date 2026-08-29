@@ -1,60 +1,109 @@
-import { spawn, spawnSync } from 'node:child_process';
+import { spawn as defaultSpawn, spawnSync as defaultSpawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 
-const pnpm = process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm';
-const target = process.argv.slice(2);
+const defaultPnpm = process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm';
 
-if (target[0] === '--') target.shift();
-if (target.length === 0) {
-  console.error('Expected a command to run with the localization watcher.');
-  process.exit(2);
-}
+const isRunning = (child) => child.exitCode === null && child.signalCode === null;
 
-const compiled = spawnSync(pnpm, ['run', 'i18n:compile'], { stdio: 'inherit' });
-if (compiled.status !== 0) process.exit(compiled.status ?? 1);
+const waitForExit = (child) =>
+  new Promise((resolve) => {
+    if (!isRunning(child)) {
+      resolve();
+      return;
+    }
 
-const watcher = spawn(pnpm, ['run', 'i18n:compile', '--', '--watch'], { stdio: 'inherit' });
-const application = spawn(pnpm, ['exec', ...target], { stdio: 'inherit' });
-const children = [watcher, application];
-let signalExitCode = null;
+    const onExit = () => resolve();
+    child.once('exit', onExit);
 
-const stop = () => {
+    // A child can finish between the first check and listener registration.
+    // Do not leave a promise waiting for an event that already happened.
+    if (!isRunning(child)) {
+      child.removeListener('exit', onExit);
+      resolve();
+    }
+  });
+
+const stopChildren = async (children) => {
+  const waits = children.map(waitForExit);
   for (const child of children) {
-    if (child.exitCode === null && child.signalCode === null) child.kill('SIGTERM');
+    if (isRunning(child)) child.kill('SIGTERM');
   }
+  await Promise.all(waits);
 };
 
-process.once('SIGINT', () => {
-  signalExitCode = 130;
-  stop();
-});
-process.once('SIGTERM', () => {
-  signalExitCode = 143;
-  stop();
-});
+/**
+ * Compile messages, watch them, and run one application command.
+ *
+ * The process adapters keep this lifecycle deterministic in unit tests. The
+ * returned number is suitable for assigning to `process.exitCode`.
+ */
+export async function runWithI18nWatch(target, adapters = {}) {
+  if (target.length === 0) return 2;
 
-const result = await Promise.race([
-  new Promise((resolve) =>
-    application.once('exit', (code) => resolve({ owner: 'application', code: code ?? 1 })),
-  ),
-  new Promise((resolve) =>
-    watcher.once('exit', (code) => resolve({ owner: 'watcher', code: code ?? 1 })),
-  ),
-]);
+  const spawnSync = adapters.spawnSync ?? defaultSpawnSync;
+  const spawn = adapters.spawn ?? defaultSpawn;
+  const processApi = adapters.process ?? process;
+  const pnpm = adapters.pnpm ?? defaultPnpm;
 
-stop();
-await Promise.all(
-  children.map((child) =>
-    child.exitCode === null
-      ? new Promise((resolve) => child.once('exit', resolve))
-      : Promise.resolve(),
-  ),
-);
+  const processOptions = {
+    stdio: 'inherit',
+    ...(pnpm.endsWith('.cmd') ? { shell: true } : {}),
+  };
+  const compiled = spawnSync(pnpm, ['run', 'i18n:compile'], processOptions);
+  if (compiled.status !== 0) return compiled.status ?? 1;
 
-if (signalExitCode !== null) {
-  process.exitCode = signalExitCode;
-} else if (result.owner === 'watcher') {
-  console.error('The localization watcher stopped before the application.');
-  process.exitCode = result.code || 1;
-} else {
-  process.exitCode = result.code;
+  const watcher = spawn(pnpm, ['run', 'i18n:compile', '--', '--watch'], processOptions);
+  const application = spawn(pnpm, ['exec', ...target], processOptions);
+  const children = [watcher, application];
+
+  const result = await new Promise((resolve) => {
+    let completed = false;
+    const signalHandlers = new Map([
+      ['SIGINT', () => complete({ owner: 'signal', code: 130 })],
+      ['SIGTERM', () => complete({ owner: 'signal', code: 143 })],
+    ]);
+
+    const removeSignalHandlers = () => {
+      if (typeof processApi.removeListener !== 'function') return;
+      for (const [signal, handler] of signalHandlers) {
+        processApi.removeListener(signal, handler);
+      }
+    };
+
+    const complete = async (outcome) => {
+      if (completed) return;
+      completed = true;
+      await stopChildren(children);
+      removeSignalHandlers();
+      resolve(outcome);
+    };
+
+    watcher.once('exit', (code) => {
+      void complete({ owner: 'watcher', code: code ?? 1 });
+    });
+    application.once('exit', (code) => {
+      void complete({ owner: 'application', code: code ?? 1 });
+    });
+    for (const [signal, handler] of signalHandlers) processApi.once(signal, handler);
+  });
+
+  if (result.owner === 'signal') return result.code;
+  if (result.owner === 'watcher') {
+    console.error('The localization watcher stopped before the application.');
+    return result.code || 1;
+  }
+  return result.code;
+}
+
+const isMain = process.argv[1] !== undefined && fileURLToPath(import.meta.url) === process.argv[1];
+
+if (isMain) {
+  const target = process.argv.slice(2);
+  if (target[0] === '--') target.shift();
+  if (target.length === 0) {
+    console.error('Expected a command to run with the localization watcher.');
+    process.exitCode = 2;
+  } else {
+    process.exitCode = await runWithI18nWatch(target);
+  }
 }

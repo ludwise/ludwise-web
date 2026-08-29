@@ -32,7 +32,7 @@ a localized value with provenance.
 The English catalog follows the user-facing language policy. A translation must
 preserve the approved meaning.
 
-Legal content has a separate locale and translation status. A missing legal
-translation redirects to the source-language policy. The site does not serve a
-source policy with a different document language. A production translation
-must have an approved translation status.
+Legal content has a separate locale and translation status. A missing or stale
+legal translation redirects to the source-language policy. The site does not
+serve a source policy with a different document language. A production
+translation must be current, approved, and record the current source version.

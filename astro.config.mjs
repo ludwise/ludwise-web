@@ -24,6 +24,7 @@ export default defineConfig({
   trailingSlash: 'never',
   adapter: cloudflare({ imageService: 'compile' }),
   integrations: [react()],
+  // This anonymous site has no session state. Keep Astro from adding a KV binding.
   session: false,
   ...(process.env.SITE_URL ? { site: process.env.SITE_URL } : {}),
   i18n: {

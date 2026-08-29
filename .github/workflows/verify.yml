@@ -58,6 +58,7 @@ jobs:
       - name: Build
         run: pnpm exec astro build
 
+      # Astro writes the merged deployment bindings only during this build.
       - name: Verify deployment bindings
         env:
           LUDWISE_REQUIRE_BUILD_OUTPUT: '1'
@@ -101,6 +102,7 @@ jobs:
             echo "::group::wrangler dry-run ($target)"
             CLOUDFLARE_ENV="$target" pnpm exec astro build
             pnpm exec wrangler deploy --dry-run
+            # Check each environment before the next build overwrites its output.
             pnpm exec vitest run tests/architecture/deployment-bindings.test.ts
             echo "::endgroup::"
           done

@@ -11,6 +11,7 @@ import {
 } from '../../i18n.config.js';
 import { baseLocale, getTextDirection, locales, messages as m } from '../../src/i18n/index.js';
 import { importsInFile, listSourceFiles } from '../helpers/imports.js';
+import { findUnlocalizedApplicationTargets } from '../helpers/locale-links.js';
 
 interface InlangSettings {
   baseLocale: string;
@@ -53,24 +54,10 @@ const uncataloguedVisitorText = (): string[] =>
     );
   });
 
-const staticApplicationTargets = (): string[] => {
-  const target = /\b(?:href|action)=["'](\/(?!\/)[^"']*)["']/g;
-  const found: string[] = [];
-
-  for (const file of renderedSourceFiles) {
-    const source = readFileSync(file, 'utf8');
-    for (const match of source.matchAll(target)) {
-      const url = match[1];
-      if (url === undefined) continue;
-      const path = url.split(/[?#]/, 1)[0] ?? url;
-      if (path.startsWith('/api/')) continue;
-      if (/\/[^/]+\.[a-z0-9]+$/i.test(path)) continue;
-      found.push(`${file}:${String(lineAt(source, match.index ?? 0))}: ${url}`);
-    }
-  }
-
-  return found;
-};
+const staticApplicationTargets = (): string[] =>
+  renderedSourceFiles.flatMap((file) =>
+    findUnlocalizedApplicationTargets(readFileSync(file, 'utf8'), file),
+  );
 
 describe('localization architecture', () => {
   it('derives Astro locale configuration from the Inlang project', () => {

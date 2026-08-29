@@ -1,9 +1,9 @@
 import { spawn } from 'node:child_process';
 import { once } from 'node:events';
 import { rmSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
 
-const pnpm = process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm';
 const baseUrl = 'http://127.0.0.1:4321';
 const backendUrl = 'http://127.0.0.1:8788';
 const routes = ['/', '/games', '/sales', '/games/canonical-demo'];
@@ -75,7 +75,13 @@ const main = async () => {
       },
     },
   );
-  const astro = start(pnpm, ['exec', 'astro', 'dev', '--host', '127.0.0.1', '--port', '4321']);
+  const astro = start(
+    process.execPath,
+    [resolve('node_modules/astro/bin/astro.mjs'), 'dev', '--host', '127.0.0.1', '--port', '4321'],
+    {
+      env: { ...process.env, ASTRO_DEV_BACKGROUND: '0' },
+    },
+  );
 
   try {
     await Promise.all([

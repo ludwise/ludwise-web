@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
+import { positionOf } from '../../../../scripts/ste/check.mjs';
 import {
   extractMessageCatalogStrings,
   isMessageCatalogFile,
@@ -69,5 +70,34 @@ describe('message catalog extraction', () => {
   it('does not treat schema metadata as visitor text', () => {
     const source = JSON.stringify({ $schema: 'https://example.invalid/schema', home: 'Home' });
     expect(texts(source)).toEqual(['Home']);
+  });
+
+  it('maps escaped quotes, backslashes, newlines, and Unicode to raw offsets', () => {
+    const value = ['Read "the catalogue".', '\\', '\n', 'Next.'].join('');
+    const source = JSON.stringify({ message: value }, null, 2).replace(
+      'catalogue',
+      String.raw`\u0063atalogue`,
+    );
+    const unit = extractMessageCatalogStrings(source, 'messages/en.json')[0]!;
+
+    expect(unit.text).toBe(value);
+    expect(unit.map[value.indexOf('"')]).toBe(source.indexOf('\\"'));
+    expect(unit.map[value.indexOf('c')]).toBe(source.indexOf(String.raw`\u0063`));
+    expect(unit.map[value.indexOf('\n')]).toBe(source.indexOf('\\n'));
+  });
+
+  it('keeps diagnostics on the encoded catalog line', () => {
+    const source = JSON.stringify({ message: 'Read "the catalogue".' }, null, 2).replace(
+      'catalogue',
+      String.raw`\u0063atalogue`,
+    );
+    const unit = extractMessageCatalogStrings(source, 'messages/en.json')[0]!;
+    const offset = unit.map[unit.text.indexOf('catalogue')]!;
+    const lineStart = source.lastIndexOf('\n', offset - 1) + 1;
+
+    expect(positionOf(source, offset)).toEqual({
+      line: 2,
+      column: offset - lineStart + 1,
+    });
   });
 });
