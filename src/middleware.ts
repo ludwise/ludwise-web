@@ -38,6 +38,7 @@ import { EVENTS } from './lib/logging/events.js';
 import { operationalLogger } from './lib/logging/index.js';
 
 const HEALTH_ROUTE = '/api/health';
+const TEST_CLOCK_HEADER = 'x-ludwise-test-now';
 
 /**
  * The origin the API client resolves paths against.
@@ -147,6 +148,14 @@ const configuration = defineMiddleware(async (context, next) => {
     throw error;
   }
   return await next();
+});
+
+const testClock = defineMiddleware((context, next) => {
+  const value = Number(context.request.headers.get(TEST_CLOCK_HEADER));
+  if (context.locals.config.environment === 'development' && Number.isFinite(value)) {
+    context.locals.nowMs = value;
+  }
+  return next();
 });
 
 /**
@@ -326,4 +335,11 @@ const analytics = defineMiddleware(async (context, next) => {
   return response;
 });
 
-export const onRequest = sequence(correlation, configuration, logging, backend, analytics);
+export const onRequest = sequence(
+  correlation,
+  configuration,
+  testClock,
+  logging,
+  backend,
+  analytics,
+);

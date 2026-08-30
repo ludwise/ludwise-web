@@ -7,9 +7,11 @@ import StoreIdentity from '../game/StoreIdentity.astro';
 interface Props {
   group: OfferGroupView;
   gameTitle: string;
+  /** SSR test time. Production callers omit it. */
+  nowMs?: number | undefined;
 }
 
-const { group, gameTitle } = Astro.props;
+const { group, gameTitle, nowMs } = Astro.props;
 
 const KIND_LABELS: Record<string, string> = {
   base_game: 'Base game',
@@ -82,6 +84,7 @@ function actionUrl(offer: OfferView): string | null {
                   availability={offer.availability}
                   observedAtMs={offer.observedAtMs}
                   storeName={offer.storeName}
+                  nowMs={nowMs}
                 />
               </td>
               <td data-label="Action" class="lw-offer-table__action">
@@ -194,7 +197,7 @@ function actionUrl(offer: OfferView): string | null {
     }
     .lw-offer-table tr {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) auto;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: var(--space-3) var(--space-4);
       padding: var(--space-4);
       border-bottom: var(--border-width-hairline) solid var(--color-border-subtle);
@@ -204,8 +207,13 @@ function actionUrl(offer: OfferView): string | null {
       grid-template-columns: 5.25rem minmax(0, 1fr);
       gap: var(--space-3);
       align-items: start;
+      min-width: 0;
       padding: 0;
       border: 0;
+    }
+    .lw-offer-table td > span {
+      min-width: 0;
+      overflow-wrap: anywhere;
     }
     .lw-offer-table td::before {
       content: attr(data-label);
@@ -217,6 +225,9 @@ function actionUrl(offer: OfferView): string | null {
     .lw-offer-table__price-cell,
     .lw-offer-table__action {
       text-align: start;
+    }
+    .lw-offer-table__action {
+      grid-column: 1 / -1;
     }
     .lw-offer-table__price-cell .lw-price {
       justify-content: flex-start;

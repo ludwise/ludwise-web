@@ -168,7 +168,7 @@ const hasMetadata =
                           <span class="lw-game-detail__currency"> · {group.currency.code}</span>
                         )}
                       </h3>
-                      <OfferTable group={group} gameTitle={view.title} />
+                      <OfferTable group={group} gameTitle={view.title} nowMs={Astro.locals.nowMs} />
                     </section>
                   ))}
                 </div>

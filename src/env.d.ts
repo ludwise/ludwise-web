@@ -23,6 +23,8 @@ declare global {
       traceparent: string;
       /** Wall-clock start, used to derive request duration. */
       startedAt: number;
+      /** Development-only SSR clock override for deterministic browser tests. */
+      nowMs?: number;
       /** Present only once configuration has validated successfully. */
       config: AppConfig;
       /** Request-scoped child logger carrying the correlation identifiers. */
