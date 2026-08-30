@@ -46,28 +46,26 @@ async function auditFor(page: Page): Promise<void> {
   expect(results.violations).toEqual([]);
 }
 
+async function readUnavailableBody(page: Page, path: string): Promise<string> {
+  const response = await page.request.get(path);
+  expect(response.status()).toBe(503);
+  return response.text();
+}
+
 const PAGES = ['/games', '/sales', '/games/half-off-demo'];
+const VISITOR_REQUEST_ID = 'degraded-e2e-request-id';
 
 test.describe('the backend is unavailable', () => {
   for (const path of PAGES) {
     test(`${path} says so rather than claiming to be empty`, async ({ page }) => {
-      const response = await page.goto(path);
-
-      // 503, never 200 and never 404. A 200 would tell a crawler the page is
-      // fine and let it index an error. A 404 on the detail page would tell a
-      // visitor following a good link that their link is broken.
-      expect(response?.status()).toBe(503);
-
-      const body = await response?.text();
+      const body = await readUnavailableBody(page, path);
       for (const claim of FALSE_CLAIMS) {
         expect(body, `${path} claimed: ${claim}`).not.toContain(claim);
       }
     });
 
     test(`${path} discloses nothing about why`, async ({ page }) => {
-      const response = await page.goto(path);
-      expect(response?.status()).toBe(503);
-      const body = await response?.text();
+      const body = await readUnavailableBody(page, path);
 
       for (const leak of LEAKS) {
         expect(body, `${path} leaked ${leak}`).not.toContain(leak);
@@ -78,11 +76,14 @@ test.describe('the backend is unavailable', () => {
       // The whole bridge between what a visitor can see and what an operator
       // can find. A failure page without one is a failure nobody can
       // investigate, which is the state this replaces.
+      await page.setExtraHTTPHeaders({ 'x-request-id': VISITOR_REQUEST_ID });
       const response = await page.goto(path);
+      expect(response?.status()).toBe(503);
       const requestId = response?.headers()['x-request-id'];
 
       expect(requestId).toBeTruthy();
-      await expect(page.getByText(requestId!)).toBeVisible();
+      expect(requestId).toBe(VISITOR_REQUEST_ID);
+      await expect(page.getByText(requestId!, { exact: true })).toBeVisible();
     });
   }
 

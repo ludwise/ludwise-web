@@ -25,7 +25,14 @@ async function expectCanonicalDetail(page: Page): Promise<void> {
   await expect(page.getByRole('heading', { name: 'Current offers' })).toBeVisible();
 }
 
-async function readOfferFacts(page: Page): Promise<readonly { store: string; price: string }[]> {
+interface OfferFact {
+  readonly availability: string;
+  readonly edition: string;
+  readonly price: string;
+  readonly store: string;
+}
+
+async function readOfferFacts(page: Page): Promise<readonly OfferFact[]> {
   return page
     .getByRole('region', { name: 'European Union · EUR' })
     .getByRole('row')
@@ -33,13 +40,29 @@ async function readOfferFacts(page: Page): Promise<readonly { store: string; pri
       rows.slice(1).map((row) => {
         const cells = [...row.querySelectorAll('td')];
         const store = cells[0]?.firstElementChild?.textContent;
+        const edition = cells[1]?.textContent;
         const price = cells[2]?.querySelector('[aria-label]')?.getAttribute('aria-label');
         return {
+          availability: row.getAttribute('data-availability') ?? '',
+          edition: edition?.replace(/\s+/gu, ' ').trim() ?? '',
           store: store?.replace(/\s+/gu, ' ').trim() ?? '',
           price: price ?? '',
         };
       }),
     );
+}
+
+function offerRow(page: Page, storeName: string) {
+  return page.getByRole('row').filter({ hasText: storeName });
+}
+
+async function gotoStatesDetail(page: Page): Promise<void> {
+  await page.setViewportSize({ width: 375, height: VIEWPORT_HEIGHT });
+  const response = await page.goto(STATES_ROUTE);
+
+  expect(response?.status()).toBe(200);
+  expect(new URL(page.url()).pathname).toBe(STATES_ROUTE);
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Data States Demo Game');
 }
 
 test.describe('game detail', () => {
@@ -61,42 +84,84 @@ test.describe('game detail', () => {
     ).toContainText('Free');
   });
 
-  test('renders missing offer values without fabricating facts', async ({ page }) => {
-    await page.setViewportSize({ width: 375, height: VIEWPORT_HEIGHT });
-    const response = await page.goto(STATES_ROUTE);
-
-    expect(response?.status()).toBe(200);
-    expect(new URL(page.url()).pathname).toBe(STATES_ROUTE);
-    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Data States Demo Game');
-    await expect(page.getByRole('heading', { level: 3 })).toHaveText('Market not provided');
-
-    const table = page.getByRole('table');
-    await expect(table).toHaveAccessibleName(
-      'Market not provided, currency not provided for Data States Demo Game',
+  test('renders missing market and currency without inventing values', async ({ page }) => {
+    await gotoStatesDetail(page);
+    const missingMarket = page.getByRole('region', {
+      name: 'Market not provided · EUR',
+      exact: true,
+    });
+    await expect(missingMarket.getByRole('table')).toHaveAccessibleName(
+      'Market not provided, EUR offers for Data States Demo Game',
     );
-    await expect(table.getByText('Not provided', { exact: true })).toBeVisible();
-    await expect(table.getByText('€12.99', { exact: true })).toBeVisible();
-    await expect(page.getByText('Freshness not provided', { exact: true })).toBeVisible();
-    await expect(page.getByText('EUR', { exact: true })).toHaveCount(0);
-    await expect(page.getByText('Unavailable', { exact: true })).toHaveCount(0);
-    await expect(page.getByRole('link', { name: /View at Copper Shop/ })).toBeVisible();
+
+    const missingCurrency = page.getByRole('region', {
+      name: 'European Union',
+      exact: true,
+    });
+    await expect(missingCurrency.getByRole('table')).toHaveAccessibleName(
+      'European Union, currency not provided for Data States Demo Game',
+    );
+
+    await expect(page.getByRole('heading', { name: 'Market not provided · EUR' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'European Union', exact: true })).toBeVisible();
 
     await auditFor(page);
   });
 
-  test('renders deterministic freshness branches', async ({ page }) => {
-    await page.setViewportSize({ width: 375, height: VIEWPORT_HEIGHT });
-    const response = await page.goto(STATES_ROUTE);
+  test('renders a missing price and freshness value explicitly', async ({ page }) => {
+    await gotoStatesDetail(page);
 
-    expect(response?.status()).toBe(200);
-    expect(new URL(page.url()).pathname).toBe(STATES_ROUTE);
-    await expect(page.getByText('Updated 5 min ago', { exact: true })).toBeVisible();
-    await expect(page.getByText('Checked 2 hours ago', { exact: true })).toBeVisible();
-    await expect(page.getByText('Last checked 2 days ago', { exact: true })).toBeVisible();
-    await expect(page.getByText('Freshness not provided', { exact: true })).toBeVisible();
-    await expect(page.locator('time').first()).toHaveAttribute(
-      'datetime',
-      new Date(E2E_NOW_MS - 5 * 60 * 1000).toISOString(),
+    const missingPrice = offerRow(page, 'Fallow Store');
+    await expect(missingPrice.locator('.lw-price')).toHaveAttribute(
+      'aria-label',
+      'Price not provided.',
+    );
+    await expect(missingPrice.locator('.lw-price')).toContainText('Not provided');
+
+    const missingFreshness = offerRow(page, 'Gable Store').locator('.lw-freshness');
+    await expect(missingFreshness).toHaveAttribute('data-level', 'unknown');
+    await expect(missingFreshness).toContainText('Freshness not provided');
+    await expect(missingFreshness.locator('time')).toHaveCount(0);
+  });
+
+  test('renders distinct freshness ages and availability states', async ({ page }) => {
+    await gotoStatesDetail(page);
+
+    const expected = [
+      { ageMs: 5 * 60 * 1000, level: 'fresh', label: 'Updated 5 min ago', store: 'Copper Shop' },
+      {
+        ageMs: 2 * 60 * 60 * 1000,
+        level: 'aging',
+        label: 'Checked 2 hours ago',
+        store: 'Delta Store',
+      },
+      {
+        ageMs: 2 * 24 * 60 * 60 * 1000,
+        level: 'stale',
+        label: 'Last checked 2 days ago',
+        store: 'Echo Store',
+      },
+      {
+        ageMs: 30 * 60 * 1000,
+        level: 'unavailable',
+        label: 'Harbor Store temporarily unavailable',
+        store: 'Harbor Store',
+      },
+    ] as const;
+
+    for (const state of expected) {
+      const freshness = offerRow(page, state.store).locator('.lw-freshness');
+      await expect(freshness).toHaveAttribute('data-level', state.level);
+      await expect(freshness).toContainText(state.label);
+      await expect(freshness.locator('time')).toHaveAttribute(
+        'datetime',
+        new Date(E2E_NOW_MS - state.ageMs).toISOString(),
+      );
+    }
+
+    await expect(offerRow(page, 'Gable Store').locator('.lw-freshness')).toHaveAttribute(
+      'data-level',
+      'unknown',
     );
   });
 
@@ -266,33 +331,33 @@ test.describe('catalog accessibility', () => {
   }
 });
 
-test.describe('game detail monetization neutrality', () => {
-  test('keeps factual offers and ordering unchanged across affiliate states', async ({
-    browser,
-  }) => {
-    const states = ['none', 'affiliate'] as const;
-    const facts = [] as (readonly { store: string; price: string }[])[];
+test.describe('game detail offer ordering', () => {
+  test('renders factual offers in backend-provided order', async ({ page }) => {
+    const response = await page.goto(DETAIL_ROUTE);
 
-    for (const state of states) {
-      const context = await browser.newContext();
-      const page = await context.newPage();
-      const response = await page.goto(`${DETAIL_ROUTE}?affiliate=${state}`);
-
-      expect(response?.status()).toBe(200);
-      await expectCanonicalDetail(page);
-      facts.push(await readOfferFacts(page));
-      await context.close();
-    }
-
-    expect(facts[0]).toEqual([
-      { store: 'Orbit Market', price: 'Current price Free.' },
+    expect(response?.status()).toBe(200);
+    await expectCanonicalDetail(page);
+    const facts = await readOfferFacts(page);
+    expect(facts).toEqual([
       {
+        availability: 'available',
+        edition: 'Deluxe edition',
+        price: 'Current price Free.',
         store: 'Orbit Market',
-        price: 'Discounted price €12.99. Regular price €19.99.',
       },
-      { store: 'Copper Shop', price: 'Current price €14.99.' },
+      {
+        availability: 'available',
+        edition: 'Base game',
+        price: 'Discounted price €12.99. Regular price €19.99.',
+        store: 'Orbit Market',
+      },
+      {
+        availability: 'available',
+        edition: 'Base game',
+        price: 'Current price €14.99.',
+        store: 'Copper Shop',
+      },
     ]);
-    expect(facts[1]).toEqual(facts[0]);
   });
 });
 

@@ -14,7 +14,10 @@
     "offerGroups": [
       {
         "market": null,
-        "currency": null,
+        "currency": {
+          "code": "EUR",
+          "minorUnit": 2
+        },
         "offers": [
           {
             "id": "00000000-0000-7000-8000-000000000151",
@@ -37,6 +40,53 @@
             "observedAtMs": 1788090900000
           },
           {
+            "id": "00000000-0000-7000-8000-000000000155",
+            "storeName": "Gable Store",
+            "storeSlug": "gable-store",
+            "storePageUrl": "https://gable-store.example.test/states-demo",
+            "offerUrl": "https://gable-store.example.test/buy/states-demo",
+            "kind": "base_game",
+            "editionLabel": "Base game",
+            "availability": "available",
+            "price": {
+              "amountMinor": 2299,
+              "currencyCode": "EUR",
+              "minorUnit": 2
+            },
+            "referencePrice": null,
+            "discountPercentage": null,
+            "discountEndsAtMs": null,
+            "sourceName": "Gable Source",
+            "observedAtMs": null
+          },
+          {
+            "id": "00000000-0000-7000-8000-000000000154",
+            "storeName": "Fallow Store",
+            "storeSlug": "fallow-store",
+            "storePageUrl": "https://fallow-store.example.test/states-demo",
+            "offerUrl": "https://fallow-store.example.test/buy/states-demo",
+            "kind": "base_game",
+            "editionLabel": "Base game",
+            "availability": "available",
+            "price": null,
+            "referencePrice": null,
+            "discountPercentage": null,
+            "discountEndsAtMs": null,
+            "sourceName": "Fallow Source",
+            "observedAtMs": 1788090600000
+          }
+        ]
+      },
+      {
+        "market": {
+          "id": "00000000-0000-7000-8000-000000000005",
+          "code": "EU",
+          "name": "European Union",
+          "countryCode": "EU"
+        },
+        "currency": null,
+        "offers": [
+          {
             "id": "00000000-0000-7000-8000-000000000152",
             "storeName": "Delta Store",
             "storeSlug": "delta-store",
@@ -55,7 +105,21 @@
             "discountEndsAtMs": null,
             "sourceName": "Delta Source",
             "observedAtMs": 1788084000000
-          },
+          }
+        ]
+      },
+      {
+        "market": {
+          "id": "00000000-0000-7000-8000-000000000005",
+          "code": "EU",
+          "name": "European Union",
+          "countryCode": "EU"
+        },
+        "currency": {
+          "code": "EUR",
+          "minorUnit": 2
+        },
+        "offers": [
           {
             "id": "00000000-0000-7000-8000-000000000153",
             "storeName": "Echo Store",
@@ -77,20 +141,20 @@
             "observedAtMs": 1787918400000
           },
           {
-            "id": "00000000-0000-7000-8000-000000000154",
-            "storeName": "Fallow Store",
-            "storeSlug": "fallow-store",
-            "storePageUrl": "https://fallow-store.example.test/states-demo",
-            "offerUrl": "https://fallow-store.example.test/buy/states-demo",
+            "id": "00000000-0000-7000-8000-000000000156",
+            "storeName": "Harbor Store",
+            "storeSlug": "harbor-store",
+            "storePageUrl": "https://harbor-store.example.test/states-demo",
+            "offerUrl": null,
             "kind": "base_game",
             "editionLabel": "Base game",
-            "availability": "available",
+            "availability": "unavailable",
             "price": null,
             "referencePrice": null,
             "discountPercentage": null,
             "discountEndsAtMs": null,
-            "sourceName": "Fallow Source",
-            "observedAtMs": null
+            "sourceName": "Harbor Source",
+            "observedAtMs": 1788089400000
           }
         ]
       }
