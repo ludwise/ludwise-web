@@ -7,7 +7,7 @@ ste-prose: descriptive
 High level and deliberately undated. Sequence matters. Deadlines invented during
 planning do not.
 
-This document covers the public web client only. Catalogue semantics, provider
+This document covers the public web client only. Catalog semantics, provider
 integration, persistence, and commercial calculations belong in
 `ludwise-backend`.
 
@@ -40,7 +40,7 @@ contracts during server-side rendering.
 The first public application must expose the core comparison experience clearly
 and safely.
 
-- [x] Catalogue and search presentation
+- [x] Catalog and search presentation
 - [x] Canonical game-detail pages
 - [x] Sales browsing presentation
 - [x] Responsive game-detail and degraded-state coverage (#6)
@@ -51,7 +51,7 @@ and safely.
 - [ ] Replace the prelaunch site with the production application
 - [ ] Complete public launch verification with the backend release
 
-The backend owns catalogue correctness, ranking, price calculations, and data
+The backend owns catalog correctness, ranking, price calculations, and data
 freshness semantics. This repository renders those decisions.
 
 ## Production quality gates
@@ -79,15 +79,15 @@ otherwise launch-ready MVP.
 - [ ] Structured data and rich SEO metadata (#12)
 - [ ] Privacy-first outbound store click analytics (#13)
 - [ ] Shareability polish for public game pages (#14)
-- [ ] User-facing provenance and freshness explanations (#15)
+- [ ] Visitor-facing provenance and freshness explanations (#15)
 - [ ] Loading, empty, partial, stale, and error-state polish (#16)
 
-Where a feature needs new catalogue semantics, its backend issue owns those
+Where a feature needs new catalog semantics, its backend issue owns those
 semantics. This repository owns only the presentation and interaction layer.
 
 ## Content
 
-Editorial content remains separate from catalogue ranking and commercial logic.
+Editorial content remains separate from catalog ranking and commercial logic.
 
 - [ ] First-party LUDWISE blog (#8)
 - [ ] Article metadata, canonical URLs, and social metadata
@@ -103,7 +103,7 @@ launch scope.
 
 - [x] Typed Paraglide message compilation
 - [x] Astro-owned locale routing architecture
-- [x] English source catalogue
+- [x] English source catalog
 - [x] Locale kept separate from market, region, and currency
 - [ ] Select the next supported locale from product need
 - [ ] Define translation and review workflow
@@ -124,7 +124,7 @@ remain usable without an account.
 - [ ] Linked identity and account-security surfaces
 - [ ] Account privacy, export, and deletion controls
 
-Account creation should appear where persistence provides clear user value.
+Account creation appears only where persistence provides clear visitor value.
 
 ## Monetization
 
@@ -149,6 +149,6 @@ interaction, presentation rule, or web quality concern.
 
 ## Not planned
 
-The web client will not duplicate backend catalogue logic, provider adapters,
+The web client will not duplicate backend catalog logic, provider adapters,
 pricing arithmetic, ranking logic, or persistence. It will not use invasive
 visitor tracking or affiliate-influenced presentation.
