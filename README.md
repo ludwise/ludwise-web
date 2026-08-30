@@ -10,10 +10,6 @@ ste-prose: descriptive
 [![Cloudflare Workers](https://img.shields.io/badge/Cloudflare-Workers-F38020?logo=cloudflareworkers&logoColor=white)](https://workers.cloudflare.com/)
 [![Paraglide JS](https://img.shields.io/badge/Paraglide-JS-3B82F6?logo=inlang&logoColor=white)](https://inlang.com/m/gerre34r/library-inlang-paraglideJs)
 
-[![CI](https://img.shields.io/github/actions/workflow/status/ludwise/ludwise-web/ci.yml?event=pull_request&label=CI&logo=githubactions&logoColor=white)](https://github.com/ludwise/ludwise-web/actions/workflows/ci.yml)
-[![Staging](https://img.shields.io/github/actions/workflow/status/ludwise/ludwise-web/deploy-staging.yml?branch=main&event=push&label=Staging&logo=githubactions&logoColor=white)](https://github.com/ludwise/ludwise-web/actions/workflows/deploy-staging.yml)
-[![Production](https://img.shields.io/github/actions/workflow/status/ludwise/ludwise-web/deploy-production.yml?event=release&label=Production&logo=githubactions&logoColor=white)](https://github.com/ludwise/ludwise-web/actions/workflows/deploy-production.yml)
-
 The public website for [LUDWISE](https://ludwise.com), a transparent PC game
 store comparison and discovery platform.
 
