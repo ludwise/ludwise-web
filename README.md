@@ -120,8 +120,7 @@ pnpm dev
 
 The local site runs at <http://localhost:4321>.
 
-By default, `.dev.vars.example` points development at the fake backend on port
-8788. The fake backend replays the recorded contract corpus and requires no
+By default, `.dev.vars.example` points development at the fake backend on port 8788. The fake backend replays the recorded contract corpus and requires no
 private repository or credentials.
 
 A real local backend can also be used when available. See `.dev.vars.example`
@@ -181,9 +180,9 @@ Contract changes must remain additive within a version.
 
 ## Validation and deployment
 
-Pull requests and pushes to `main` run automated checks for formatting, linting,
-the Simplified Technical English policy, localization compilation, type safety,
-tests, architecture rules, and the production build.
+Pull requests and pushes to `main` run automated checks. The checks cover
+formatting, linting, the Simplified Technical English policy, localization
+compilation, type safety, tests, architecture rules, and the production build.
 
 The repository has independent staging and production deployment paths. Public
 production launch remains gated by the web roadmap and coordinated backend
