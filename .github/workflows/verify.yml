@@ -2,6 +2,22 @@ name: Verify
 
 on:
   workflow_call:
+    inputs:
+      mode:
+        description: Verification mode. Deployments default to the full suite.
+        required: false
+        type: string
+        default: full
+      base_sha:
+        description: Pull request base SHA for impact mode.
+        required: false
+        type: string
+        default: ''
+      head_sha:
+        description: Pull request head SHA for impact mode.
+        required: false
+        type: string
+        default: ''
 
 permissions: {}
 
@@ -9,110 +25,6 @@ env:
   FORCE_COLOR: '1'
 
 jobs:
-  verify:
-    name: Verify
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    permissions:
-      contents: read
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
-
-      - name: Install Node
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
-        with:
-          node-version-file: .nvmrc
-          cache: pnpm
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Sync Astro types
-        run: pnpm run sync
-
-      - name: Generate Cloudflare binding types
-        run: pnpm run cf-typegen
-
-      - name: Check formatting
-        run: pnpm run format:check
-
-      - name: Lint
-        run: pnpm run lint
-
-      - name: Typecheck
-        run: pnpm exec astro check
-
-      - name: Typecheck tests
-        run: pnpm exec tsc -p tsconfig.test.json --noEmit
-
-      - name: Test
-        run: pnpm exec vitest run --coverage
-
-      - name: Build
-        run: pnpm exec astro build
-
-      # Astro writes the merged deployment bindings only during this build.
-      - name: Verify deployment bindings
-        env:
-          LUDWISE_REQUIRE_BUILD_OUTPUT: '1'
-        run: pnpm exec vitest run tests/architecture/deployment-bindings.test.ts
-
-      - name: Prepare local configuration
-        run: cp .dev.vars.example .dev.vars
-
-      # The script clears Vite's optimizer cache before and after this probe.
-      # Concurrent requests therefore exercise the cold dependency graph, and
-      # Playwright also starts with no graph populated by this earlier check.
-      - name: Verify cold concurrent dev SSR
-        run: node scripts/check-dev-ssr.mjs
-
-      - name: Install the end-to-end browser
-        run: pnpm exec playwright install --with-deps chromium
-
-      - name: Run end-to-end and accessibility tests
-        run: pnpm exec playwright test
-
-      - name: Run the empty-catalogue tests
-        run: pnpm exec playwright test --config=playwright.states.config.ts
-
-      - name: Run the backend-unavailable tests
-        run: node scripts/run-degraded.mjs
-
-      - name: End-to-end failure traces
-        if: failure()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: playwright-traces
-          path: test-results/
-          retention-days: 7
-          if-no-files-found: ignore
-
-      - name: Validate deployment configuration
-        env:
-          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
-        run: |
-          for target in staging production; do
-            echo "::group::wrangler dry-run ($target)"
-            CLOUDFLARE_ENV="$target" pnpm exec astro build
-            pnpm exec wrangler deploy --dry-run
-            # Check each environment before the next build overwrites its output.
-            pnpm exec vitest run tests/architecture/deployment-bindings.test.ts
-            echo "::endgroup::"
-          done
-
-      - name: Audit what this repository publishes
-        run: node scripts/audit-public.mjs
-
-      - name: Check the built bundle for leakage
-        run: node scripts/check-bundle.mjs
-
   language:
     name: Language
     runs-on: ubuntu-latest
@@ -147,3 +59,163 @@ jobs:
       - name: Audit the repository
         if: always()
         run: node scripts/ste/cli.mjs audit --format markdown >> "$GITHUB_STEP_SUMMARY"
+
+  verify:
+    name: Verify
+    needs: language
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+
+    steps:
+      - name: Require language gate
+        env:
+          LANGUAGE_RESULT: ${{ needs.language.result }}
+        run: |
+          if [ "$LANGUAGE_RESULT" != "success" ]; then
+            echo "::error::Language verification did not pass."
+            exit 1
+          fi
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: ${{ inputs.mode == 'impact' && 0 || 1 }}
+          persist-credentials: false
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+
+      - name: Install Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Test the impact planner
+        run: pnpm exec vitest run tests/unit/scripts/ci-impact.test.ts
+
+      - name: Plan verification
+        id: plan
+        env:
+          VERIFY_MODE: ${{ inputs.mode }}
+          BASE_SHA: ${{ inputs.base_sha }}
+          HEAD_SHA: ${{ inputs.head_sha }}
+        run: |
+          if [ "$VERIFY_MODE" = "impact" ]; then
+            if [ -z "$BASE_SHA" ] || [ -z "$HEAD_SHA" ]; then
+              echo "::error::Impact mode requires base_sha and head_sha."
+              exit 1
+            fi
+            node scripts/ci/impact.mjs "$BASE_SHA" "$HEAD_SHA" --github-output "$GITHUB_OUTPUT"
+          else
+            node scripts/ci/impact.mjs --full --github-output "$GITHUB_OUTPUT"
+          fi
+
+      - name: Report verification plan
+        env:
+          VERIFY_MODE: ${{ inputs.mode }}
+          FULL: ${{ steps.plan.outputs.full }}
+          UNKNOWN: ${{ steps.plan.outputs.unknown }}
+        run: |
+          echo "### Verification plan" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Mode: $VERIFY_MODE" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Full suite: $FULL" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Unknown path escalation: $UNKNOWN" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Check formatting
+        if: steps.plan.outputs.format == 'true'
+        run: pnpm run format:check
+
+      - name: Sync Astro types
+        if: steps.plan.outputs.static == 'true'
+        run: pnpm run sync
+
+      - name: Generate Cloudflare binding types
+        if: steps.plan.outputs.static == 'true'
+        run: pnpm run cf-typegen
+
+      - name: Lint
+        if: steps.plan.outputs.static == 'true'
+        run: pnpm run lint
+
+      - name: Typecheck
+        if: steps.plan.outputs.static == 'true'
+        run: pnpm exec astro check
+
+      - name: Typecheck tests
+        if: steps.plan.outputs.static == 'true'
+        run: pnpm exec tsc -p tsconfig.test.json --noEmit
+
+      - name: Test with coverage
+        if: steps.plan.outputs.unit == 'true'
+        run: pnpm exec vitest run --coverage
+
+      - name: Build
+        if: steps.plan.outputs.build == 'true'
+        run: pnpm exec astro build
+
+      - name: Verify deployment bindings
+        if: steps.plan.outputs.deployment == 'true'
+        env:
+          LUDWISE_REQUIRE_BUILD_OUTPUT: '1'
+        run: pnpm exec vitest run tests/architecture/deployment-bindings.test.ts
+
+      - name: Prepare local configuration
+        if: steps.plan.outputs.browser == 'true' || steps.plan.outputs.degraded == 'true'
+        run: cp .dev.vars.example .dev.vars
+
+      - name: Verify cold concurrent dev SSR
+        if: steps.plan.outputs.browser == 'true'
+        run: node scripts/check-dev-ssr.mjs
+
+      - name: Install the end-to-end browser
+        if: steps.plan.outputs.browser == 'true'
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Run end-to-end and accessibility tests
+        if: steps.plan.outputs.browser == 'true'
+        run: pnpm exec playwright test
+
+      - name: Run the empty-catalogue tests
+        if: steps.plan.outputs.browser == 'true'
+        run: pnpm exec playwright test --config=playwright.states.config.ts
+
+      - name: Run the backend-unavailable tests
+        if: steps.plan.outputs.degraded == 'true'
+        run: node scripts/run-degraded.mjs
+
+      - name: End-to-end failure traces
+        if: failure() && steps.plan.outputs.browser == 'true'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: playwright-traces
+          path: test-results/
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Validate deployment configuration
+        if: steps.plan.outputs.deployment == 'true'
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          for target in staging production; do
+            echo "::group::wrangler dry-run ($target)"
+            CLOUDFLARE_ENV="$target" pnpm exec astro build
+            pnpm exec wrangler deploy --dry-run
+            pnpm exec vitest run tests/architecture/deployment-bindings.test.ts
+            echo "::endgroup::"
+          done
+
+      - name: Audit what this repository publishes
+        if: steps.plan.outputs.publishAudit == 'true'
+        run: node scripts/audit-public.mjs
+
+      - name: Check the built bundle for leakage
+        if: steps.plan.outputs.publishAudit == 'true'
+        run: node scripts/check-bundle.mjs
