@@ -18,23 +18,33 @@ interaction, accessibility, localization, SEO presentation, and the design
 system. Catalog semantics, persistence, provider integrations, and commercial
 calculations belong in the private `ludwise-backend` repository.
 
-> **Status:** staging and the public prelaunch site are available. The production application has not launched.
+> **Status:** staging is available. Production has not launched.
 
 See [`ROADMAP.md`](ROADMAP.md) for web priorities and launch work.
 
 ## Repository responsibility
 
-| This repository owns | The backend owns |
-| --- | --- |
-| Routing and page composition | Canonical game identity and matching |
-| Design tokens and components | Store listings, offers, markets, and currencies |
-| Responsive and accessible interaction | Pricing and sale semantics |
-| SEO presentation and public metadata | Search ranking and catalog rules |
-| Localization presentation | Provider integrations and ingestion |
-| Visitor-facing legal and account UI | Persistence and migrations |
-| Backend client and degraded states | Operations and backend observability |
+This repository owns:
 
-The boundary is intentional. This repository renders backend decisions; it does
+- routing and page composition
+- design tokens and components
+- responsive and accessible interaction
+- SEO presentation and public metadata
+- localization presentation
+- visitor-facing legal and account UI
+- the backend client and degraded states
+
+The backend owns:
+
+- canonical game identity and matching
+- store listings, offers, markets, and currencies
+- pricing and sale semantics
+- search ranking and catalog rules
+- provider integrations and ingestion
+- persistence and migrations
+- operations and backend observability
+
+The boundary is intentional. This repository renders backend decisions. It does
 not reproduce them. Discount calculations, offer ordering, provider policy, and
 canonical matching must remain outside the web client.
 
@@ -119,21 +129,19 @@ for the supported development configuration.
 
 ## Development commands
 
-| Command | Purpose |
-| --- | --- |
-| `pnpm dev` | Start the Astro development server with localization watching |
-| `pnpm build` | Compile messages and build the Worker |
-| `pnpm format` | Apply formatting |
-| `pnpm lint` | Run lint checks |
-| `pnpm check:ste` | Validate ASD-STE100 policy |
-| `pnpm typecheck` | Type-check shipped Astro code |
-| `pnpm typecheck:tests` | Type-check the test tree |
-| `pnpm test` | Run unit, architecture, and contract tests |
-| `pnpm test:e2e` | Run Playwright end-to-end tests |
-| `pnpm test:coverage` | Run tests with coverage reporting |
-| `pnpm i18n:compile` | Compile Paraglide messages |
-| `pnpm cf-typegen` | Regenerate Cloudflare binding types |
-| `pnpm check` | Run the main CI verification sequence |
+- `pnpm dev` starts the Astro development server with localization watching.
+- `pnpm build` compiles messages and builds the Worker.
+- `pnpm format` applies formatting.
+- `pnpm lint` runs lint checks.
+- `pnpm check:ste` validates the ASD-STE100 policy.
+- `pnpm typecheck` type-checks shipped Astro code.
+- `pnpm typecheck:tests` type-checks the test tree.
+- `pnpm test` runs unit, architecture, and contract tests.
+- `pnpm test:e2e` runs Playwright end-to-end tests.
+- `pnpm test:coverage` runs tests with coverage reporting.
+- `pnpm i18n:compile` compiles Paraglide messages.
+- `pnpm cf-typegen` regenerates Cloudflare binding types.
+- `pnpm check` runs the main CI verification sequence.
 
 Run `pnpm check` before opening a pull request.
 
@@ -150,7 +158,7 @@ new locale.
 
 ## Design system and accessibility
 
-Design tokens are the styling API. Components should consume shared tokens and
+Design tokens are the styling API. Components must consume shared tokens and
 patterns instead of introducing local hard-coded styling rules.
 
 Accessibility is an engineering requirement. Automated axe, responsive, and
@@ -174,8 +182,8 @@ Contract changes must remain additive within a version.
 ## Validation and deployment
 
 Pull requests and pushes to `main` run automated checks for formatting, linting,
-STE policy, localization compilation, type safety, tests, architecture rules,
-and the production build.
+the Simplified Technical English policy, localization compilation, type safety,
+tests, architecture rules, and the production build.
 
 The repository has independent staging and production deployment paths. Public
 production launch remains gated by the web roadmap and coordinated backend
@@ -183,14 +191,15 @@ release readiness.
 
 ## Documentation
 
-| Document | Purpose |
-| --- | --- |
-| [`ROADMAP.md`](ROADMAP.md) | Public web roadmap and launch priorities |
-| [`docs/architecture.md`](docs/architecture.md) | Web architecture and backend boundary |
-| [`docs/design-system.md`](docs/design-system.md) | Design tokens and component rules |
-| [`AGENTS.md`](AGENTS.md) | Rules for AI-assisted work |
-| [`CONTRIBUTING.md`](CONTRIBUTING.md) | Contribution and branch workflow |
-| [`SECURITY.md`](SECURITY.md) | Vulnerability reporting process |
+- [`ROADMAP.md`](ROADMAP.md) defines the public web roadmap and launch priorities.
+- [`docs/architecture.md`](docs/architecture.md) defines web architecture and the
+  backend boundary.
+- [`docs/design-system.md`](docs/design-system.md) defines design tokens and
+  component rules.
+- [`AGENTS.md`](AGENTS.md) defines rules for AI-assisted work.
+- [`CONTRIBUTING.md`](CONTRIBUTING.md) defines the contribution and branch
+  workflow.
+- [`SECURITY.md`](SECURITY.md) defines the vulnerability reporting process.
 
 ## Contributing
 
@@ -207,7 +216,7 @@ Report vulnerabilities privately rather than in a public issue. See
 
 ## License
 
-The code is licensed under Apache-2.0. See [`LICENSE`](LICENSE) and
+The code uses the Apache-2.0 license. See [`LICENSE`](LICENSE) and
 [`NOTICE`](NOTICE).
 
 The LUDWISE name, wordmark, and logo marks are reserved separately. See
