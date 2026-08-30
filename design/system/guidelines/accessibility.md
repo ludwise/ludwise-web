@@ -9,7 +9,9 @@ Target: **WCAG 2.2 AA**, built into the tokens rather than added per screen.
 ## Contrast
 
 - Body and interactive text ≥ 4.5:1. `text.tertiary` is the floor at ~4.7:1 and is permitted for captions and provenance only.
-- Non-text UI (borders on controls, focus rings, icon-only glyphs, chart series lines) ≥ 3:1.
+- Component-identifying boundaries use `--color-border-component` and measure ≥ 3:1 against their adjacent surface.
+- Decorative boundaries use `--color-border-decorative` and are never the only way to identify an interactive component.
+- The global `--color-border-focus` indicator remains separate from normal component boundaries.
 - `action.primary-text` on `action.primary` is ~9.2:1 in both themes.
 - Semantic surfaces (`status.*-surface`) are always paired with their matching `-text`, never with `text.primary`.
 

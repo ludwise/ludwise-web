@@ -30,6 +30,8 @@ color-scheme:light;
 --color-border-subtle:var(--ludwise-neutral-100);
 --color-border-default:var(--ludwise-neutral-200);
 --color-border-strong:var(--ludwise-neutral-300);
+--color-border-component:var(--ludwise-neutral-500);
+--color-border-decorative:var(--ludwise-neutral-100);
 --color-border-inverse:var(--ludwise-neutral-700);
 --color-border-focus:var(--ludwise-amber-700);
 
@@ -129,6 +131,8 @@ color-scheme:dark;
 --color-border-subtle:var(--ludwise-neutral-900);
 --color-border-default:var(--ludwise-neutral-800);
 --color-border-strong:var(--ludwise-neutral-700);
+--color-border-component:var(--ludwise-neutral-500);
+--color-border-decorative:var(--ludwise-neutral-900);
 --color-border-inverse:var(--ludwise-neutral-300);
 --color-border-focus:var(--ludwise-amber-400);
 

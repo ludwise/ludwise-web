@@ -173,6 +173,11 @@ globally, in `tokens/motion.css` — no component needs its own query.
 
 `tests/e2e/shell.spec.ts` runs axe over the shell in both themes.
 
+Component-identifying boundaries use `--color-border-component` and are tested
+at 3:1 or higher against their adjacent surfaces. `--color-border-decorative`
+is reserved for borders that do not identify a component. The global
+`--color-border-focus` indicator remains a separate focus treatment.
+
 ## Additions beyond the handoff
 
 The handoff has genuine gaps, confirmed by reading all six guideline documents.
