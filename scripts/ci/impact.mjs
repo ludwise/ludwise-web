@@ -140,8 +140,7 @@ const diffPaths = (base, head) => {
   return paths;
 };
 
-const revParse = (ref) =>
-  execFileSync('git', ['rev-parse', ref], { encoding: 'utf8' }).trim();
+const revParse = (ref) => execFileSync('git', ['rev-parse', ref], { encoding: 'utf8' }).trim();
 
 const changedPaths = (base, head) => {
   try {
