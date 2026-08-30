@@ -552,7 +552,7 @@ const pageOutOfRange = view !== null && view.games.length === 0 && view.resultCo
 
   .lw-sale-filters {
     margin-block-end: var(--space-6);
-    border: var(--border-width-hairline) solid var(--color-border-default);
+    border: var(--border-width-hairline) solid var(--color-border-component);
     border-radius: var(--radius-card);
     background: var(--color-surface-default);
   }
@@ -589,7 +589,7 @@ const pageOutOfRange = view !== null && view.games.length === 0 && view.resultCo
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: var(--space-5);
     padding: var(--space-4) var(--space-4) var(--space-4);
-    border-block-start: var(--border-width-hairline) solid var(--color-border-subtle);
+    border-block-start: var(--border-width-hairline) solid var(--color-border-component);
   }
 
   fieldset {
@@ -643,13 +643,7 @@ const pageOutOfRange = view !== null && view.games.length === 0 && view.resultCo
     inline-size: 100%;
     min-block-size: var(--target-min-touch);
     padding: var(--space-2) var(--space-3);
-    /* A stronger border than the page's own default: at this size, a
-       hairline in --color-border-default measures 1.34:1 against the raised
-       surface behind it in the light theme, leaving focus as the only real
-       affordance. --color-border-strong is the existing token this repo
-       already uses for exactly that judgement (GameCard's own hover state);
-       it is not a new one invented for this page. */
-    border: var(--border-width-hairline) solid var(--color-border-strong);
+    border: var(--border-width-hairline) solid var(--color-border-component);
     border-radius: var(--radius-md);
     background: var(--color-surface-raised);
     color: var(--color-text-primary);
@@ -718,12 +712,10 @@ const pageOutOfRange = view !== null && view.games.length === 0 && view.resultCo
   .lw-sales__active a {
     display: inline-block;
     padding: var(--space-1) var(--space-2);
-    border: var(--border-width-hairline) solid var(--color-border-strong);
+    border: var(--border-width-hairline) solid var(--color-border-component);
     border-radius: var(--radius-pill);
     color: var(--color-text-primary);
-    /* A stronger border alone repeats the page's own low-contrast default;
-       an underline is a second, non-colour cue that this pill is a control
-       rather than a label, on top of the stronger border above. */
+    /* The underline adds a second non-colour cue that this pill is a control. */
     text-decoration: underline;
     text-underline-offset: var(--space-1);
   }
@@ -749,7 +741,7 @@ const pageOutOfRange = view !== null && view.games.length === 0 && view.resultCo
 
   .lw-sales__note {
     padding: var(--space-4);
-    border: var(--border-width-hairline) solid var(--color-border-default);
+    border: var(--border-width-hairline) solid var(--color-border-component);
     border-radius: var(--radius-card);
     background: var(--color-surface-default);
     color: var(--color-text-secondary);

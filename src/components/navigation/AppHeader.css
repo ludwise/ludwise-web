@@ -38,7 +38,7 @@
   top: 0;
   z-index: 30;
   background: var(--color-background-primary);
-  border-bottom: var(--border-width-hairline) solid var(--color-border-default);
+  border-bottom: var(--border-width-hairline) solid var(--color-border-component);
 }
 
 .lw-header__bar {
@@ -150,7 +150,7 @@
   height: 36px;
   padding: 0 var(--space-3);
   flex: none;
-  border: var(--border-width-hairline) solid var(--color-border-default);
+  border: var(--border-width-hairline) solid var(--color-border-component);
   border-radius: var(--radius-sm);
   background: transparent;
   color: var(--color-text-secondary);
@@ -185,7 +185,7 @@
   height: 32px;
   padding: 0 var(--space-3);
   border-radius: var(--radius-button);
-  border: var(--border-width-hairline) solid var(--color-border-default);
+  border: var(--border-width-hairline) solid var(--color-border-component);
   background: var(--color-surface-interactive);
   color: var(--color-action-secondary-text);
   font: var(--text-label-md);
@@ -246,7 +246,7 @@
 
 .lw-header__mobile-panel {
   padding: var(--space-2) var(--layout-gutter-mobile) var(--space-4);
-  border-top: var(--border-width-hairline) solid var(--color-border-subtle);
+  border-top: var(--border-width-hairline) solid var(--color-border-component);
   max-width: var(--layout-max-width-wide);
   margin: 0 auto;
 }
@@ -351,7 +351,7 @@
   width: 100%;
   padding: 0 var(--space-3);
   background: var(--color-surface-default);
-  border: var(--border-width-hairline) solid var(--color-border-default);
+  border: var(--border-width-hairline) solid var(--color-border-component);
   border-radius: var(--radius-input);
   transition: var(--motion-transition-color);
 }

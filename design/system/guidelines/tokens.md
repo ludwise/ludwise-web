@@ -33,7 +33,7 @@ Prohibited: `--blue-500-button`, `--small-gray-box`, `--steam-green`, `--homepag
 `background.*` primary · secondary · tertiary · inverse
 `surface.*` default · raised · sunken · interactive · interactive-hover · interactive-active · selected · overlay · scrim
 `text.*` primary · secondary · tertiary · disabled · inverse · link · link-hover
-`border.*` subtle · default · strong · inverse · focus
+`border.*` component · decorative · subtle · default · strong · inverse · focus
 `action.*` primary · primary-hover · primary-active · primary-text · secondary-text · danger · danger-hover · danger-text · disabled-surface · disabled-text
 `accent.*` primary · quiet · border · text
 `status.*` success / warning / danger / info / neutral, each with -text, -surface, -border
@@ -48,12 +48,21 @@ Each is defined twice: once under `:root, [data-theme="light"]`, once under `[da
 
 ## Contrast
 
+`border.component` identifies a control, panel, card, navigation region or
+meaningful divider and must measure at least 3:1 against its adjacent surface.
+`border.decorative` is intentionally weaker and must not be the only boundary
+that identifies an interactive component. `border.focus` is the separate global
+keyboard focus indicator.
+
 | Pair | Light | Dark |
 | --- | --- | --- |
 | text.primary on background.primary | ~15.9:1 | ~16.4:1 |
 | text.secondary on background.primary | ~7.1:1 | ~7.4:1 |
 | text.tertiary on background.primary | ~4.7:1 | ~4.8:1 |
 | action.primary-text on action.primary | ~9.2:1 | ~9.2:1 |
+| border.component on surface.default | 4.20:1 | 4.46:1 |
+| border.component on surface.raised | 4.20:1 | 4.15:1 |
+| border.component on background.primary | 4.02:1 | 4.69:1 |
 | border.focus against adjacent surface | ~5.4:1 | ~5.9:1 |
 | accent.text on accent.quiet | ~6.1:1 | ~7.0:1 |
 

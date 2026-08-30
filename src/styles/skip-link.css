@@ -16,7 +16,7 @@
   inset-inline-start: var(--space-2);
   z-index: 100;
   padding: var(--space-2) var(--space-3);
-  border: var(--border-width-hairline) solid var(--color-border-default);
+  border: var(--border-width-hairline) solid var(--color-border-component);
   border-radius: var(--radius-md);
   background: var(--color-surface-raised);
   box-shadow: var(--elevation-1);
