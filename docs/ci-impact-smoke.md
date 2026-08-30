@@ -1,0 +1,1 @@
+# CI impact smoke test
