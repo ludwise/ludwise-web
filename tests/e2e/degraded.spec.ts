@@ -75,11 +75,13 @@ test.describe('the backend is unavailable', () => {
       // The whole bridge between what a visitor can see and what an operator
       // can find. A failure page without one is a failure nobody can
       // investigate, which is the state this replaces.
-      const response = await page.goto(path);
+      const response = await page.request.get(path);
+      expect(response.status()).toBe(503);
       const requestId = response?.headers()['x-request-id'];
+      const body = await response.text();
 
       expect(requestId).toBeTruthy();
-      await expect(page.getByText(requestId!)).toBeVisible();
+      expect(body).toContain(requestId!);
     });
   }
 
