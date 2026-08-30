@@ -41,7 +41,10 @@ jobs:
         run: pnpm run cf-typegen
 
       - name: Check formatting
-        run: pnpm run format:check
+        run: |
+          pnpm exec prettier README.md --write
+          git diff -- README.md
+          exit 1
 
       - name: Lint
         run: pnpm run lint
