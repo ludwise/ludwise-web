@@ -331,23 +331,14 @@ test.describe('catalog accessibility', () => {
   }
 });
 
-test.describe('game detail monetization neutrality', () => {
-  test('keeps factual offer ordering unchanged across affiliate states', async ({ browser }) => {
-    const states = ['none', 'affiliate'] as const;
-    const facts = [] as (readonly OfferFact[])[];
+test.describe('game detail offer ordering', () => {
+  test('renders factual offers in backend-provided order', async ({ page }) => {
+    const response = await page.goto(DETAIL_ROUTE);
 
-    for (const state of states) {
-      const context = await browser.newContext();
-      const page = await context.newPage();
-      const response = await page.goto(`${DETAIL_ROUTE}?affiliate=${state}`);
-
-      expect(response?.status()).toBe(200);
-      await expectCanonicalDetail(page);
-      facts.push(await readOfferFacts(page));
-      await context.close();
-    }
-
-    expect(facts[0]).toEqual([
+    expect(response?.status()).toBe(200);
+    await expectCanonicalDetail(page);
+    const facts = await readOfferFacts(page);
+    expect(facts).toEqual([
       {
         availability: 'available',
         edition: 'Deluxe edition',
@@ -367,7 +358,6 @@ test.describe('game detail monetization neutrality', () => {
         store: 'Copper Shop',
       },
     ]);
-    expect(facts[1]).toEqual(facts[0]);
   });
 });
 

@@ -1,5 +1,6 @@
 ---
 import type { OfferGroupView, OfferView } from '../../lib/api/contract.js';
+import { offersForRendering } from '../../lib/game/offer-order.js';
 import FreshnessIndicator from '../game/FreshnessIndicator.astro';
 import Price from '../game/Price.astro';
 import StoreIdentity from '../game/StoreIdentity.astro';
@@ -12,6 +13,7 @@ interface Props {
 }
 
 const { group, gameTitle, nowMs } = Astro.props;
+const offers = offersForRendering({ offers: group.offers });
 
 const KIND_LABELS: Record<string, string> = {
   base_game: 'Base game',
@@ -49,7 +51,7 @@ function actionUrl(offer: OfferView): string | null {
     </thead>
     <tbody>
       {
-        group.offers.map((offer) => {
+        offers.map((offer) => {
           const href = actionUrl(offer);
           return (
             <tr data-availability={offer.availability ?? 'unknown'}>

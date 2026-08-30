@@ -53,6 +53,7 @@ async function readUnavailableBody(page: Page, path: string): Promise<string> {
 }
 
 const PAGES = ['/games', '/sales', '/games/half-off-demo'];
+const VISITOR_REQUEST_ID = 'degraded-e2e-request-id';
 
 test.describe('the backend is unavailable', () => {
   for (const path of PAGES) {
@@ -75,13 +76,14 @@ test.describe('the backend is unavailable', () => {
       // The whole bridge between what a visitor can see and what an operator
       // can find. A failure page without one is a failure nobody can
       // investigate, which is the state this replaces.
-      const response = await page.request.get(path);
-      expect(response.status()).toBe(503);
+      await page.setExtraHTTPHeaders({ 'x-request-id': VISITOR_REQUEST_ID });
+      const response = await page.goto(path);
+      expect(response?.status()).toBe(503);
       const requestId = response?.headers()['x-request-id'];
-      const body = await response.text();
 
       expect(requestId).toBeTruthy();
-      expect(body).toContain(requestId!);
+      expect(requestId).toBe(VISITOR_REQUEST_ID);
+      await expect(page.getByText(requestId!, { exact: true })).toBeVisible();
     });
   }
 
