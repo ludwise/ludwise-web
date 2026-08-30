@@ -4,6 +4,12 @@ ste-prose: descriptive
 
 # LUDWISE web client
 
+[![TypeScript](https://img.shields.io/badge/TypeScript-6.0-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![React](https://img.shields.io/badge/React-19.2-61DAFB?logo=react&logoColor=black)](https://react.dev/)
+[![Astro](https://img.shields.io/badge/Astro-7.2-BC52EE?logo=astro&logoColor=white)](https://astro.build/)
+[![Cloudflare Workers](https://img.shields.io/badge/Cloudflare-Workers-F38020?logo=cloudflareworkers&logoColor=white)](https://workers.cloudflare.com/)
+[![Paraglide JS](https://img.shields.io/badge/Paraglide-JS-3B82F6?logo=inlang&logoColor=white)](https://inlang.com/m/gerre34r/library-inlang-paraglideJs)
+
 The public website for [LUDWISE](https://ludwise.com), a transparent PC game
 store comparison and discovery platform.
 
