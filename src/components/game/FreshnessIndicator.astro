@@ -5,10 +5,12 @@ interface Props {
   availability: 'available' | 'unavailable' | 'unknown' | null;
   observedAtMs: number | null;
   storeName: string;
+  /** SSR test time. Production callers omit it. */
+  nowMs?: number | undefined;
 }
 
-const { availability, observedAtMs, storeName } = Astro.props;
-const ageMs = observedAtMs === null ? null : Math.max(0, Date.now() - observedAtMs);
+const { availability, observedAtMs, storeName, nowMs } = Astro.props;
+const ageMs = observedAtMs === null ? null : Math.max(0, (nowMs ?? Date.now()) - observedAtMs);
 const hour = 60 * 60 * 1000;
 const day = 24 * hour;
 
@@ -65,9 +67,15 @@ const icon =
     display: inline-flex;
     align-items: center;
     gap: var(--space-2);
+    max-width: 100%;
+    min-width: 0;
     color: var(--color-text-secondary);
     font: var(--text-caption);
     line-height: 1.35;
+  }
+  .lw-freshness > time,
+  .lw-freshness > span:not(.lw-visually-hidden) {
+    overflow-wrap: anywhere;
   }
   .lw-freshness[data-level='stale'] {
     color: var(--color-text-secondary);

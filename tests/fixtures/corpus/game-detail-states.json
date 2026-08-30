@@ -1,0 +1,99 @@
+{
+  "status": 200,
+  "body": {
+    "id": "00000000-0000-7000-8000-000000000115",
+    "slug": "states-demo",
+    "title": "Data States Demo Game",
+    "metadata": {
+      "summary": "A fixture for offer values that are present, missing, or old.",
+      "developer": "Stateful Studio",
+      "publisher": null,
+      "releaseDate": null
+    },
+    "metadataProvenance": [],
+    "offerGroups": [
+      {
+        "market": null,
+        "currency": null,
+        "offers": [
+          {
+            "id": "00000000-0000-7000-8000-000000000151",
+            "storeName": "Copper Shop",
+            "storeSlug": "copper-shop",
+            "storePageUrl": "https://copper-shop.example.test/states-demo",
+            "offerUrl": "https://copper-shop.example.test/buy/states-demo",
+            "kind": "base_game",
+            "editionLabel": "Base game",
+            "availability": "available",
+            "price": {
+              "amountMinor": 1299,
+              "currencyCode": "EUR",
+              "minorUnit": 2
+            },
+            "referencePrice": null,
+            "discountPercentage": null,
+            "discountEndsAtMs": null,
+            "sourceName": "Copper Source",
+            "observedAtMs": 1788090900000
+          },
+          {
+            "id": "00000000-0000-7000-8000-000000000152",
+            "storeName": "Delta Store",
+            "storeSlug": "delta-store",
+            "storePageUrl": "https://delta-store.example.test/states-demo",
+            "offerUrl": "https://delta-store.example.test/buy/states-demo",
+            "kind": "base_game",
+            "editionLabel": "Base game",
+            "availability": "available",
+            "price": {
+              "amountMinor": 1799,
+              "currencyCode": "EUR",
+              "minorUnit": 2
+            },
+            "referencePrice": null,
+            "discountPercentage": null,
+            "discountEndsAtMs": null,
+            "sourceName": "Delta Source",
+            "observedAtMs": 1788084000000
+          },
+          {
+            "id": "00000000-0000-7000-8000-000000000153",
+            "storeName": "Echo Store",
+            "storeSlug": "echo-store",
+            "storePageUrl": "https://echo-store.example.test/states-demo",
+            "offerUrl": "https://echo-store.example.test/buy/states-demo",
+            "kind": "base_game",
+            "editionLabel": "Base game",
+            "availability": "available",
+            "price": {
+              "amountMinor": 2199,
+              "currencyCode": "EUR",
+              "minorUnit": 2
+            },
+            "referencePrice": null,
+            "discountPercentage": null,
+            "discountEndsAtMs": null,
+            "sourceName": "Echo Source",
+            "observedAtMs": 1787918400000
+          },
+          {
+            "id": "00000000-0000-7000-8000-000000000154",
+            "storeName": "Fallow Store",
+            "storeSlug": "fallow-store",
+            "storePageUrl": "https://fallow-store.example.test/states-demo",
+            "offerUrl": "https://fallow-store.example.test/buy/states-demo",
+            "kind": "base_game",
+            "editionLabel": "Base game",
+            "availability": "available",
+            "price": null,
+            "referencePrice": null,
+            "discountPercentage": null,
+            "discountEndsAtMs": null,
+            "sourceName": "Fallow Source",
+            "observedAtMs": null
+          }
+        ]
+      }
+    ]
+  }
+}

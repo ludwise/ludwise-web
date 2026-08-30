@@ -114,7 +114,12 @@ const CASE_URLS: Readonly<Record<string, string>> = {
 };
 
 /** Case names whose recording is a game detail, keyed by the slug it carries. */
-const DETAIL_CASES = ['game-detail', 'game-detail-canonical', 'game-detail-no-offers'];
+const DETAIL_CASES = [
+  'game-detail',
+  'game-detail-canonical',
+  'game-detail-no-offers',
+  'game-detail-states',
+];
 const ABSENT_CASE = 'game-detail-absent';
 
 function load(): void {

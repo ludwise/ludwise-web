@@ -1,5 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
+import { E2E_NOW_MS } from './tests/helpers/e2e-time.js';
+
 /**
  * One browser, and two servers.
  *
@@ -51,6 +53,7 @@ export default defineConfig({
   reporter: process.env.CI ? [['github'], ['list']] : [['list']],
   use: {
     baseURL: BASE_URL,
+    extraHTTPHeaders: { 'x-ludwise-test-now': String(E2E_NOW_MS) },
     trace: 'retain-on-failure',
   },
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
@@ -72,7 +75,11 @@ export default defineConfig({
       url: `${BASE_URL}/api/health`,
       reuseExistingServer: !process.env.CI,
       timeout: 120_000,
-      env: { BACKEND_DEV_URL: `http://localhost:${BACKEND_PORT}` },
+      env: {
+        BACKEND_DEV_URL: `http://localhost:${BACKEND_PORT}`,
+        ASTRO_DEV_BACKGROUND: '0',
+        LUDWISE_E2E_NOW_MS: String(E2E_NOW_MS),
+      },
     },
   ],
 });
