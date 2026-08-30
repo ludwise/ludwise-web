@@ -124,7 +124,7 @@ export const classifyPaths = (paths) => {
   return { full: false, unknown: false, ...plan };
 };
 
-const changedPaths = (base, head) => {
+const diffPaths = (base, head) => {
   const output = execFileSync('git', ['diff', '--name-status', '-M', '-z', base, head], {
     encoding: 'utf8',
     maxBuffer: 64 * 1024 * 1024,
@@ -138,6 +138,20 @@ const changedPaths = (base, head) => {
     else paths.push(fields[index++]);
   }
   return paths;
+};
+
+const revParse = (ref) =>
+  execFileSync('git', ['rev-parse', ref], { encoding: 'utf8' }).trim();
+
+const changedPaths = (base, head) => {
+  try {
+    return diffPaths(base, head);
+  } catch (error) {
+    const checkedBase = revParse('HEAD^1');
+    const checkedHead = revParse('HEAD^2');
+    if (checkedBase !== base || checkedHead !== head) throw error;
+    return diffPaths('HEAD^1', 'HEAD^2');
+  }
 };
 
 const writePlan = (plan, outputPath) => {
