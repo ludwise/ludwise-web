@@ -92,6 +92,10 @@ export interface GameMetadataView {
   readonly developer: string | null;
   readonly publisher: string | null;
   readonly releaseDate: string | null;
+  /** Added additively. Older backends may omit this property during rollout. */
+  readonly genres?: readonly string[];
+  /** Added additively. Older backends may omit this property during rollout. */
+  readonly platforms?: readonly string[];
 }
 
 export interface MarketView {

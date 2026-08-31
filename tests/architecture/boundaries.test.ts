@@ -127,6 +127,35 @@ describe('the frontend has no data access of its own', () => {
   });
 });
 
+describe('production code has no provider-specific metadata dependency', () => {
+  it('does not import IGDB or Twitch modules', () => {
+    const offenders = edges()
+      .filter((edge) => /igdb|twitch/iu.test(edge.specifier))
+      .map((edge) => `${edge.from} -> ${edge.specifier}`);
+    expect(offenders).toEqual([]);
+  });
+
+  const FORBIDDEN_PROVIDER_CONCEPTS: readonly [string, RegExp][] = [
+    [
+      'provider credentials',
+      /\b(?:IGDB|Twitch)[A-Z0-9_]*(?:KEY|SECRET|TOKEN|CLIENT_ID|CLIENT_SECRET)\b/iu,
+    ],
+    [
+      'provider API calls or URL construction',
+      /\b(?:api\.)?(?:igdb\.com|twitch\.tv|id\.twitch\.tv)\b/iu,
+    ],
+    [
+      'provider-specific contract types',
+      /\b(?:IGDB|Igdb|Twitch)[A-Za-z0-9_]*(?:View|Metadata|Genre|Platform|Game|Contract|Dto|DTO)\b/u,
+    ],
+  ];
+
+  it.each(FORBIDDEN_PROVIDER_CONCEPTS)('contains no %s', (_label, pattern) => {
+    const offenders = sourceFiles.filter((file) => pattern.test(codeOf(file)));
+    expect(offenders).toEqual([]);
+  });
+});
+
 /**
  * Bindings are reached in one place.
  *

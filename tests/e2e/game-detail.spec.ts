@@ -72,6 +72,21 @@ test.describe('game detail', () => {
     expect(response?.status()).toBe(200);
     await expectCanonicalDetail(page);
     await expect(page.getByRole('heading', { name: 'About this game' })).toBeVisible();
+    const metadata = page.getByRole('heading', { name: 'Game details' }).locator('..');
+    const genres = metadata
+      .locator('dt')
+      .filter({ hasText: 'Genres' })
+      .locator('xpath=following-sibling::dd[1]')
+      .getByRole('listitem');
+    const platforms = metadata
+      .locator('dt')
+      .filter({ hasText: 'Platforms' })
+      .locator('xpath=following-sibling::dd[1]')
+      .getByRole('listitem');
+    await expect(genres).toHaveText(['Action', 'RPG']);
+    await expect(platforms).toHaveText(['Linux', 'Windows']);
+    await expect(genres).toHaveCount(2);
+    await expect(platforms).toHaveCount(2);
     await expect(page.getByText('Orbit Market', { exact: true }).first()).toBeVisible();
     await expect(page.getByText('Copper Shop', { exact: true }).first()).toBeVisible();
     await expect(page.getByText('Free')).toBeVisible();
@@ -82,6 +97,19 @@ test.describe('game detail', () => {
     await expect(
       page.getByRole('region', { name: 'European Union · EUR' }).getByRole('row').nth(1),
     ).toContainText('Free');
+  });
+
+  test('omits empty classification groups without inventing metadata', async ({ page }) => {
+    const response = await page.goto('/games/half-off-demo');
+
+    expect(response?.status()).toBe(200);
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Half Off Demo Game');
+    await expect(page.getByRole('heading', { name: 'Game details' })).toBeVisible();
+    await expect(page.getByText('Release date', { exact: true })).toBeVisible();
+    await expect(page.getByText('Genres', { exact: true })).toHaveCount(0);
+    await expect(page.getByText('Platforms', { exact: true })).toHaveCount(0);
+    await expect(page.getByText('Unknown', { exact: true })).toHaveCount(0);
+    await expect(page.getByText('N/A', { exact: true })).toHaveCount(0);
   });
 
   test('renders missing market and currency without inventing values', async ({ page }) => {
@@ -104,6 +132,8 @@ test.describe('game detail', () => {
 
     await expect(page.getByRole('heading', { name: 'Market not provided · EUR' })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'European Union', exact: true })).toBeVisible();
+    await expect(page.getByText('Genres', { exact: true })).toHaveCount(0);
+    await expect(page.getByText('Platforms', { exact: true })).toHaveCount(0);
 
     await auditFor(page);
   });
