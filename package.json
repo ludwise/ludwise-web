@@ -39,7 +39,7 @@
     "prepare": "husky"
   },
   "dependencies": {
-    "astro": "7.2.4",
+    "astro": "7.2.9",
     "react": "19.2.8",
     "react-dom": "19.2.8"
   },
