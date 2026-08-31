@@ -43,10 +43,16 @@ const pageTitle =
 const pageDescription = view?.metadata?.summary ?? undefined;
 const metadata = view?.metadata;
 const releaseDate = formatReleaseDate(metadata?.releaseDate ?? null);
+const genres = metadata?.genres ?? [];
+const platforms = metadata?.platforms ?? [];
 const hasMetadata =
   metadata !== null &&
   metadata !== undefined &&
-  (metadata.developer !== null || metadata.publisher !== null || releaseDate !== null);
+  (metadata.developer !== null ||
+    metadata.publisher !== null ||
+    releaseDate !== null ||
+    genres.length > 0 ||
+    platforms.length > 0);
 ---
 
 <BaseLayout title={`${pageTitle} — LUDWISE`} description={pageDescription} activeNavId="games">
@@ -118,6 +124,30 @@ const hasMetadata =
                     <>
                       <dt>Release date</dt>
                       <dd>{releaseDate}</dd>
+                    </>
+                  )}
+                  {genres.length > 0 && (
+                    <>
+                      <dt>Genres</dt>
+                      <dd>
+                        <ul class="lw-game-detail__metadata-values" aria-label="Genres">
+                          {genres.map((genre) => (
+                            <li>{genre}</li>
+                          ))}
+                        </ul>
+                      </dd>
+                    </>
+                  )}
+                  {platforms.length > 0 && (
+                    <>
+                      <dt>Platforms</dt>
+                      <dd>
+                        <ul class="lw-game-detail__metadata-values" aria-label="Platforms">
+                          {platforms.map((platform) => (
+                            <li>{platform}</li>
+                          ))}
+                        </ul>
+                      </dd>
                     </>
                   )}
                 </dl>
@@ -235,6 +265,21 @@ const hasMetadata =
   }
   .lw-game-detail__metadata dd {
     overflow-wrap: anywhere;
+  }
+  .lw-game-detail__metadata-values {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    padding: 0;
+    margin: 0;
+    list-style: none;
+  }
+  .lw-game-detail__metadata-values li {
+    padding: var(--space-1) var(--space-2);
+    border: var(--border-width-hairline) solid var(--color-border-component);
+    border-radius: var(--radius-badge);
+    color: var(--color-text-secondary);
+    font: var(--text-label-sm);
   }
   .lw-game-detail__provenance {
     color: var(--color-text-secondary);

@@ -8,9 +8,35 @@
       "summary": "A small fixture proving that a game page reads canonical data without knowing its source.",
       "developer": "Example Studio",
       "publisher": "Example Publisher",
-      "releaseDate": "2025-04-18"
+      "releaseDate": "2025-04-18",
+      "genres": [
+        "Action",
+        "RPG"
+      ],
+      "platforms": [
+        "Linux",
+        "Windows"
+      ]
     },
     "metadataProvenance": [
+      {
+        "field": "developer",
+        "sourceName": "Orbit Source",
+        "method": "direct",
+        "observedAtMs": 1750000000000
+      },
+      {
+        "field": "publisher",
+        "sourceName": "Orbit Source",
+        "method": "direct",
+        "observedAtMs": 1750000000000
+      },
+      {
+        "field": "release_date",
+        "sourceName": "Orbit Source",
+        "method": "direct",
+        "observedAtMs": 1750000000000
+      },
       {
         "field": "summary",
         "sourceName": "Orbit Source",
