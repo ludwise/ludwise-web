@@ -59,6 +59,12 @@
           }
         ]
       }
-    ]
+    ],
+    "media": {
+      "cover": null,
+      "hero": null,
+      "screenshots": [],
+      "videos": []
+    }
   }
 }

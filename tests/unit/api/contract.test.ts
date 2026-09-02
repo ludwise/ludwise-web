@@ -1,11 +1,17 @@
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+
 import { describe, expect, it } from 'vitest';
 
 import {
   API_ERROR_CODES,
   GAME_SEARCH_PAGE_SIZE,
+  MEDIA_IMAGE_KINDS,
+  MEDIA_IMAGE_PROFILES,
   REFUSABLE_FIELDS,
   SALE_PAGE_SIZE,
   SALE_SORTS,
+  type GameDetailView,
 } from '../../../src/lib/api/contract.js';
 import { adviseGameSearch, adviseSales } from '../../../src/lib/http/filter-advice.js';
 import { failureKindForCode } from '../../../src/lib/api/errors.js';
@@ -91,5 +97,122 @@ describe('page sizes', () => {
     expect(GAME_SEARCH_PAGE_SIZE).toBeGreaterThan(0);
     expect(Number.isInteger(SALE_PAGE_SIZE)).toBe(true);
     expect(SALE_PAGE_SIZE).toBeGreaterThan(0);
+  });
+});
+
+/**
+ * The media a game detail may carry, which is published additively.
+ *
+ * Two closed vocabularies and one optional property. This suite states three
+ * things the type alone cannot. The vocabularies are the ones a renderer may
+ * switch on. A response that omits `media` is still a valid detail view. The
+ * recorded corpus carries the full shape and the empty one.
+ *
+ * Nothing here renders anything. How a gallery or a player looks is #53.
+ */
+const corpus = (name: string): GameDetailView =>
+  (
+    JSON.parse(readFileSync(resolve('tests/fixtures/corpus', `${name}.json`), 'utf8')) as {
+      readonly body: GameDetailView;
+    }
+  ).body;
+
+describe('the media vocabularies', () => {
+  it('are the profiles the backend resolves an address for', () => {
+    // A profile is what an image is for. It is never a size word, because the
+    // backend decides which variant answers each one behind the contract.
+    expect(MEDIA_IMAGE_PROFILES).toEqual(['cover', 'hero', 'gallery']);
+  });
+
+  it('are the kinds a picture may actually be', () => {
+    expect(MEDIA_IMAGE_KINDS).toEqual(['cover', 'hero', 'artwork', 'screenshot', 'logo']);
+  });
+
+  it('have no duplicate members', () => {
+    expect(new Set(MEDIA_IMAGE_PROFILES).size).toBe(MEDIA_IMAGE_PROFILES.length);
+    expect(new Set(MEDIA_IMAGE_KINDS).size).toBe(MEDIA_IMAGE_KINDS.length);
+  });
+});
+
+describe('a detail view is valid with media and without it', () => {
+  /**
+   * A response from a backend that predates media.
+   *
+   * Annotated rather than inferred, so the object is checked against the
+   * contract. `pnpm run typecheck:tests` is what enforces it. A `media` made
+   * required would fail here, which states the additive rule as a build error
+   * rather than as a comment.
+   */
+  const withoutMedia: GameDetailView = {
+    id: 'g1',
+    slug: 'older-backend',
+    title: 'Older Backend',
+    metadata: null,
+    metadataProvenance: [],
+    offerGroups: [],
+  };
+
+  const withEmptyMedia: GameDetailView = {
+    ...withoutMedia,
+    media: { cover: null, hero: null, screenshots: [], videos: [] },
+  };
+
+  it('reads an omitted media object as a deployment that predates the field', () => {
+    // The distinction the optional property exists for. Absent is not empty,
+    // and a page must not report "no pictures" on the strength of a rollout.
+    expect(withoutMedia.media).toBeUndefined();
+    expect('media' in withoutMedia).toBe(false);
+  });
+
+  it('reads a present empty media object as a game with no pictures', () => {
+    expect(withEmptyMedia.media).toEqual({
+      cover: null,
+      hero: null,
+      screenshots: [],
+      videos: [],
+    });
+  });
+});
+
+describe('the recorded corpus carries the media contract', () => {
+  it('records a game with a cover, a hero, screenshots and a video', () => {
+    // The evidence that this repository holds a real recording rather than a
+    // plausible one. Without it the corpus could be copied from the wrong
+    // commit and every type assertion above would still pass.
+    const media = corpus('game-detail-canonical').media;
+
+    expect(media?.cover?.url).toMatch(/^https:\/\//u);
+    expect(media?.hero?.url).toMatch(/^https:\/\//u);
+    expect(media?.screenshots.length).toBeGreaterThan(0);
+    expect(media?.videos[0]?.url).toMatch(/^https:\/\//u);
+    // Both addresses, so a page never builds the second from the first.
+    expect(media?.videos[0]?.embedUrl).toMatch(/^https:\/\//u);
+  });
+
+  it('records the profiles and kinds this contract publishes', () => {
+    const media = corpus('game-detail-canonical').media;
+    const images = [media?.cover, media?.hero, ...(media?.screenshots ?? [])].filter(
+      (image) => image !== null && image !== undefined,
+    );
+
+    expect(images.length).toBeGreaterThan(0);
+    for (const image of images) {
+      expect(MEDIA_IMAGE_PROFILES).toContain(image.profile);
+      expect(MEDIA_IMAGE_KINDS).toContain(image.sourceKind);
+      expect(Object.keys(image.provenance).sort()).toEqual([
+        'observedAtMs',
+        'providerName',
+        'providerSlug',
+      ]);
+    }
+  });
+
+  it('records the empty media shape on a game that holds none', () => {
+    expect(corpus('game-detail-no-offers').media).toEqual({
+      cover: null,
+      hero: null,
+      screenshots: [],
+      videos: [],
+    });
   });
 });

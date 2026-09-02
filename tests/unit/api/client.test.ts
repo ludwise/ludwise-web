@@ -14,6 +14,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import { createApiClient } from '../../../src/lib/api/client.js';
+import type { GameDetailView } from '../../../src/lib/api/contract.js';
 import { isApiError, LudwiseApiError } from '../../../src/lib/api/errors.js';
 
 const BASE = 'https://backend.invalid';
@@ -34,6 +35,18 @@ const SEARCH_VIEW = {
   pageCount: 0,
   facets: { stores: [], markets: [] },
 };
+
+/** A detail as a backend older than the media field answers one. */
+const DETAIL_WITHOUT_MEDIA = {
+  id: 'g1',
+  slug: 'older-backend',
+  title: 'Older Backend',
+  metadata: null,
+  metadataProvenance: [],
+  offerGroups: [],
+} satisfies GameDetailView;
+
+const EMPTY_MEDIA = { cover: null, hero: null, screenshots: [], videos: [] };
 
 function clientOver(
   fetchImpl: typeof fetch,
@@ -135,6 +148,28 @@ describe('the request it sends', () => {
     const { calls, fetchImpl } = recording(json(null, 404));
     await clientOver(fetchImpl).getGameDetail('../ops/api/logs');
     expect(new URL(calls[0]!.url).pathname).toBe('/v1/games/..%2Fops%2Fapi%2Flogs');
+  });
+
+  it('reads a detail from a backend that predates media, without inventing one', async () => {
+    // The additive rule, from the client's side. A deployment older than the
+    // media field is a normal deployment. The client must hand the page what
+    // arrived, rather than fill a gap with an empty object nobody sent.
+    const { fetchImpl } = recording(json(DETAIL_WITHOUT_MEDIA));
+
+    const view = await clientOver(fetchImpl).getGameDetail('older-backend');
+
+    expect(view).toEqual(DETAIL_WITHOUT_MEDIA);
+    expect(view).not.toHaveProperty('media');
+  });
+
+  it('passes media through unchanged when the backend sends it', async () => {
+    const { fetchImpl } = recording(json({ ...DETAIL_WITHOUT_MEDIA, media: EMPTY_MEDIA }));
+
+    const view = await clientOver(fetchImpl).getGameDetail('newer-backend');
+
+    // Unchanged, because the client transports and does not interpret. What a
+    // page does with an empty gallery is a rendering decision made in a page.
+    expect(view?.media).toEqual(EMPTY_MEDIA);
   });
 });
 
