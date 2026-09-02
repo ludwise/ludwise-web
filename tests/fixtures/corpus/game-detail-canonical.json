@@ -224,6 +224,62 @@
           }
         ]
       }
-    ]
+    ],
+    "media": {
+      "cover": {
+        "url": "https://images.igdb.com/igdb/image/upload/t_cover_big/demo-cover.jpg",
+        "profile": "cover",
+        "sourceKind": "cover",
+        "provenance": {
+          "providerSlug": "igdb",
+          "providerName": "IGDB",
+          "observedAtMs": 1750000000000
+        }
+      },
+      "hero": {
+        "url": "https://images.igdb.com/igdb/image/upload/t_1080p/demo-artwork.jpg",
+        "profile": "hero",
+        "sourceKind": "artwork",
+        "provenance": {
+          "providerSlug": "igdb",
+          "providerName": "IGDB",
+          "observedAtMs": 1750000000000
+        }
+      },
+      "screenshots": [
+        {
+          "url": "https://images.igdb.com/igdb/image/upload/t_screenshot_huge/demo-shot-1.jpg",
+          "profile": "gallery",
+          "sourceKind": "screenshot",
+          "provenance": {
+            "providerSlug": "igdb",
+            "providerName": "IGDB",
+            "observedAtMs": 1750000000000
+          }
+        },
+        {
+          "url": "https://images.igdb.com/igdb/image/upload/t_screenshot_huge/demo-shot-2.jpg",
+          "profile": "gallery",
+          "sourceKind": "screenshot",
+          "provenance": {
+            "providerSlug": "igdb",
+            "providerName": "IGDB",
+            "observedAtMs": 1750000000000
+          }
+        }
+      ],
+      "videos": [
+        {
+          "url": "https://www.youtube.com/watch?v=demo-000001",
+          "embedUrl": "https://www.youtube-nocookie.com/embed/demo-000001",
+          "title": "Canonical Demo Game in motion",
+          "provenance": {
+            "providerSlug": "igdb",
+            "providerName": "IGDB",
+            "observedAtMs": 1750000000000
+          }
+        }
+      ]
+    }
   }
 }

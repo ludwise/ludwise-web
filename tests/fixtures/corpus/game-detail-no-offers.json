@@ -6,6 +6,12 @@
     "title": "No Offers Demo Game",
     "metadata": null,
     "metadataProvenance": [],
-    "offerGroups": []
+    "offerGroups": [],
+    "media": {
+      "cover": null,
+      "hero": null,
+      "screenshots": [],
+      "videos": []
+    }
   }
 }

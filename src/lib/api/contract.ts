@@ -164,6 +164,89 @@ export interface ProvenanceView {
   readonly observedAtMs: number;
 }
 
+/**
+ * What an image is for, in LUDWISE's words.
+ *
+ * A purpose rather than a measurement. No source's size vocabulary appears
+ * here, and none may. Which variant of an image answers `cover` is a decision
+ * the backend makes behind this contract. A renderer keys layout on this, and
+ * never on a pixel count it was not given.
+ */
+export const MEDIA_IMAGE_PROFILES = ['cover', 'hero', 'gallery'] as const;
+
+export type MediaImageProfile = (typeof MEDIA_IMAGE_PROFILES)[number];
+
+/**
+ * What the picture actually is, whatever slot it fills.
+ *
+ * The backend may put a cover in the hero slot when nothing wider exists.
+ * `sourceKind` is how a renderer knows, so it can frame an upscaled cover
+ * differently from a real wide image rather than stretch one.
+ *
+ * `logo` is part of this vocabulary and is not selected into any slot today.
+ * A per-game logo is not something the current metadata source supplies.
+ */
+export const MEDIA_IMAGE_KINDS = ['cover', 'hero', 'artwork', 'screenshot', 'logo'] as const;
+
+export type MediaImageKind = (typeof MEDIA_IMAGE_KINDS)[number];
+
+/**
+ * Which source a picture or a video came from, and when it was seen.
+ *
+ * Separate from `metadataProvenance`, deliberately. That list says which
+ * source a canonical scalar field was projected from. Media is not one of
+ * those fields. So it carries its own attribution on the item instead.
+ * Attribution is also an obligation some sources place on showing their
+ * images, and a renderer needs the name to satisfy it.
+ */
+export interface MediaProvenanceView {
+  readonly providerSlug: string;
+  readonly providerName: string;
+  readonly observedAtMs: number;
+}
+
+export interface MediaImageView {
+  /** A public https address. Never a template and never an identifier. */
+  readonly url: string;
+  readonly profile: MediaImageProfile;
+  readonly sourceKind: MediaImageKind;
+  readonly provenance: MediaProvenanceView;
+}
+
+export interface MediaVideoView {
+  /** Where a visitor opens the video. */
+  readonly url: string;
+  /**
+   * Where a page plays it without sending the visitor away.
+   *
+   * `null` when the source publishes a page for a video and permits no player
+   * for it. The video is still listed, because a link a visitor can open is
+   * worth more than a player a client may leave out.
+   */
+  readonly embedUrl: string | null;
+  /** As the source stated it. `null` when the source stated none. */
+  readonly title: string | null;
+  readonly provenance: MediaProvenanceView;
+}
+
+/**
+ * The pictures and videos one game may show.
+ *
+ * No role is inferred. Nothing here says which video is a trailer, because the
+ * stored fact does not establish one. A guess would be a claim about the
+ * publisher's intent that nobody made.
+ *
+ * The empty state is deliberate and is the same shape every time: `cover` and
+ * `hero` are `null`, and both lists are `[]`. A game LUDWISE holds no picture
+ * for is a normal game.
+ */
+export interface GameMediaView {
+  readonly cover: MediaImageView | null;
+  readonly hero: MediaImageView | null;
+  readonly screenshots: readonly MediaImageView[];
+  readonly videos: readonly MediaVideoView[];
+}
+
 export interface GameDetailView {
   readonly id: string;
   readonly slug: string;
@@ -171,6 +254,16 @@ export interface GameDetailView {
   readonly metadata: GameMetadataView | null;
   readonly metadataProvenance: readonly ProvenanceView[];
   readonly offerGroups: readonly OfferGroupView[];
+  /**
+   * Added additively. Older backends may omit this property during rollout.
+   *
+   * `?:` rather than `GameMediaView | null`, and the two say different things.
+   * A backend that carries the field always sends the whole object, empty or
+   * not. Absence thus means "this deployment predates media" and never "this
+   * game has none". A client renders the second from `cover === null` and
+   * empty lists, which is a state it can trust.
+   */
+  readonly media?: GameMediaView;
 }
 
 // ---------------------------------------------------------------------------
