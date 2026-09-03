@@ -92,3 +92,17 @@ structured API contract that genuinely requires multiple concise lines.
 During review, a long explanatory comment triggers a readability check. Prefer
 clearer names, stronger types, a smaller function, an extracted concept, or
 simpler control flow whenever those can make the comment unnecessary.
+
+## Agent skills
+
+### Issue tracker
+
+Issues live as GitHub issues in `ludwise/ludwise-web`, through the `gh` CLI. See [docs/agents/issue-tracker.md](docs/agents/issue-tracker.md).
+
+### Triage labels
+
+Five canonical roles, mapped to the labels this repository uses. See [docs/agents/triage-labels.md](docs/agents/triage-labels.md).
+
+### Domain docs
+
+Single-context: one `CONTEXT.md` at the root, with `docs/adr/`. See [docs/agents/domain.md](docs/agents/domain.md).
