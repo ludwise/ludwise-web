@@ -37,6 +37,22 @@ describe('CI impact planner', () => {
     });
   });
 
+  it('measures Lighthouse when a change can move a score or a transfer size', () => {
+    expect(classifyPaths(['src/pages/index.astro'])).toMatchObject({ lighthouse: true });
+    expect(classifyPaths(['messages/en.json'])).toMatchObject({ lighthouse: true });
+  });
+
+  it('skips the measurement for a change that cannot move one', () => {
+    expect(classifyPaths(['README.md'])).toMatchObject({ lighthouse: false });
+    expect(classifyPaths(['tests/e2e/shell.spec.ts'])).toMatchObject({ lighthouse: false });
+  });
+
+  it('forces the full suite for the gate script and its committed limits', () => {
+    expect(classifyPaths(['lighthouse.config.json']).full).toBe(true);
+    expect(classifyPaths(['scripts/lighthouse.mjs']).full).toBe(true);
+    expect(classifyPaths(['scripts/lighthouse/evaluate.mjs']).full).toBe(true);
+  });
+
   it('forces the full suite for CI and toolchain controls', () => {
     expect(classifyPaths(['.github/workflows/verify.yml']).full).toBe(true);
     expect(classifyPaths(['scripts/ci/impact.mjs']).full).toBe(true);

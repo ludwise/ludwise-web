@@ -1,0 +1,167 @@
+name: Lighthouse
+
+# The gate that keeps a Lighthouse score and an asset budget from getting
+# worse. It measures a production build that `wrangler dev` serves over the
+# recorded fixtures, which is the only run of this repository that means the
+# same thing twice. Every limit lives in lighthouse.config.json.
+on:
+  workflow_call:
+    inputs:
+      mode:
+        description: Verification mode. A deployment always measures.
+        required: false
+        type: string
+        default: full
+      base_sha:
+        description: Pull request base SHA for impact mode.
+        required: false
+        type: string
+        default: ''
+      head_sha:
+        description: Pull request head SHA for impact mode.
+        required: false
+        type: string
+        default: ''
+      artifact_name:
+        description: Name of the uploaded report artifact.
+        required: false
+        type: string
+        default: lighthouse-reports
+
+permissions: {}
+
+env:
+  FORCE_COLOR: '1'
+  LIGHTHOUSE_TARGET: http://127.0.0.1:4321
+  LIGHTHOUSE_BACKEND_PORT: '8788'
+  LIGHTHOUSE_REPORT_DIR: lighthouse-reports
+
+jobs:
+  lighthouse:
+    name: Lighthouse
+    runs-on: ubuntu-latest
+    # Long because the run takes several samples of every route class and form
+    # factor. One sample is not a number, and a shorter run reports noise as a
+    # regression. lighthouse.config.json holds the counts.
+    timeout-minutes: 45
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: ${{ inputs.mode == 'impact' && 2 || 1 }}
+          persist-credentials: false
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+
+      - name: Install Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # The job always reports a status, so the required check never blocks on a
+      # skipped job. A draft pull request measures only when the change can move
+      # a score. A ready pull request always measures, as verify.yml does.
+      - name: Plan verification
+        id: plan
+        env:
+          VERIFY_MODE: ${{ inputs.mode }}
+          BASE_SHA: ${{ inputs.base_sha }}
+          HEAD_SHA: ${{ inputs.head_sha }}
+        run: |
+          if [ "$VERIFY_MODE" = "impact" ]; then
+            if [ -z "$BASE_SHA" ] || [ -z "$HEAD_SHA" ]; then
+              echo "::error::Impact mode requires base_sha and head_sha."
+              exit 1
+            fi
+            node scripts/ci/impact.mjs "$BASE_SHA" "$HEAD_SHA" --github-output "$GITHUB_OUTPUT"
+          else
+            node scripts/ci/impact.mjs --full --github-output "$GITHUB_OUTPUT"
+          fi
+
+      - name: Report the gate plan
+        env:
+          MEASURES: ${{ steps.plan.outputs.lighthouse }}
+        run: |
+          echo "### Lighthouse" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Measures this change: $MEASURES" >> "$GITHUB_STEP_SUMMARY"
+
+      # The arithmetic of the gate is tested before the gate is trusted. A
+      # broken median or a broken comparison would pass every threshold.
+      - name: Test the gate
+        if: steps.plan.outputs.lighthouse == 'true'
+        run: pnpm exec vitest run tests/unit/scripts/lighthouse
+
+      - name: Prepare local configuration
+        if: steps.plan.outputs.lighthouse == 'true'
+        run: cp .dev.vars.example .dev.vars
+
+      # The browser that @playwright/test pins, and no second download. The
+      # measurement then runs on one browser build here and on a developer
+      # machine.
+      - name: Install the pinned browser
+        if: steps.plan.outputs.lighthouse == 'true'
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Build
+        if: steps.plan.outputs.lighthouse == 'true'
+        env:
+          SITE_URL: ${{ env.LIGHTHOUSE_TARGET }}
+        run: pnpm run build
+
+      # The recorded corpus, not a live backend. A real catalog moves between
+      # runs, and a person cannot then separate a regression from a data change.
+      - name: Start the fixture backend
+        if: steps.plan.outputs.lighthouse == 'true'
+        env:
+          LUDWISE_FAKE_BACKEND_MODE: populated
+          LUDWISE_FAKE_BACKEND_PORT: ${{ env.LIGHTHOUSE_BACKEND_PORT }}
+        run: |
+          nohup node --experimental-strip-types scripts/fake-backend.ts > fake-backend.log 2>&1 &
+          timeout 60 bash -c \
+            'until curl -sf -o /dev/null "http://127.0.0.1:${LUDWISE_FAKE_BACKEND_PORT}/v1/games"; do sleep 1; done'
+
+      - name: Serve the production build
+        if: steps.plan.outputs.lighthouse == 'true'
+        env:
+          BACKEND_DEV_URL: http://127.0.0.1:${{ env.LIGHTHOUSE_BACKEND_PORT }}
+          TARGET: ${{ env.LIGHTHOUSE_TARGET }}
+        run: |
+          nohup pnpm exec wrangler dev --port 4321 --ip 127.0.0.1 > wrangler-dev.log 2>&1 &
+          timeout 120 bash -c 'until curl -sf -o /dev/null "${TARGET}/api/health"; do sleep 2; done'
+
+      - name: Measure and enforce
+        if: steps.plan.outputs.lighthouse == 'true'
+        env:
+          TARGET: ${{ env.LIGHTHOUSE_TARGET }}
+          REPORT_DIR: ${{ env.LIGHTHOUSE_REPORT_DIR }}
+        run: node scripts/lighthouse.mjs --target "$TARGET" --mode deterministic --report-dir "$REPORT_DIR"
+
+      # Uploaded whether the gate passed or failed. A red gate without its
+      # report gives a person a number and no way to find the cause.
+      - name: Upload the reports
+        if: always() && steps.plan.outputs.lighthouse == 'true'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ${{ inputs.artifact_name }}
+          path: ${{ env.LIGHTHOUSE_REPORT_DIR }}/
+          retention-days: 14
+          if-no-files-found: warn
+
+      - name: Upload the server logs
+        if: failure() && steps.plan.outputs.lighthouse == 'true'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: ${{ inputs.artifact_name }}-logs
+          path: |
+            fake-backend.log
+            wrangler-dev.log
+          retention-days: 7
+          if-no-files-found: ignore

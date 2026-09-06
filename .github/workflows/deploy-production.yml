@@ -26,9 +26,20 @@ jobs:
     permissions:
       contents: read
 
+  # The same blocking policy that a pull request meets, run against the same
+  # deterministic fixtures before anything reaches the public site. Production
+  # never gets a weaker rule than pull request validation.
+  lighthouse:
+    name: Lighthouse
+    uses: ./.github/workflows/lighthouse.yml
+    with:
+      artifact_name: lighthouse-reports-production-gate
+    permissions:
+      contents: read
+
   deploy:
     name: Deploy to Cloudflare
-    needs: verify
+    needs: [verify, lighthouse]
     runs-on: ubuntu-latest
     timeout-minutes: 15
     # A GitHub environment with its own protection rules. The approval gate

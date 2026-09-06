@@ -14,6 +14,7 @@ const FULL = Object.freeze({
   degraded: true,
   deployment: true,
   publishAudit: true,
+  lighthouse: true,
 });
 
 const EMPTY = Object.freeze(Object.fromEntries(Object.keys(FULL).map((key) => [key, false])));
@@ -33,6 +34,8 @@ const CONTROL = [
   /^\.dev\.vars\.example$/,
   /^project\.inlang\//,
   /^scripts\/(?:check-dev-ssr|run-degraded|audit-public|check-bundle)\.mjs$/,
+  /^scripts\/lighthouse(?:\.mjs|\/)/,
+  /^lighthouse\.config\.json$/,
 ];
 
 const DOC =
@@ -68,6 +71,7 @@ export const classifyPaths = (paths) => {
         build: true,
         browser: true,
         publishAudit: true,
+        lighthouse: true,
       });
       continue;
     }
@@ -102,6 +106,7 @@ export const classifyPaths = (paths) => {
         build: true,
         browser: true,
         publishAudit: true,
+        lighthouse: true,
       });
       continue;
     }

@@ -1,0 +1,27 @@
+{
+  "$schemaVersion": 1,
+  "samples": 3,
+  "theme": "light",
+  "formFactors": ["desktop", "mobile"],
+  "routeClasses": [
+    { "id": "home", "path": "/" },
+    { "id": "games", "path": "/games" },
+    { "id": "sales", "path": "/sales" },
+    { "id": "game-detail", "path": "/games/canonical-demo" }
+  ],
+  "categories": {
+    "performance": 95,
+    "accessibility": 100,
+    "best-practices": 100,
+    "seo": 100
+  },
+  "metrics": {
+    "largest-contentful-paint": 2500,
+    "cumulative-layout-shift": 0.1,
+    "total-blocking-time": 200
+  },
+  "budgets": {},
+  "deterministic": {
+    "skipAudits": ["is-crawlable", "color-contrast"]
+  }
+}

@@ -94,6 +94,9 @@ The thresholds and the asset budgets live in the committed Lighthouse
 configuration and nowhere else. This standard holds the procedure and restates
 no number.
 
+The machinery that enforces this run on a pull request and before a deploy is
+[lighthouse-gate.md](lighthouse-gate.md).
+
 ## Gate 3. Cutover clean
 
 Automated, on production. `deploy-production.yml` runs it, and
