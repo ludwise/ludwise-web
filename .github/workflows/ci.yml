@@ -27,6 +27,20 @@ jobs:
     permissions:
       contents: read
 
+  # The Lighthouse gate. Its status is a required merge check, so the job runs
+  # on every pull request and reports even when a change cannot move a score.
+  # See docs/operations/lighthouse-gate.md.
+  lighthouse:
+    name: Lighthouse
+    uses: ./.github/workflows/lighthouse.yml
+    with:
+      mode: ${{ github.event_name == 'pull_request' && github.event.pull_request.draft && 'impact' || 'full' }}
+      base_sha: ${{ github.event.pull_request.base.sha || '' }}
+      head_sha: ${{ github.event.pull_request.head.sha || '' }}
+      artifact_name: lighthouse-reports
+    permissions:
+      contents: read
+
   commitlint:
     name: Commit messages
     runs-on: ubuntu-latest
