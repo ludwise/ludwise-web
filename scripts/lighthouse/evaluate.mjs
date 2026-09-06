@@ -108,6 +108,24 @@ function medianOfGroup(observations, group) {
   return summary;
 }
 
+/**
+ * The median transfer size of every resource type any sample saw.
+ *
+ * A type missing from one sample transferred no bytes in it, so it counts as
+ * zero rather than as absent. Reading the types from one sample would drop a
+ * type the other samples saw, and a budget cannot fail on a size it never got.
+ */
+function medianTransferSizes(observations) {
+  const keys = new Set(observations.flatMap((observation) => Object.keys(observation.resources)));
+  const summary = {};
+
+  for (const key of keys) {
+    summary[key] = median(observations.map((observation) => observation.resources[key] ?? 0));
+  }
+
+  return summary;
+}
+
 /** The median of every value across the samples of one route class and form factor. */
 export function summarizeObservations(observations) {
   if (observations.length === 0) throw new Error('Cannot summarize no samples.');
@@ -116,11 +134,12 @@ export function summarizeObservations(observations) {
     categories: medianOfGroup(observations, 'categories'),
     metrics: medianOfGroup(observations, 'metrics'),
     units: observations[0].units,
-    resources: medianOfGroup(observations, 'resources'),
+    resources: medianTransferSizes(observations),
   };
 }
 
-const kibibytes = (bytes) => Math.round((bytes / BYTES_IN_KIB) * 10) / 10;
+/** A transfer size in kibibytes, to one decimal place. Budgets are set in them. */
+export const kibibytes = (bytes) => Math.round((bytes / BYTES_IN_KIB) * 10) / 10;
 
 function failuresFor(config, measurement) {
   const { routeClass, formFactor, summary } = measurement;
@@ -154,8 +173,7 @@ function failuresFor(config, measurement) {
 /**
  * Every limit that the run broke, and every route class the run never reached.
  *
- * The result is a list rather than the first failure. One pull request must not
- * need one run for each regression it caused.
+ * A list rather than the first failure, so one run reports every regression.
  */
 export function evaluateMeasurements(config, measurements) {
   const failures = [];

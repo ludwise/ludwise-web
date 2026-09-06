@@ -139,6 +139,19 @@ describe('summarizeObservations', () => {
     });
   });
 
+  it('counts a resource type that only some samples saw, rather than dropping it', () => {
+    const observations = [
+      { categories: {}, metrics: {}, units: {}, resources: { script: 1000 } },
+      { categories: {}, metrics: {}, units: {}, resources: { script: 1000, image: 900_000 } },
+      { categories: {}, metrics: {}, units: {}, resources: { script: 1000, image: 900_000 } },
+    ];
+
+    expect(summarizeObservations(observations).resources).toEqual({
+      script: 1000,
+      image: 900_000,
+    });
+  });
+
   it('refuses observations that do not measure the same things', () => {
     const observations = [
       { categories: { performance: 100 }, metrics: {}, units: {}, resources: {} },

@@ -6,8 +6,8 @@
  * than falling back to a number nobody reviewed.
  *
  * The validation is strict on purpose. An unknown key, a misspelled resource
- * type or a sample count of one are each a way to disable a limit without
- * changing a visible number.
+ * type or a sample count of one each disable a limit. None of them changes a
+ * visible number.
  */
 
 import { readFileSync } from 'node:fs';
@@ -144,8 +144,7 @@ function validateDeterministic(raw) {
 /**
  * The parsed configuration, or an error that names the field at fault.
  *
- * The result is frozen. A caller that could lower a threshold at runtime would
- * make the committed file a suggestion rather than the gate.
+ * The result is frozen, so no caller can lower a threshold at runtime.
  */
 export function validateGateConfig(raw) {
   if (!isPlainObject(raw)) fail('the file must hold an object.');

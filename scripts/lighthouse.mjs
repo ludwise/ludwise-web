@@ -62,7 +62,10 @@ async function main() {
   for (const failure of failures) console.error(`::error::${formatFailure(failure)}`);
 
   if (options.mode === 'production') {
-    console.error('The production run records evidence and blocks nothing. See issue 31.');
+    console.error(
+      'The production run records evidence and blocks nothing. ' +
+        'See docs/operations/lighthouse-gate.md.',
+    );
     return;
   }
 

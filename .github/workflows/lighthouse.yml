@@ -40,9 +40,9 @@ jobs:
   lighthouse:
     name: Lighthouse
     runs-on: ubuntu-latest
-    # Four route classes, two form factors and three samples each. The job is
-    # long because one sample is not a number, and a shorter run would report
-    # noise as a regression.
+    # Long because the run takes several samples of every route class and form
+    # factor. One sample is not a number, and a shorter run reports noise as a
+    # regression. lighthouse.config.json holds the counts.
     timeout-minutes: 45
     permissions:
       contents: read
@@ -66,9 +66,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      # The job runs on every relevant pull request and always reports a
-      # status. A documentation change skips the measurement rather than the
-      # check, so the required status stays green without measuring nothing.
+      # The job always reports a status, so the required check never blocks on a
+      # skipped job. A draft pull request measures only when the change can move
+      # a score. A ready pull request always measures, as verify.yml does.
       - name: Plan verification
         id: plan
         env:

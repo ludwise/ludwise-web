@@ -56,7 +56,7 @@ theme background. WCAG 1.4.3 exempts text that is part of a logo or a brand
 name, so this is not a defect. The color is the design system's own, and
 `design/system/components/foundation.md` specifies it.
 
-Lighthouse can remove an audit but not one element, so keeping this audit would
+Lighthouse can remove an audit, but not one element. Keeping this audit would
 report a rule that does not apply to the element it reports.
 
 Contrast is still checked, and more strictly. `tests/e2e/shell.spec.ts` runs axe
@@ -80,14 +80,16 @@ command that a person runs, it enforces nothing, and it is not a workflow job.
 
 ## The required merge check
 
-The check is named `Lighthouse / Lighthouse`. Add it to the branch protection
-rules of `main` as a required status check. A repository administrator does
-this once, in the repository settings.
+The check is named `Lighthouse / Lighthouse`, and the repository ruleset for
+`main` requires it. A repository administrator sets that, in the rules of the
+repository settings, and not in a file here.
 
-The job runs on every pull request and reports a status every time. A change
-that cannot move a score skips the measurement and not the check, so the
-required status stays green without measuring nothing.
-`scripts/ci/impact.mjs` decides which changes need a measurement.
+The job runs on every pull request and reports a status every time, so the
+required check never blocks on a skipped job.
+
+A ready pull request always measures. A draft pull request measures only when
+`scripts/ci/impact.mjs` says the change can move a score. `verify.yml` applies
+that same rule to the rest of the suite.
 
 ## What a failure tells you
 

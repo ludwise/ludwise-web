@@ -6,13 +6,9 @@
  * check.
  */
 
-import { formatFailure } from './evaluate.mjs';
+import { formatFailure, kibibytes } from './evaluate.mjs';
 
-const BYTES_IN_KIB = 1024;
-
-const kibibytes = (bytes) => (bytes / BYTES_IN_KIB).toFixed(1);
-
-const round = (value) => (Number.isInteger(value) ? String(value) : value.toFixed(1));
+const asText = (value) => (Number.isInteger(value) ? String(value) : value.toFixed(1));
 
 function scoreTable(config, measurements) {
   const categories = Object.keys(config.categories);
@@ -24,8 +20,8 @@ function scoreTable(config, measurements) {
     const cells = [
       routeClass,
       formFactor,
-      ...categories.map((category) => round(summary.categories[category] ?? 0)),
-      ...metrics.map((metric) => round(summary.metrics[metric] ?? 0)),
+      ...categories.map((category) => asText(summary.categories[category] ?? 0)),
+      ...metrics.map((metric) => asText(summary.metrics[metric] ?? 0)),
     ];
     lines.push(`| ${cells.join(' | ')} |`);
   }
@@ -57,7 +53,7 @@ function budgetTable(config, measurements) {
     const cells = [
       routeClass,
       formFactor,
-      ...resourceTypes.map((type) => kibibytes(summary.resources[type] ?? 0)),
+      ...resourceTypes.map((type) => kibibytes(summary.resources[type] ?? 0).toFixed(1)),
     ];
     lines.push(`| ${cells.join(' | ')} |`);
   }

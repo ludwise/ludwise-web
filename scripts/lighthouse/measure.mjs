@@ -1,13 +1,11 @@
 /**
  * Runs Lighthouse over the configured route classes and form factors.
  *
- * The browser is the Chromium that `@playwright/test` pins. That keeps the
- * measurement on one browser build in continuous integration and on a
- * developer machine, with no second download and no environment-only path.
+ * The browser is the Chromium that `@playwright/test` pins, so the measurement
+ * runs on one browser build here and on a developer machine.
  *
- * Runs are sequential. Two Lighthouse runs on one machine compete for the
- * processor, and simulated throttling turns that competition into a slower
- * measured page.
+ * Runs are sequential. Two runs on one machine compete for the processor, and
+ * simulated throttling turns that competition into a slower measured page.
  */
 
 import { mkdirSync, writeFileSync } from 'node:fs';
@@ -82,7 +80,7 @@ export function skipAuditsFor(config, mode) {
  * Each Lighthouse report is written to `reportDir` before the run is judged, so
  * a failing gate still leaves the evidence behind.
  */
-export async function measure({ config, target, mode, samples, reportDir, log = console.log }) {
+export async function measure({ config, target, mode, samples, reportDir }) {
   const outputDirectory = resolve(reportDir);
   mkdirSync(outputDirectory, { recursive: true });
 
@@ -99,7 +97,7 @@ export async function measure({ config, target, mode, samples, reportDir, log = 
         const observations = [];
 
         for (let sample = 1; sample <= samples; sample += 1) {
-          log(`Lighthouse ${routeClass.id} ${formFactor} sample ${String(sample)}: ${url}`);
+          console.log(`Lighthouse ${routeClass.id} ${formFactor} sample ${String(sample)}: ${url}`);
 
           const result = await lighthouse(
             url,
