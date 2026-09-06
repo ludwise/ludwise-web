@@ -69,4 +69,22 @@ This is the system's hardest rule, because LUDWISE's whole subject is states tha
 
 - `Toast` is `aria-live="polite"`. `Banner` and `InlineMessage` are `role="status"`, except danger which is `role="alert"`.
 - Icon-only buttons always carry `label`.
-- Decorative artwork is `alt=""`, because the title is always rendered adjacent.
+- LUDWISE never writes a description of a picture it was not given.
+- The canonical media contract supplies no caption and no description.
+- So every image rendered from it carries an empty `alt` value.
+- Adjacent text names the picture.
+- When one picture stands beside text that names it, that text is the
+  alternative.
+- The hero and the cover stand beside the heading of the game.
+- A capsule stands beside the game name on the card.
+- When a set of pictures has no per-item naming, the alternative moves to the
+  section heading.
+- The heading states the count, so a gallery of eight reads `8 screenshots` in
+  its heading.
+- List semantics apply when the items have names.
+- A plain container applies when they do not.
+- A picture that fails to load keeps its frame and carries the `aria-hidden`
+  attribute.
+- So the accessible output does not change with the load result.
+
+> **Correction.** These bullets replace the earlier rule, which made decorative artwork `alt=""` because the title is always rendered adjacent. That reason holds for one picture beside its name. It does not hold for a set of pictures under a heading, because a silent set leaves the heading over nothing. From [How a screenshot gets alternative text](https://github.com/ludwise/ludwise-web/issues/79).

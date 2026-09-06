@@ -162,15 +162,22 @@ Renders provider artwork at a fixed LUDWISE aspect ratio, with designed loading 
 <GameArtwork src={game.capsule} title={game.title} ratio="capsule" />
 <GameArtwork src={game.hero} title={game.title} ratio="hero" scrim />
 <GameArtwork title={game.title} ratio="capsule" />   {/* no artwork from provider */}
+<GameArtwork src={shot.url} title={game.title} ratio="screenshot" />   {/* gallery member: icon-only placeholder */}
 ```
 
 **WHEN** artwork is missing or fails to load, **USE** the built-in placeholder **BECAUSE** provider coverage is uneven by design, and a broken image icon reads as a LUDWISE defect rather than an absent asset.
 
+**WHEN** `ratio` is `screenshot`, **USE** the icon-only placeholder **BECAUSE** a gallery carries no per-item naming, so a frame that printed the game name would repeat that name once for every screenshot.
+
 **WHEN** any text or badge overlays artwork, **USE** `scrim` **BECAUSE** game key art ranges from near-white snowfields to near-black horror and only a protection gradient guarantees the price stays legible.
 
 - `objectFit: cover` inside a fixed ratio. Never letterbox, never distort, never crop to a ratio not in the list.
-- `alt=""`: the artwork is decorative because the title is always rendered adjacent. Do not put the title in `alt` as well.
+- `alt=""`: the artwork is decorative because the title is always rendered adjacent. Do not put the title in `alt` as well. When a set of pictures has no per-item naming, the alternative moves to the section heading, and that heading states the count: a gallery of eight reads `8 screenshots` in its heading.
+- The screenshot placeholder holds the icon only. It prints no title and no `No artwork available` line, and its frame carries `aria-hidden="true"`, so the accessible output of a gallery is the same whether a member loaded or failed.
 - Artwork is lazy-loaded and `decoding="async"`; a grid of 60 capsules must not block first paint.
+- Exception on the game page: the hero and a promoted cover load eagerly and carry `fetchpriority="high"`, because the hero sits above the fold and is the Largest Contentful Paint element. Every screenshot stays lazy and carries `decoding="async"`. The reference implementation below hardcodes `loading="lazy"`, so the adoption in `src/` has to give the hero and the promoted cover the eager path.
+
+> **Corrections.** The group clause and the screenshot placeholder come from [How a screenshot gets alternative text](https://github.com/ludwise/ludwise-web/issues/79). The lazy-loading rule was written for a grid of capsules, and the eager exception for an above-the-fold hero comes from [Whether media is hotlinked or proxied](https://github.com/ludwise/ludwise-web/issues/80).
 
 ### Prop contract
 
@@ -184,10 +191,13 @@ export interface GameArtworkProps {
    *  state, not a fallback of last resort. */
   src?: string;
   /** Game title. Used in the placeholder and as the artwork's context. The
-   *  <img> itself is alt="" because the title always appears next to it. */
+   *  <img> itself is alt="" because the title always appears next to it. Where
+   *  a set of pictures has no per-item naming, the section heading is the
+   *  alternative, and the screenshot placeholder prints no title. */
   title: string;
   /** capsule 3:2 grid cards · header 460:215 store art · hero 8:3 detail page ·
-   *  cover 2:3 library · screenshot 16:9. Never crop outside these. */
+   *  cover 2:3 library · screenshot 16:9. Never crop outside these. The
+   *  screenshot ratio also selects the icon-only, aria-hidden placeholder. */
   ratio?: ArtworkRatio;
   radius?: string;
   /** Adds the bottom-up protection gradient. Required whenever text is
@@ -219,6 +229,7 @@ export function GameArtwork({
 }) {
   const [failed, setFailed] = React.useState(false);
   const missing = !src || failed;
+  const iconOnly = ratio === "screenshot";
 
   return (
     <div style={{
@@ -233,15 +244,19 @@ export function GameArtwork({
           backgroundSize: "200% 100%", animation: "lw-shimmer var(--motion-duration-ambient) linear infinite"
         }} />
       ) : missing ? (
-        <div style={{
+        <div aria-hidden={iconOnly ? "true" : undefined} style={{
           position: "absolute", inset: 0, display: "flex", flexDirection: "column",
           alignItems: "center", justifyContent: "center", gap: "var(--space-2)",
           padding: "var(--space-3)", textAlign: "center", color: "var(--color-text-tertiary)",
           backgroundImage: "repeating-linear-gradient(135deg,transparent,transparent 7px,var(--color-border-subtle) 7px,var(--color-border-subtle) 8px)"
         }}>
           <Icon name="image-off" size="lg" />
-          <span style={{ font: "var(--text-label-md)", color: "var(--color-text-secondary)", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "100%" }}>{title}</span>
-          <span style={{ font: "var(--text-caption)" }}>No artwork available</span>
+          {!iconOnly && (
+            <>
+              <span style={{ font: "var(--text-label-md)", color: "var(--color-text-secondary)", overflow: "hidden", textOverflow: "ellipsis", maxWidth: "100%" }}>{title}</span>
+              <span style={{ font: "var(--text-caption)" }}>No artwork available</span>
+            </>
+          )}
         </div>
       ) : (
         <img src={src} alt="" loading="lazy" decoding="async" onError={() => setFailed(true)}
