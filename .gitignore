@@ -42,6 +42,9 @@ pnpm-debug.log*
 Thumbs.db
 desktop.ini
 
+# Lighthouse gate reports, written by scripts/lighthouse.mjs
+lighthouse-reports/
+
 # Playwright
 test-results/
 playwright-report/

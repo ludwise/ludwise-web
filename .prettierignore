@@ -5,6 +5,7 @@ dist/
 coverage/
 test-results/
 playwright-report/
+lighthouse-reports/
 pnpm-lock.yaml
 CHANGELOG.md
 worker-configuration.d.ts
