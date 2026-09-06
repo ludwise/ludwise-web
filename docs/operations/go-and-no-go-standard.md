@@ -194,10 +194,10 @@ Three classes roll back. Everything else is a follow-up issue on a live site.
 3. **An internal surface answers on the public hostname.** Gate 3 already
    asserts this for `/ops`, `/ops/logs`, `/v1/games` and `/v1/sales`.
 
-The test that keeps the line honest: roll back for what a lawyer or a visitor
-cannot live with, and file an issue for what an engineer wants fixed. A layout
-defect, a slow page, a wrong string, or an accessibility finding off a critical
-path is a follow-up.
+One test keeps the line honest. A rollback is for what a lawyer or a visitor
+cannot live with. An issue is for what an engineer wants fixed. A layout defect,
+a slow page, a wrong string, or an accessibility finding off a critical path is
+a follow-up.
 
 A Lighthouse miss is none of the three classes. A weak `SEO` score, or a slow
 Largest Contentful Paint, is an engineer's problem. It becomes a follow-up issue
