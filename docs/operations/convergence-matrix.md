@@ -45,11 +45,13 @@ verdict.
 
 ## The count
 
-The table above marks 24 live cells of 42. The prose of the resolution states 23
-live cells, and so does
+The table above marks 24 live cells of 42, and 18 cells marked `n/a`.
+
+The prose of the resolution stated 23 live cells until 2026-09-07, and so did
 [the issue that ordered this document](https://github.com/ludwise/ludwise-web/issues/87).
-This document transcribes the table. The difference between the table and that
-count is not resolved here.
+That count was an arithmetic error. The table is the gate, and the table has
+always marked 24. The resolution and the two issues now state 24. The cells did
+not change.
 
 ## What the matrix closes
 
