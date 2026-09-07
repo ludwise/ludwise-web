@@ -47,11 +47,14 @@ verdict.
 
 The table above marks 24 live cells of 42, and 18 cells marked `n/a`.
 
-The prose of the resolution stated 23 live cells until 2026-09-07, and so did
-[the issue that ordered this document](https://github.com/ludwise/ludwise-web/issues/87).
+The prose of the resolution stated 23 live cells until 2026-09-07. So did three
+issues: [the redesign umbrella](https://github.com/ludwise/ludwise-web/issues/54),
+[the issue that rewrote it](https://github.com/ludwise/ludwise-web/issues/86)
+and [the issue that ordered this document](https://github.com/ludwise/ludwise-web/issues/87).
+
 That count was an arithmetic error. The table is the gate, and the table has
-always marked 24. The resolution and the two issues now state 24. The cells did
-not change.
+always marked 24. The resolution and the three issues now state 24. The cells
+did not change.
 
 ## What the matrix closes
 
