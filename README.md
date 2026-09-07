@@ -195,6 +195,8 @@ release readiness.
   backend boundary.
 - [`docs/design-system.md`](docs/design-system.md) defines design tokens and
   component rules.
+- [`docs/states.md`](docs/states.md) defines the loading, empty, stale and
+  failure states of every public surface.
 - [`AGENTS.md`](AGENTS.md) defines rules for AI-assisted work.
 - [`CONTRIBUTING.md`](CONTRIBUTING.md) defines the contribution and branch
   workflow.

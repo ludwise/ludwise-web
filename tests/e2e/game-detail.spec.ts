@@ -206,6 +206,49 @@ test.describe('game detail', () => {
     );
   });
 
+  test('says a game carries no catalogue details rather than rendering a bare title', async ({
+    page,
+  }) => {
+    // This fixture's `metadata` is null. Every detail section is conditional,
+    // so without this the page is a heading followed by nothing, which reads
+    // as content that failed to load.
+    await page.goto('/games/no-offers-demo');
+
+    await expect(page.getByText('No catalogue details yet')).toBeVisible();
+    await expect(
+      page.getByText(
+        'LUDWISE has not collected a description, developer, publisher or release date for this game yet.',
+      ),
+    ).toBeVisible();
+    // A fact about the catalog, not a failure. Nothing here is an alert.
+    await expect(page.locator('[role="alert"]')).toHaveCount(0);
+  });
+
+  test('says once that every price on the page is old', async ({ page }) => {
+    // The canonical fixture was observed on 15 June 2025 and the suite's clock
+    // is 30 August 2026. A page of offers that says nothing about that presents
+    // a year-old price as the price.
+    await page.goto(DETAIL_ROUTE);
+
+    await expect(page.getByText('These prices may be out of date')).toBeVisible();
+    await expect(
+      page.getByText('The newest price on this page was checked Jun 15, 2025.'),
+    ).toBeVisible();
+  });
+
+  test('reads the page age from the newest offer, not the oldest', async ({ page }) => {
+    // The states fixture holds an offer checked two days ago beside one checked
+    // five minutes ago. One old row does not make the page out of date, and a
+    // warning that fires on it is one a visitor learns to ignore.
+    await gotoStatesDetail(page);
+
+    await expect(offerRow(page, 'Echo Store').locator('.lw-freshness')).toHaveAttribute(
+      'data-level',
+      'stale',
+    );
+    await expect(page.getByText('These prices may be out of date')).toHaveCount(0);
+  });
+
   test('answers an unknown canonical slug with a 404 page', async ({ page }) => {
     const response = await page.goto('/games/does-not-exist');
 

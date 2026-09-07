@@ -1,6 +1,7 @@
 ---
 import EmptyState from '../../components/feedback/EmptyState.astro';
 import InlineMessage from '../../components/feedback/InlineMessage.astro';
+import FreshnessNotice from '../../components/game/FreshnessNotice.astro';
 import OfferTable from '../../components/game/OfferTable.astro';
 import PageContainer from '../../components/layout/PageContainer.astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
@@ -8,6 +9,7 @@ import type { GameDetailView } from '../../lib/api/contract.js';
 import { isApiError, toLogContext } from '../../lib/api/errors.js';
 import { formatReleaseDate } from '../../lib/formatting/game-detail.js';
 import { EVENTS } from '../../lib/logging/events.js';
+import { surfaceFreshness } from '../../lib/state/freshness.js';
 
 export const prerender = false;
 
@@ -53,6 +55,22 @@ const hasMetadata =
     releaseDate !== null ||
     genres.length > 0 ||
     platforms.length > 0);
+
+/**
+ * A game the catalog holds nothing about, said rather than left blank.
+ *
+ * Every metadata section is conditional. A game with none renders a name and
+ * then the offers, which reads as a page that lost its content. The absence is
+ * a fact about the catalog, and the page states it.
+ */
+const hasCatalogueDetails = hasMetadata || (metadata?.summary ?? null) !== null;
+
+const nowMs = Astro.locals.nowMs ?? Date.now();
+const offerFreshness = surfaceFreshness(
+  view?.offerGroups.flatMap((group) => group.offers) ?? [],
+  nowMs,
+);
+const retryHref = `${Astro.url.pathname}${Astro.url.search}`;
 ---
 
 <BaseLayout title={`${pageTitle} — LUDWISE`} description={pageDescription} activeNavId="games">
@@ -71,9 +89,13 @@ const hasMetadata =
             Game could not be loaded
           </h1>
           <InlineMessage tone="danger" title="The game page is unavailable">
-            Something failed on our side, so this page is not shown. Try again later. Quote code{' '}
+            Something failed on our side, so this page is not shown. Quote code{' '}
             <code class="lw-text-code">{failureCode}</code> and request id{' '}
             <code class="lw-text-code">{Astro.locals.requestId}</code> if you report this.
+            <div slot="action" class="lw-game-detail__recovery">
+              <a href={retryHref}>Try again</a>
+              <a href="/games">Browse games</a>
+            </div>
           </InlineMessage>
         </section>
       ) : (
@@ -92,6 +114,13 @@ const hasMetadata =
               <p class="lw-text-label-sm">Game</p>
               <h1 class="lw-text-heading-xl">{view.title}</h1>
             </header>
+
+            {!hasCatalogueDetails && (
+              <InlineMessage tone="info" title="No catalogue details yet">
+                LUDWISE has not collected a description, developer, publisher or release date for
+                this game yet.
+              </InlineMessage>
+            )}
 
             {metadata?.summary && (
               <section class="lw-game-detail__section" aria-labelledby="about-game-title">
@@ -181,6 +210,8 @@ const hasMetadata =
                   </p>
                 )}
               </div>
+              <FreshnessNotice freshness={offerFreshness} nowMs={nowMs} />
+
               {view.offerGroups.length === 0 ? (
                 <EmptyState icon="store" title="No current offers" compact>
                   There are no current store offers to compare for this game.
@@ -321,6 +352,11 @@ const hasMetadata =
   .lw-game-detail__currency {
     color: var(--color-text-secondary);
     font: var(--text-label-md);
+  }
+  .lw-game-detail__recovery {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-4);
   }
   .lw-game-detail__failure {
     display: flex;

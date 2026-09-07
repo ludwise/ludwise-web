@@ -127,6 +127,18 @@ const hasSearch = (input.query ?? '').trim() !== '';
 const hasQueryOrFilters = hasSearch || hasFilters || (input.page ?? 1) > 1;
 const inputValue = (value: number | undefined): string =>
   value === undefined || !Number.isFinite(value) ? '' : String(value);
+
+/**
+ * The two ways out of a search that matched nothing.
+ *
+ * `searchOnlyPath` exists only where both a term and a filter are set, because
+ * that is the only case where the two are separable. Offering it otherwise
+ * would be a second control leading where the first one already goes.
+ */
+const searchOnlyPath =
+  hasSearch && hasFilters ? pathWith(new URLSearchParams({ q: input.query ?? '' })) : null;
+
+const retryHref = `${Astro.url.pathname}${Astro.url.search}`;
 ---
 
 <BaseLayout
@@ -153,6 +165,9 @@ const inputValue = (value: number | undefined): string =>
           Something failed on our side, so no games are shown. Quote code{' '}
           <code class="lw-text-code">{failureCode}</code> and request id{' '}
           <code class="lw-text-code">{locals.requestId}</code> if you report this.
+          <a slot="action" href={retryHref}>
+            Try again
+          </a>
         </InlineMessage>
       )
     }
@@ -361,6 +376,16 @@ const inputValue = (value: number | undefined): string =>
               {hasQueryOrFilters
                 ? 'Try a different title or remove a filter.'
                 : 'Games appear here when LUDWISE has canonical catalogue data.'}
+              {hasQueryOrFilters && (
+                <a slot="action" href="/games">
+                  Browse the whole catalogue
+                </a>
+              )}
+              {searchOnlyPath !== null && (
+                <a slot="secondaryAction" href={searchOnlyPath}>
+                  Keep the search, remove the filters
+                </a>
+              )}
             </EmptyState>
           ) : (
             <>

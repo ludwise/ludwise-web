@@ -109,6 +109,27 @@ test.describe('sales browsing', () => {
     await expect(card.locator('time')).toHaveAttribute('datetime', /^\d{4}-/u);
   });
 
+  /**
+   * The corpus records prices observed on 15 June 2025, and the suite's clock
+   * is 30 August 2026. So a page headed "Current sales" is showing prices more
+   * than a year old. Saying so once, above the results, is the difference
+   * between reporting what LUDWISE observed and claiming it is today's price.
+   */
+  test('says once that the whole page of prices is old', async ({ page }) => {
+    await page.goto('/sales');
+
+    const notice = page.getByText('These prices may be out of date');
+    await expect(notice).toBeVisible();
+    // A date rather than "441 days ago". content-style.md fixes relative up to
+    // seven days and absolute after.
+    await expect(
+      page.getByText('The newest price on this page was checked Jun 15, 2025.'),
+    ).toBeVisible();
+    // One statement for the page, not one per card. A warning repeated on
+    // every result is a warning a visitor stops reading.
+    await expect(notice).toHaveCount(1);
+  });
+
   test('switches market and currency together, and never mixes them', async ({ page }) => {
     await page.goto('/sales?market=JP&currency=JPY');
 
@@ -145,6 +166,11 @@ test.describe('sales browsing', () => {
 
     await expect(page.getByText('No United States sales right now')).toBeVisible();
     await expect(page.getByText('Sales could not be loaded')).toHaveCount(0);
+    // The visitor asked for this pair, so there is a market to go back from.
+    await expect(page.getByRole('link', { name: 'See all sales' })).toHaveAttribute(
+      'href',
+      '/sales',
+    );
   });
 
   test('narrows to one store, and offers the way back', async ({ page }) => {
@@ -160,13 +186,20 @@ test.describe('sales browsing', () => {
     await expect(page.getByRole('link', { name: 'Reset all' })).toHaveAttribute('href', '/sales');
   });
 
-  test('explains a filter combination that matches nothing', async ({ page }) => {
+  test('explains a filter combination that matches nothing, and undoes it', async ({ page }) => {
     await page.goto('/sales?minDiscount=99');
 
     await expect(page.getByText('No games match these filters')).toBeVisible();
     await expect(
       page.getByText('Remove a filter to see the 3 Germany games on sale.'),
     ).toBeVisible();
+
+    // The way back is a control rather than an instruction, and it lands on the
+    // results the filter excluded rather than on some other market's.
+    await page.getByRole('link', { name: 'Remove the filters' }).click();
+    await expect(
+      page.getByRole('list', { name: 'Games on sale' }).getByRole('listitem'),
+    ).toHaveCount(3);
   });
 
   test('says a page past the last one does not exist, rather than an empty range', async ({
