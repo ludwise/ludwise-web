@@ -46,7 +46,7 @@ export function SearchField({
   const hasValue = value != null && value.length > 0;
 
   return (
-    <div role="search" className="lw-search" data-size={size}>
+    <div role="search" className="lw-search" data-size={size} aria-busy={loading || undefined}>
       <span className="lw-search__icon">
         {loading ? (
           <span className="lw-search__spinner">

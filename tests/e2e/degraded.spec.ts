@@ -87,6 +87,35 @@ test.describe('the backend is unavailable', () => {
     });
   }
 
+  for (const path of PAGES) {
+    test(`${path} announces the failure rather than drawing an empty state`, async ({ page }) => {
+      // The other half of "unavailable is not empty", in the markup rather
+      // than in the words. An EmptyState is a designed region saying there is
+      // nothing here. This page does not know whether there is anything here.
+      await page.goto(path);
+
+      await expect(page.locator('[role="alert"]').first()).toBeVisible();
+      await expect(page.locator('.lw-empty-state')).toHaveCount(0);
+    });
+
+    test(`${path} offers a way to try the same address again`, async ({ page }) => {
+      // An outage is usually over before the visitor is. A failure page with
+      // no control is one a visitor can only leave by editing the address bar.
+      await page.goto(path);
+
+      await expect(page.getByRole('link', { name: 'Try again' })).toHaveAttribute('href', path);
+    });
+  }
+
+  test('a failed game page offers the catalogue as well as a retry', async ({ page }) => {
+    await page.goto('/games/half-off-demo');
+
+    await expect(page.getByRole('link', { name: 'Browse games' })).toHaveAttribute(
+      'href',
+      '/games',
+    );
+  });
+
   test('the shell still renders, so the site is navigable', async ({ page }) => {
     // A failed read must not take the header and navigation down with it. A
     // visitor who lands on a broken page must be able to leave it.
@@ -114,8 +143,10 @@ test.describe('the backend is unavailable', () => {
   test('a failure page is still accessible', async ({ page }) => {
     // An error state is exactly where an accessibility regression goes
     // unnoticed, because nobody looks at it until something has already gone
-    // wrong.
-    await page.goto('/games');
-    await auditFor(page);
+    // wrong. Every failing route class, because each composes its own.
+    for (const path of PAGES) {
+      await page.goto(path);
+      await auditFor(page);
+    }
   });
 });

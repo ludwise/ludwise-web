@@ -59,3 +59,20 @@ export function pathForPage(params: URLSearchParams, page: number): string {
   next.set('page', String(page));
   return pathWithQuery(next);
 }
+
+/**
+ * The link a "remove every filter" control points to.
+ *
+ * The market, the currency and the sort order survive it. A visitor who asks
+ * to see the results a filter excluded does not ask to be moved to another
+ * market. The price bounds they set are amounts in the currency they read.
+ * Sort is an order rather than a filter, so it excludes nothing.
+ */
+export function pathWithFiltersCleared(params: URLSearchParams): string {
+  const next = new URLSearchParams();
+  for (const name of ['market', 'currency', 'sort'] as const) {
+    const value = params.get(name);
+    if (value !== null) next.set(name, value);
+  }
+  return pathWithQuery(next);
+}

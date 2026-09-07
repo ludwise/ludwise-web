@@ -1,0 +1,44 @@
+---
+/**
+ * What a page of offers says about its own currency, above the results.
+ *
+ * One statement for the surface, beside the per-row `FreshnessIndicator`.
+ * `design/system/guidelines/content-style.md` § Errors carries the form:
+ * what happened, then what you are seeing instead.
+ *
+ * Renders nothing when the surface is current, which is the usual case.
+ */
+import InlineMessage from '../feedback/InlineMessage.astro';
+import { formatObservationTime } from '../../lib/formatting/freshness.js';
+import type { SurfaceFreshness } from '../../lib/state/freshness.js';
+
+interface Props {
+  freshness: SurfaceFreshness;
+  nowMs: number;
+}
+
+const { freshness, nowMs } = Astro.props;
+
+const checkedAt =
+  freshness.newestObservedAtMs === null
+    ? null
+    : formatObservationTime(freshness.newestObservedAtMs, nowMs);
+const untimed = freshness.total > 0 && freshness.observedCount === 0;
+---
+
+{
+  freshness.level === 'stale' && checkedAt !== null && (
+    <InlineMessage tone="warning" title="These prices may be out of date">
+      The newest price on this page was checked {checkedAt}. A store may have changed it since.
+    </InlineMessage>
+  )
+}
+
+{
+  untimed && (
+    <InlineMessage tone="warning" title="No store reported a check time">
+      No store reported when its price was last read, so LUDWISE cannot say how current these prices
+      are.
+    </InlineMessage>
+  )
+}

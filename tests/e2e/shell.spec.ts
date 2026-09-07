@@ -118,6 +118,42 @@ test.describe('the application shell', () => {
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('Current sales');
   });
 
+  /**
+   * The navigation is stopped rather than delayed, deliberately. Holding the
+   * document request leaves the page with a pending navigation, and every
+   * query against it then blocks until that navigation settles. So the state
+   * this test exists to observe is exactly the state it could not read.
+   */
+  test('marks a submitted search as in flight without moving anything', async ({ page }) => {
+    await page.goto('/games');
+    // The island owns the spinner, so the submit has to reach React rather
+    // than the native form that works before hydration.
+    await waitForHydration(page);
+    await page.evaluate(() => {
+      for (const form of document.querySelectorAll('form[method="get"]')) {
+        form.addEventListener('submit', (event) => event.preventDefault());
+      }
+    });
+
+    const field = page.locator('.lw-search').first();
+    const spinner = page.locator('.lw-search__spinner');
+    await expect(spinner).toHaveCount(0);
+    const before = await field.boundingBox();
+
+    const search = page.getByRole('searchbox', { name: 'Search games' }).first();
+    await search.fill('Canonical');
+    await search.press('Enter');
+
+    // The spinner takes the magnifier's place. The field keeps its box, so
+    // nothing on the page moves while the visitor waits.
+    await expect(spinner.first()).toBeVisible();
+    expect(await field.boundingBox()).toEqual(before);
+    await expect(search).toHaveValue('Canonical');
+    // A spinner is a picture. `aria-busy` is what says the same thing to a
+    // screen reader, which is the half an animation cannot carry.
+    await expect(field).toHaveAttribute('aria-busy', 'true');
+  });
+
   test('answers an unknown address with a not-found page, not a stack trace', async ({ page }) => {
     const response = await page.goto('/this-route-does-not-exist');
 

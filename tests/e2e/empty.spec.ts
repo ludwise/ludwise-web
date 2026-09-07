@@ -59,11 +59,54 @@ test.describe('an empty catalogue', () => {
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('Game not found');
   });
 
+  test('offers the way back out of a search that could never match', async ({ page }) => {
+    // The catalog holds nothing, so this search matches nothing. The sentence
+    // for that is not the sentence for an empty catalog, and a visitor who
+    // typed a term needs a control that removes it.
+    await page.goto('/games?q=nothing-is-ingested-yet');
+
+    await expect(page.getByText('No games match your search')).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Browse the whole catalogue' })).toHaveAttribute(
+      'href',
+      '/games',
+    );
+  });
+
+  test('offers nothing to recover from when the catalogue itself is empty', async ({ page }) => {
+    // Nothing was filtered out, so there is no filter to remove. A control
+    // here would lead back to the page it is on.
+    await page.goto('/games');
+
+    await expect(page.getByText('No games in the catalogue yet')).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Browse the whole catalogue' })).toHaveCount(0);
+  });
+
+  for (const path of ['/games', '/sales']) {
+    test(`${path} renders an empty state rather than an alert`, async ({ page }) => {
+      // The semantic half of "empty and error are distinct". An empty state is
+      // a designed region of the page. A failure is an alert a screen reader
+      // is interrupted by. Rendering the first as the second cries wolf.
+      await page.goto(path);
+
+      await expect(page.locator('.lw-empty-state')).toBeVisible();
+      await expect(page.locator('[role="alert"]')).toHaveCount(0);
+    });
+
+    test(`${path} makes no claim about how current anything is`, async ({ page }) => {
+      // Freshness is a statement about observations. There are none here, so
+      // there is nothing whose age could be reported.
+      await page.goto(path);
+
+      await expect(page.getByText('These prices may be out of date')).toHaveCount(0);
+      await expect(page.getByText('No store reported a check time')).toHaveCount(0);
+    });
+  }
+
   test('has no accessibility violations in an empty state', async ({ page }) => {
     // Empty states are composed differently from populated ones. An EmptyState
     // stands where a list would be. So an audit of the populated pages says
     // nothing about them.
-    for (const path of ['/games', '/sales']) {
+    for (const path of ['/games', '/sales', '/games?q=nothing-is-ingested-yet']) {
       await page.goto(path);
       await auditFor(page);
     }

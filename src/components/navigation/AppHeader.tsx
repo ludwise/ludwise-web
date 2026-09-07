@@ -146,6 +146,30 @@ export function useIsCompactHeader(breakpoint: number = DEFAULT_COMPACT_BREAKPOI
 }
 
 /**
+ * Whether a submitted search is still in flight.
+ *
+ * The one thing on this site that a visitor waits for. The search is a native
+ * GET form. So the wait is a full navigation, and the new document clears this
+ * state by replacing the page. The listener covers the one case that does not.
+ * A back-forward cache restore returns this page as it was, with the spinner
+ * still running, for a navigation that finished long ago.
+ *
+ * The spinner takes the magnifier's place inside the same box, so nothing on
+ * the page moves while the visitor waits.
+ */
+function useSearchNavigation(): { searching: boolean; onSearchSubmit: () => void } {
+  const [searching, setSearching] = useState(false);
+
+  useEffect(() => {
+    const restore = () => setSearching(false);
+    window.addEventListener('pageshow', restore);
+    return () => window.removeEventListener('pageshow', restore);
+  }, []);
+
+  return { searching, onSearchSubmit: () => setSearching(true) };
+}
+
+/**
  * Open/closed state for the compact menu panel, and the Escape and resize
  * behavior that closes it.
  *
@@ -255,6 +279,7 @@ export function AppHeader({
 }: AppHeaderProps) {
   const { menuOpen, menuButtonRef, toggleMenu, closeMenu } = useMenuPanel(onMenu);
   const { currentTheme, toggleTheme } = useHeaderTheme(theme, onThemeToggle);
+  const { searching, onSearchSubmit } = useSearchNavigation();
 
   const compactOverride = compactAttribute(compact);
 
@@ -318,12 +343,18 @@ export function AppHeader({
         label={copy.searchLabel}
         clearLabel={copy.clearSearchLabel}
         size={size}
+        loading={searchAction === undefined ? false : searching}
       />
     );
     return searchAction === undefined ? (
       field
     ) : (
-      <form action={searchAction} method="get" aria-label={copy.searchLabel}>
+      <form
+        action={searchAction}
+        method="get"
+        aria-label={copy.searchLabel}
+        onSubmit={onSearchSubmit}
+      >
         {field}
       </form>
     );

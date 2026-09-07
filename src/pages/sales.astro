@@ -2,13 +2,19 @@
 import EmptyState from '../components/feedback/EmptyState.astro';
 import InlineMessage from '../components/feedback/InlineMessage.astro';
 import Icon from '../components/foundation/Icon.astro';
+import FreshnessNotice from '../components/game/FreshnessNotice.astro';
 import GameCard from '../components/game/GameCard.astro';
 import PageContainer from '../components/layout/PageContainer.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import type { BrowseSalesInput, BrowseSalesView } from '../lib/api/contract.js';
 import { isApiError, toLogContext } from '../lib/api/errors.js';
 import { adviseSales } from '../lib/http/filter-advice.js';
-import { pathForPage, pathWithoutFilter } from '../lib/http/sales-filter-links.js';
+import {
+  pathForPage,
+  pathWithFiltersCleared,
+  pathWithoutFilter,
+} from '../lib/http/sales-filter-links.js';
+import { surfaceFreshness } from '../lib/state/freshness.js';
 import { PAIR_SEPARATOR, toBrowseSalesInput } from '../lib/http/sales-query.js';
 import { compareText } from '../lib/text/order.js';
 import { EVENTS } from '../lib/logging/events.js';
@@ -108,6 +114,18 @@ const inputValue = (value: number | undefined): string =>
 // `resultCount` is not. Kept distinct from "no games match these filters": one
 // names a page that does not exist, the other a filter that excluded everything.
 const pageOutOfRange = view !== null && view.games.length === 0 && view.resultCount > 0;
+
+/**
+ * How current this page of results is, as one statement.
+ *
+ * Each card already carries its own age. A visitor must not have to read every
+ * card to learn that none of them is recent. A page with the heading "Current
+ * sales" claims the opposite until it says so.
+ */
+const nowMs = Astro.locals.nowMs ?? Date.now();
+const salesFreshness = surfaceFreshness(view?.games.map((game) => game.offer) ?? [], nowMs);
+const retryHref = `${Astro.url.pathname}${Astro.url.search}`;
+const clearedFiltersPath = pathWithFiltersCleared(params);
 ---
 
 <BaseLayout
@@ -184,6 +202,9 @@ const pageOutOfRange = view !== null && view.games.length === 0 && view.resultCo
           Something failed on our side, so no sales are shown. If you report this, the code is{' '}
           <code class="lw-text-code">{failureCode}</code> and the request id is{' '}
           <code class="lw-text-code">{locals.requestId}</code>.
+          <a slot="action" href={retryHref}>
+            Try again
+          </a>
         </InlineMessage>
       )
     }
@@ -435,10 +456,18 @@ const pageOutOfRange = view !== null && view.games.length === 0 && view.resultCo
                 <EmptyState icon="tag" title={`No ${context.marketName} sales right now`}>
                   Prices are only compared inside one market and currency, so a sale in another
                   market does not appear here.
+                  {input.marketCode !== undefined && (
+                    <a slot="action" href="/sales">
+                      See all sales
+                    </a>
+                  )}
                 </EmptyState>
               ) : view.resultCount === 0 ? (
                 <EmptyState icon="funnel" title="No games match these filters">
                   {`Remove a filter to see the ${view.contextCount} ${context.marketName} games on sale.`}
+                  <a slot="action" href={clearedFiltersPath}>
+                    Remove the filters
+                  </a>
                 </EmptyState>
               ) : pageOutOfRange ? (
                 <EmptyState icon="funnel" title={`There is no page ${view.page}`}>
@@ -449,6 +478,10 @@ const pageOutOfRange = view !== null && view.games.length === 0 && view.resultCo
                 </EmptyState>
               ) : (
                 <>
+                  <div class="lw-sales__notice">
+                    <FreshnessNotice freshness={salesFreshness} nowMs={nowMs} />
+                  </div>
+
                   <p class="lw-text-body-sm lw-sales__range">
                     Showing{' '}
                     {`${view.rangeStart.toLocaleString('en-US')}–${view.rangeEnd.toLocaleString('en-US')}`}{' '}
@@ -532,6 +565,10 @@ const pageOutOfRange = view !== null && view.games.length === 0 && view.resultCo
 
   .lw-sales__range {
     margin-block-end: var(--space-3);
+  }
+
+  .lw-sales__notice:not(:empty) {
+    margin-block-end: var(--space-4);
   }
 
   .lw-sales__sort {

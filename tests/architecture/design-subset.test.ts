@@ -43,6 +43,7 @@ describe('the design-system subset', () => {
     // Every component file is either a subset member, adopted earlier, or a
     // composition this repository owns rather than a design-system primitive.
     const local = [
+      'src/components/game/FreshnessNotice.astro',
       'src/components/game/OfferTable.astro',
       'src/components/layout/PageContainer.astro',
       'src/components/legal/Policy.astro',

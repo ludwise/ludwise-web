@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
-import { pathForPage, pathWithoutFilter } from '../../../src/lib/http/sales-filter-links.js';
+import {
+  pathForPage,
+  pathWithFiltersCleared,
+  pathWithoutFilter,
+} from '../../../src/lib/http/sales-filter-links.js';
 
 const params = (query: string) => new URLSearchParams(query);
 
@@ -81,5 +85,29 @@ describe('pathForPage', () => {
 
   it('replaces an existing page number rather than appending a second one', () => {
     expect(pathForPage(params('page=1'), 2)).toBe('/sales?page=2');
+  });
+});
+
+describe('pathWithFiltersCleared', () => {
+  /**
+   * The pair a visitor is reading is not a filter they set. Dropping it would
+   * answer "remove the filters" by also moving them to another market.
+   */
+  it('keeps the market, the currency and the order, and drops every filter', () => {
+    expect(
+      pathWithFiltersCleared(
+        params('market=DE&currency=EUR&sort=price&store=orbit&minDiscount=40&min=20&max=50'),
+      ),
+    ).toBe('/sales?market=DE&currency=EUR&sort=price');
+  });
+
+  it('returns the bare path when the visitor chose no pair', () => {
+    expect(pathWithFiltersCleared(params('minDiscount=99&fromYear=2015'))).toBe('/sales');
+  });
+
+  it('resets the page, so clearing filters lands on the first result', () => {
+    expect(pathWithFiltersCleared(params('market=DE&currency=EUR&page=4'))).toBe(
+      '/sales?market=DE&currency=EUR',
+    );
   });
 });
