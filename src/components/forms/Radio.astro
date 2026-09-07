@@ -1,0 +1,136 @@
+---
+/**
+ * Reference: design/system/components/forms.md § Radio — prop contract ported
+ * verbatim.
+ *
+ * A single choice from a small mutually exclusive set. Wrap a group in
+ * <fieldset> with a <legend>. Beyond about five options, use Select.
+ *
+ * Never pre-select an option that costs the visitor money or changes their
+ * market silently. Default to the detected market and say so in `description`.
+ *
+ * Static for the same reason Checkbox is: it sits inside a form that submits
+ * filters as query parameters.
+ */
+interface Props {
+  /** ReactNode in the reference. Text here, because a facet label is text. */
+  label: string;
+  description?: string | undefined;
+  checked?: boolean | undefined;
+  disabled?: boolean | undefined;
+  name: string;
+  value: string;
+  id?: string | undefined;
+  class?: string | undefined;
+}
+
+const {
+  label,
+  description,
+  checked = false,
+  disabled = false,
+  name,
+  value,
+  id,
+  class: className,
+} = Astro.props;
+
+const radioId = id ?? `lw-radio-${crypto.randomUUID()}`;
+const descriptionId = description === undefined ? undefined : `${radioId}-description`;
+---
+
+<label class:list={['lw-radio', className]} for={radioId} data-disabled={disabled || undefined}>
+  <span class="lw-radio__control">
+    <input
+      class="lw-radio__input"
+      id={radioId}
+      type="radio"
+      name={name}
+      value={value}
+      checked={checked}
+      disabled={disabled}
+      aria-describedby={descriptionId}
+    />
+    <span class="lw-radio__ring" aria-hidden="true"></span>
+  </span>
+  <span class="lw-radio__body">
+    <span class="lw-radio__label">{label}</span>
+    {
+      description && (
+        <span class="lw-radio__description" id={descriptionId}>
+          {description}
+        </span>
+      )
+    }
+  </span>
+</label>
+
+<style>
+  .lw-radio {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-3);
+    min-height: var(--target-min);
+    padding-block: var(--space-2);
+    cursor: pointer;
+  }
+  .lw-radio[data-disabled] {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+
+  .lw-radio__control {
+    position: relative;
+    display: inline-flex;
+    flex: none;
+    margin-block-start: 1px;
+  }
+  .lw-radio__input {
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    opacity: 0;
+    cursor: inherit;
+  }
+  .lw-radio__ring {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border: var(--border-width-hairline) solid var(--color-border-component);
+    border-radius: var(--radius-full);
+    background: var(--color-surface-default);
+    transition: var(--motion-transition-color);
+  }
+  /* The dot, not the ring colour, is what makes "selected" readable. */
+  .lw-radio__ring::after {
+    content: '';
+    width: 9px;
+    height: 9px;
+    border-radius: var(--radius-full);
+    background: transparent;
+  }
+  .lw-radio__input:checked + .lw-radio__ring {
+    border-color: var(--color-action-primary);
+  }
+  .lw-radio__input:checked + .lw-radio__ring::after {
+    background: var(--color-action-primary);
+  }
+
+  .lw-radio__body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-05);
+    min-width: 0;
+  }
+  .lw-radio__label {
+    color: var(--color-text-primary);
+    font: var(--text-body-md);
+  }
+  .lw-radio__description {
+    color: var(--color-text-tertiary);
+    font: var(--text-caption);
+  }
+</style>

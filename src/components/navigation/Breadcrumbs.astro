@@ -1,0 +1,84 @@
+---
+/**
+ * Reference: design/system/components/navigation.md § Breadcrumbs — prop
+ * contract ported verbatim.
+ *
+ * The last item is the current page. It is not a link and it carries
+ * aria-current="page". Breadcrumbs mirror the LUDWISE URL structure and never
+ * show a store as a level.
+ */
+import Icon from '../foundation/Icon.astro';
+import { messages as m, resolveLocale } from '../../i18n/index.js';
+
+interface BreadcrumbItem {
+  label: string;
+  href?: string | undefined;
+}
+
+interface Props {
+  items: BreadcrumbItem[];
+  class?: string | undefined;
+}
+
+const { items, class: className } = Astro.props;
+const locale = resolveLocale(Astro.currentLocale);
+---
+
+<nav aria-label={m.breadcrumbs_label({}, { locale })} class:list={['lw-breadcrumbs', className]}>
+  <ol class="lw-breadcrumbs__list">
+    {
+      items.map((item, index) => {
+        const last = index === items.length - 1;
+        return (
+          <li class="lw-breadcrumbs__item">
+            {last || item.href === undefined ? (
+              <span class="lw-breadcrumbs__current" aria-current={last ? 'page' : undefined}>
+                {item.label}
+              </span>
+            ) : (
+              <a class="lw-breadcrumbs__link" href={item.href}>
+                {item.label}
+              </a>
+            )}
+            {!last && (
+              <span aria-hidden="true" class="lw-breadcrumbs__separator">
+                <Icon name="chevron-right" size="xs" />
+              </span>
+            )}
+          </li>
+        );
+      })
+    }
+  </ol>
+</nav>
+
+<style>
+  .lw-breadcrumbs__list {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--space-1);
+    list-style: none;
+  }
+  .lw-breadcrumbs__item {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    min-width: 0;
+  }
+  .lw-breadcrumbs__current {
+    overflow: hidden;
+    color: var(--color-text-secondary);
+    font: var(--text-body-sm);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .lw-breadcrumbs__link {
+    color: var(--color-text-secondary);
+    font: var(--text-body-sm);
+  }
+  .lw-breadcrumbs__separator {
+    display: inline-flex;
+    color: var(--color-text-tertiary);
+  }
+</style>

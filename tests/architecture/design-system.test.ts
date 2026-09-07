@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 
 import { describe, expect, it } from 'vitest';
 
+import { ADOPTED_SUBSET, AWAITING_COMPOSITION } from '../helpers/design-subset.js';
 import { listSourceFiles } from '../helpers/imports.js';
 
 /**
@@ -185,23 +186,50 @@ describe('every component has a consumer', () => {
    * component, so the header reimplemented their geometry instead. That left
    * two copies of the brand mark, one of which nothing rendered.
    */
-  it('is imported by something, somewhere in src/', () => {
-    const componentFiles = listSourceFiles('src/components').filter(
-      (file) => /\/[A-Z]/.test(file) && !file.endsWith('.css'),
-    );
-    expect(componentFiles.length).toBeGreaterThanOrEqual(5);
-
-    const orphans = componentFiles.filter((file) => {
+  const orphansIn = (files: string[]): string[] =>
+    files.filter((file) => {
       // `group/Name` is how every import of it is written, from a page or from
-      // a sibling alike. Matching the path rather than the bare name avoids
-      // counting prose in a comment as a use.
-      const importPath = file.split('/').slice(-2).join('/').replace(/.w+$/, '');
+      // a sibling alike. The extension goes, because a TypeScript module is
+      // imported by the `.js` name it compiles to.
+      const importPath = file
+        .split('/')
+        .slice(-2)
+        .join('/')
+        .replace(/\.\w+$/, '');
 
       return !listSourceFiles('src')
         .filter((candidate) => candidate !== file)
         .some((candidate) => readFileSync(join(REPO_ROOT, candidate), 'utf8').includes(importPath));
     });
 
-    expect(orphans).toEqual([]);
+  const componentFiles = (): string[] =>
+    listSourceFiles('src/components').filter(
+      (file) => /\/[A-Z]/.test(file) && !file.endsWith('.css'),
+    );
+
+  // `AWAITING_COMPOSITION` is the one exemption, and it is narrow. Issue #77
+  // adopts the subset and touches no page, because issue #93 owns the
+  // composition. The two rules after this one keep the exemption honest.
+  it('is imported by something, somewhere in src/', () => {
+    const files = componentFiles();
+    expect(files.length).toBeGreaterThanOrEqual(5);
+
+    const exempt = new Set(AWAITING_COMPOSITION);
+    expect(orphansIn(files.filter((file) => !exempt.has(file)))).toEqual([]);
+  });
+
+  it('exempts only primitives the adoption issue put there', () => {
+    // Otherwise the list becomes a way to silence the rule for anything.
+    const subset = new Set(ADOPTED_SUBSET.map((component) => component.file));
+    expect(AWAITING_COMPOSITION.filter((file) => !subset.has(file))).toEqual([]);
+  });
+
+  it('holds no exemption that composition has already answered', () => {
+    // A composed primitive has to leave the list, so the exemption shrinks to
+    // nothing as issue #93 lands rather than outliving it.
+    const stale = AWAITING_COMPOSITION.filter(
+      (file) => !orphansIn([...AWAITING_COMPOSITION]).includes(file),
+    );
+    expect(stale).toEqual([]);
   });
 });

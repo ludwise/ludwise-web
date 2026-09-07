@@ -1,0 +1,53 @@
+---
+/**
+ * Reference: design/system/components/feedback.md § Skeleton — prop contract
+ * ported verbatim.
+ *
+ * A placeholder for content that has never rendered. Content that already
+ * exists is dimmed in place while it refreshes, never replaced by this.
+ *
+ * Always aria-hidden. Announce loading with a live region on the container.
+ * The shimmer stops with prefers-reduced-motion, which tokens/motion.css
+ * handles once for the whole system.
+ */
+interface Props {
+  width?: string | number | undefined;
+  height?: string | number | undefined;
+  radius?: string | undefined;
+  class?: string | undefined;
+}
+
+const { width = '100%', height = 16, radius = 'var(--radius-sm)', class: className } = Astro.props;
+
+const size = (value: string | number): string => (typeof value === 'number' ? `${value}px` : value);
+---
+
+<span
+  aria-hidden="true"
+  class:list={['lw-skeleton', className]}
+  style={{ width: size(width), height: size(height), borderRadius: radius }}
+>
+</span>
+
+<style>
+  .lw-skeleton {
+    display: block;
+    background-image: linear-gradient(
+      90deg,
+      var(--color-background-tertiary) 0%,
+      var(--color-background-secondary) 50%,
+      var(--color-background-tertiary) 100%
+    );
+    background-size: 200% 100%;
+    animation: lw-skeleton-shimmer var(--motion-duration-ambient) linear infinite;
+  }
+
+  @keyframes lw-skeleton-shimmer {
+    0% {
+      background-position: 200% 0;
+    }
+    100% {
+      background-position: -200% 0;
+    }
+  }
+</style>

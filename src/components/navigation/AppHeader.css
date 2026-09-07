@@ -1,9 +1,10 @@
 /* AppHeader — plain CSS, not CSS-in-JS.
    React components have no Astro-style scoped <style> block, so this is a
    normal stylesheet imported once by AppHeader.tsx. Class names are prefixed
-   `lw-header__` / `lw-search__` to avoid collisions with any other
-   stylesheet loaded on the same page; there is no build-time scoping here the
-   way there is for the .astro components.
+   `lw-header__` to avoid collisions with any other stylesheet loaded on the
+   same page; there is no build-time scoping here the way there is for the
+   .astro components. The search field carries its own stylesheet, beside its
+   own component.
 
    CSS, not React state, decides which layout is showing. AppHeader.tsx
    renders BOTH the desktop DOM (inline nav, inline search, market button in
@@ -76,7 +77,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: var(--ludwise-amber-400);
+  background: var(--color-accent-primary);
 }
 .lw-header__wordmark-text {
   font-family: var(--font-family-display);
@@ -341,75 +342,4 @@
 .lw-header[data-compact='false'] .lw-header__icon-button {
   width: var(--target-min);
   height: var(--target-min);
-}
-
-/* SearchField */
-.lw-search {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  width: 100%;
-  padding: 0 var(--space-3);
-  background: var(--color-surface-default);
-  border: var(--border-width-hairline) solid var(--color-border-component);
-  border-radius: var(--radius-input);
-  transition: var(--motion-transition-color);
-}
-.lw-search[data-size='sm'] {
-  height: 36px;
-}
-.lw-search[data-size='md'] {
-  height: var(--target-min);
-}
-.lw-search[data-size='lg'] {
-  height: 48px;
-}
-
-.lw-search__icon {
-  display: inline-flex;
-  color: var(--color-text-tertiary);
-}
-.lw-search__spinner {
-  display: inline-flex;
-  animation: lw-spin var(--motion-duration-ambient) linear infinite;
-}
-@keyframes lw-spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-/* Nothing in this file reacts to focus any more. There was previously a
-   hand-rolled ring on the `.lw-search` container — a border-colour and
-   box-shadow pair driven by a container-level pseudo-class that fires
-   whenever any descendant has focus — plus a property on this input
-   suppressing its own native ring so the container's hand-rolled one could
-   stand in instead. Both are gone: the design system's rule is one global
-   focus-visible rule, in tokens/base.css, and no per-component override of
-   it, which is what the removed pair amounted to (and, combined, drew two
-   concentric rings at once). Focusing the input now shows that ordinary
-   global ring around the input itself. */
-.lw-search__input {
-  flex: 1;
-  min-width: 0;
-  border: none;
-  background: transparent;
-  font: var(--text-body-md);
-  color: var(--color-text-primary);
-}
-.lw-search[data-size='lg'] .lw-search__input {
-  font: var(--text-body-lg);
-}
-
-.lw-search__clear {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: var(--target-min-inline);
-  height: var(--target-min-inline);
-  border: none;
-  background: transparent;
-  color: var(--color-text-tertiary);
-  cursor: pointer;
-  border-radius: var(--radius-sm);
 }

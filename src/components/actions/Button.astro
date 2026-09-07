@@ -1,0 +1,166 @@
+---
+/**
+ * Reference: design/system/components/actions.md § Button — prop contract
+ * ported verbatim.
+ *
+ * `children` is the default slot. `href` is an addition: design/README.md keeps
+ * Button static because it "is a link or a form submit, which is most cases",
+ * and a link needs an anchor. `onClick` has no Astro equivalent, so a handler
+ * belongs to the island that owns the submission. The same island owns
+ * `loading`, which this component only renders.
+ */
+import Icon from '../foundation/Icon.astro';
+import type { IconName } from '../foundation/icons.js';
+
+type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger';
+type ButtonSize = 'sm' | 'md' | 'lg';
+
+interface Props {
+  /** primary = the one committing action in a view. Never two per view.
+   *  secondary = the default. ghost = tertiary/toolbar. danger = destructive only. */
+  variant?: ButtonVariant | undefined;
+  /** sm 32px is permitted only inside compact table rows and toolbars. */
+  size?: ButtonSize | undefined;
+  iconStart?: IconName | undefined;
+  iconEnd?: IconName | undefined;
+  /** Replaces iconStart with a spinner and blocks interaction. Keep the label. */
+  loading?: boolean | undefined;
+  disabled?: boolean | undefined;
+  /** Mobile action bars and drawer footers only. */
+  fullWidth?: boolean | undefined;
+  type?: 'button' | 'submit' | 'reset' | undefined;
+  /** Renders an anchor instead of a button. A link out of LUDWISE takes this. */
+  href?: string | undefined;
+  class?: string | undefined;
+}
+
+const {
+  variant = 'secondary',
+  size = 'md',
+  iconStart,
+  iconEnd,
+  loading = false,
+  disabled = false,
+  fullWidth = false,
+  type = 'button',
+  href,
+  class: className,
+} = Astro.props;
+
+const GLYPH_SIZE: Record<ButtonSize, number> = { sm: 14, md: 16, lg: 18 };
+
+const inert = disabled || loading;
+const Tag = href === undefined ? 'button' : 'a';
+/** Astro cannot narrow a dynamic tag's attributes, so the set is widened. */
+const tagProps: Record<string, string | boolean | undefined> =
+  href === undefined
+    ? { type, disabled: inert }
+    : { href: inert ? undefined : href, 'aria-disabled': inert ? 'true' : undefined };
+---
+
+<Tag
+  class:list={['lw-button', className]}
+  data-variant={variant}
+  data-size={size}
+  data-full-width={fullWidth || undefined}
+  aria-busy={loading ? 'true' : undefined}
+  {...tagProps}
+>
+  {
+    loading ? (
+      <span class="lw-button__spinner">
+        <Icon name="loader-circle" size={GLYPH_SIZE[size]} />
+      </span>
+    ) : (
+      iconStart && <Icon name={iconStart} size={GLYPH_SIZE[size]} />
+    )
+  }
+  <span><slot /></span>
+  {!loading && iconEnd && <Icon name={iconEnd} size={GLYPH_SIZE[size]} />}
+</Tag>
+
+<style>
+  .lw-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    min-height: 40px;
+    padding-inline: var(--space-4);
+    border: var(--border-width-hairline) solid transparent;
+    border-radius: var(--radius-button);
+    background: var(--color-surface-interactive);
+    color: var(--color-action-secondary-text);
+    font: var(--text-label-lg);
+    letter-spacing: var(--letter-spacing-label);
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: var(--motion-transition-color);
+  }
+  .lw-button[data-size='sm'] {
+    min-height: 32px;
+    padding-inline: var(--space-3);
+    font: var(--text-label-md);
+  }
+  .lw-button[data-size='lg'] {
+    min-height: 48px;
+    padding-inline: var(--space-5);
+  }
+  .lw-button[data-full-width] {
+    width: 100%;
+  }
+
+  .lw-button[data-variant='secondary'] {
+    border-color: var(--color-border-component);
+  }
+  .lw-button[data-variant='secondary']:hover,
+  .lw-button[data-variant='ghost']:hover {
+    background: var(--color-surface-interactive-hover);
+  }
+  .lw-button[data-variant='secondary']:active,
+  .lw-button[data-variant='ghost']:active {
+    background: var(--color-surface-interactive-active);
+  }
+  .lw-button[data-variant='ghost'] {
+    background: transparent;
+  }
+
+  .lw-button[data-variant='primary'] {
+    background: var(--color-action-primary);
+    color: var(--color-action-primary-text);
+  }
+  .lw-button[data-variant='primary']:hover {
+    background: var(--color-action-primary-hover);
+  }
+  .lw-button[data-variant='primary']:active {
+    background: var(--color-action-primary-active);
+  }
+
+  .lw-button[data-variant='danger'] {
+    background: var(--color-action-danger);
+    color: var(--color-action-danger-text);
+  }
+  .lw-button[data-variant='danger']:hover,
+  .lw-button[data-variant='danger']:active {
+    background: var(--color-action-danger-hover);
+  }
+
+  .lw-button:disabled,
+  .lw-button[aria-disabled='true'] {
+    border-color: transparent;
+    background: var(--color-action-disabled-surface);
+    color: var(--color-action-disabled-text);
+    cursor: not-allowed;
+  }
+
+  .lw-button__spinner {
+    display: inline-flex;
+    animation: lw-button-spin var(--motion-duration-ambient) linear infinite;
+  }
+  @keyframes lw-button-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+</style>

@@ -1,0 +1,52 @@
+/* Popover. A React island cannot use Astro's scoped <style>, so every class
+   here starts with `lw-popover` to avoid collisions with any other stylesheet
+   on the page. */
+
+.lw-popover {
+  position: relative;
+  display: inline-flex;
+}
+.lw-popover__trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--target-min-inline);
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.lw-popover__panel {
+  position: absolute;
+  z-index: 50;
+  top: calc(100% + 6px);
+  left: 0;
+  /* `width` is a prop with a 300px default. This keeps it from overflowing a
+     narrow viewport, which accessibility.md forbids. */
+  max-width: calc(100vw - var(--space-8));
+  padding: var(--space-4);
+  border: var(--border-width-hairline) solid var(--color-border-component);
+  border-radius: var(--radius-popover);
+  background: var(--color-surface-overlay);
+  box-shadow: var(--elevation-1);
+  animation: lw-popover-enter var(--motion-duration-normal) var(--motion-easing-enter);
+}
+.lw-popover__panel[data-align='end'] {
+  left: auto;
+  right: 0;
+}
+
+@keyframes lw-popover-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}

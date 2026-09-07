@@ -1,0 +1,108 @@
+---
+/**
+ * Reference: design/system/components/navigation.md § Pagination — prop
+ * contract ported verbatim, except for the navigation route.
+ *
+ * The reference calls `onChange`. design/README.md replaces it with real links
+ * to real URLs, because a crawler and a keyboard visitor both need one URL per
+ * page. So the caller supplies the two hrefs, and a null href is the end of
+ * the set. Both controls carry text, because a chevron alone fails at 200%
+ * zoom.
+ */
+import Icon from '../foundation/Icon.astro';
+import { messages as m, resolveLocale } from '../../i18n/index.js';
+
+interface Props {
+  page: number;
+  pageCount: number;
+  /** The previous page URL, or null on the first page. */
+  previousHref?: string | null | undefined;
+  /** The next page URL, or null on the last page. */
+  nextHref?: string | null | undefined;
+  /** Overrides the default text, for example "1–48 of 2,914 games". Preferred,
+   *  because the result count is more useful than the page count. */
+  totalLabel?: string | undefined;
+  class?: string | undefined;
+}
+
+const {
+  page,
+  pageCount,
+  previousHref = null,
+  nextHref = null,
+  totalLabel,
+  class: className,
+} = Astro.props;
+
+const locale = resolveLocale(Astro.currentLocale);
+const messageOptions = { locale } as const;
+const summary = totalLabel ?? m.pagination_page_of({ page, pageCount }, messageOptions);
+---
+
+<nav aria-label={m.pagination_label({}, messageOptions)} class:list={['lw-pagination', className]}>
+  <span class="lw-pagination__summary lw-tabular">{summary}</span>
+  <div class="lw-pagination__controls">
+    {
+      previousHref === null ? (
+        <span class="lw-pagination__control" aria-disabled="true">
+          <Icon name="chevron-left" size="sm" />
+          {m.pagination_previous({}, messageOptions)}
+        </span>
+      ) : (
+        <a class="lw-pagination__control" href={previousHref} rel="prev">
+          <Icon name="chevron-left" size="sm" />
+          {m.pagination_previous({}, messageOptions)}
+        </a>
+      )
+    }
+    {
+      nextHref === null ? (
+        <span class="lw-pagination__control" aria-disabled="true">
+          {m.pagination_next({}, messageOptions)}
+          <Icon name="chevron-right" size="sm" />
+        </span>
+      ) : (
+        <a class="lw-pagination__control" href={nextHref} rel="next">
+          {m.pagination_next({}, messageOptions)}
+          <Icon name="chevron-right" size="sm" />
+        </a>
+      )
+    }
+  </div>
+</nav>
+
+<style>
+  .lw-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: var(--space-4);
+  }
+  .lw-pagination__summary {
+    color: var(--color-text-secondary);
+    font: var(--text-body-sm);
+  }
+  .lw-pagination__controls {
+    display: flex;
+    gap: var(--space-2);
+  }
+  .lw-pagination__control {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-1);
+    min-height: var(--target-min);
+    padding-inline: var(--space-3);
+    border: var(--border-width-hairline) solid var(--color-border-component);
+    border-radius: var(--radius-button);
+    background: var(--color-surface-default);
+    color: var(--color-text-primary);
+    font: var(--text-label-md);
+    text-decoration: none;
+  }
+  .lw-pagination__control[aria-disabled='true'] {
+    color: var(--color-text-disabled);
+    cursor: not-allowed;
+  }
+</style>

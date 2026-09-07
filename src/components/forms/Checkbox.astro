@@ -1,0 +1,165 @@
+---
+/**
+ * Reference: design/system/components/forms.md § Checkbox — prop contract
+ * ported verbatim.
+ *
+ * design/README.md keeps it static inside a form that submits filters as query
+ * parameters. Thus `onChange` belongs to the island that owns live filtering.
+ * `checked` is the initial state this application rendered.
+ *
+ * The one line of script sets the `indeterminate` DOM property, which no HTML
+ * attribute can express. Without it a screen reader announces "not checked"
+ * beside a minus glyph.
+ */
+import Icon from '../foundation/Icon.astro';
+
+interface Props {
+  /** ReactNode in the reference. Text here, because a facet label is text. */
+  label: string;
+  description?: string | undefined;
+  /** Facet result count, right-aligned and tabular. Omit when unknown —
+   *  never render 0 as a placeholder for "not counted". */
+  count?: number | string | undefined;
+  indeterminate?: boolean | undefined;
+  checked?: boolean | undefined;
+  disabled?: boolean | undefined;
+  name?: string | undefined;
+  value?: string | undefined;
+  id?: string | undefined;
+  class?: string | undefined;
+}
+
+const {
+  label,
+  description,
+  count,
+  indeterminate = false,
+  checked = false,
+  disabled = false,
+  name,
+  value,
+  id,
+  class: className,
+} = Astro.props;
+
+const boxId = id ?? `lw-checkbox-${crypto.randomUUID()}`;
+const descriptionId = description === undefined ? undefined : `${boxId}-description`;
+---
+
+<label
+  class:list={['lw-checkbox', className]}
+  for={boxId}
+  data-disabled={disabled || undefined}
+  data-indeterminate={indeterminate || undefined}
+>
+  <span class="lw-checkbox__control">
+    <input
+      class="lw-checkbox__input"
+      id={boxId}
+      type="checkbox"
+      name={name}
+      value={value}
+      checked={checked}
+      disabled={disabled}
+      aria-describedby={descriptionId}
+      data-lw-indeterminate={indeterminate || undefined}
+    />
+    <span class="lw-checkbox__box" aria-hidden="true">
+      {indeterminate && <Icon name="minus" size={12} strokeWidth={2.5} />}
+      {!indeterminate && checked && <Icon name="check" size={12} strokeWidth={2.5} />}
+    </span>
+  </span>
+  <span class="lw-checkbox__body">
+    <span class="lw-checkbox__line">
+      <span class="lw-checkbox__label">{label}</span>
+      {count != null && <span class="lw-checkbox__count lw-tabular">{count}</span>}
+    </span>
+    {
+      description && (
+        <span class="lw-checkbox__description" id={descriptionId}>
+          {description}
+        </span>
+      )
+    }
+  </span>
+</label>
+
+<script>
+  for (const input of document.querySelectorAll('input[data-lw-indeterminate]')) {
+    (input as HTMLInputElement).indeterminate = true;
+  }
+</script>
+
+<style>
+  .lw-checkbox {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-3);
+    min-height: var(--target-min);
+    padding-block: var(--space-2);
+    cursor: pointer;
+  }
+  .lw-checkbox[data-disabled] {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+
+  .lw-checkbox__control {
+    position: relative;
+    display: inline-flex;
+    flex: none;
+    margin-block-start: 1px;
+  }
+  .lw-checkbox__input {
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    opacity: 0;
+    cursor: inherit;
+  }
+  .lw-checkbox__box {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border: var(--border-width-hairline) solid var(--color-border-component);
+    border-radius: var(--radius-xs);
+    background: var(--color-surface-default);
+    color: var(--color-action-primary-text);
+    transition: var(--motion-transition-color);
+  }
+  /* Selected is never colour alone: the fill carries a check or a minus. */
+  .lw-checkbox__input:checked + .lw-checkbox__box,
+  .lw-checkbox[data-indeterminate] .lw-checkbox__box {
+    border-color: var(--color-action-primary);
+    background: var(--color-action-primary);
+  }
+
+  .lw-checkbox__body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-05);
+    flex: 1;
+    min-width: 0;
+  }
+  .lw-checkbox__line {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-2);
+  }
+  .lw-checkbox__label {
+    color: var(--color-text-primary);
+    font: var(--text-body-md);
+  }
+  .lw-checkbox__count {
+    color: var(--color-text-tertiary);
+    font: var(--text-caption);
+  }
+  .lw-checkbox__description {
+    color: var(--color-text-tertiary);
+    font: var(--text-caption);
+  }
+</style>

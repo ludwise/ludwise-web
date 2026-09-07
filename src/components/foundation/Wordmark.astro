@@ -1,0 +1,87 @@
+---
+/**
+ * Reference: design/system/components/foundation.md § Wordmark — prop contract
+ * ported verbatim.
+ *
+ * The lockup: the amber step tile beside the split wordmark. `WISE` carries the
+ * accent, except in `mono`, where one color is the whole point.
+ *
+ * The name of the mark alone is the brand name, which no locale translates.
+ * The link takes the catalogued name AppHeader already uses.
+ */
+import LudwiseMark from '../foundation/LudwiseMark.astro';
+import {
+  WORDMARK_CAP_HEIGHT,
+  WORDMARK_GAP_RATIO,
+  WORDMARK_TILE_RATIO,
+  type WordmarkSize,
+} from '../foundation/wordmark-geometry.js';
+import { messages as m, resolveLocale } from '../../i18n/index.js';
+
+interface Props {
+  size?: WordmarkSize | undefined;
+  /** default = amber tile + ink/amber wordmark · inverse = for dark brand
+   *  surfaces · mono = one color, for print, favicons and embroidery. */
+  tone?: 'default' | 'inverse' | 'mono' | undefined;
+  /** Set false for the wordmark alone — footers, legal pages, and anywhere the
+   *  mark already appears within the same view. */
+  mark?: boolean | undefined;
+  href?: string | undefined;
+  class?: string | undefined;
+}
+
+const { size = 'md', tone = 'default', mark = true, href, class: className } = Astro.props;
+
+const capHeight = WORDMARK_CAP_HEIGHT[size];
+const tileSize = Math.round(capHeight * WORDMARK_TILE_RATIO);
+const gap = Math.round(capHeight * WORDMARK_GAP_RATIO);
+
+const locale = resolveLocale(Astro.currentLocale);
+
+/** Astro takes a dynamic tag from a capitalised variable. */
+const Root = href === undefined ? 'span' : 'a';
+const rootProps: Record<string, string> =
+  href === undefined
+    ? { 'aria-label': 'LUDWISE' }
+    : { href, 'aria-label': m.shell_brand_home_label({}, { locale }) };
+---
+
+<Root class:list={['lw-wordmark', className]} data-tone={tone} {...rootProps}>
+  <span class="lw-wordmark__lockup" style={{ gap: `${gap}px` }}>
+    {mark && <LudwiseMark size={tileSize} tone={tone} />}
+    <span class="lw-wordmark__text" style={{ fontSize: `${capHeight}px` }}>
+      LUD<span class="lw-wordmark__accent">WISE</span>
+    </span>
+  </span>
+</Root>
+
+<style>
+  .lw-wordmark {
+    display: inline-flex;
+    text-decoration: none;
+  }
+  .lw-wordmark__lockup {
+    display: inline-flex;
+    align-items: center;
+  }
+  .lw-wordmark__text {
+    color: var(--color-text-primary);
+    font-family: var(--font-family-display);
+    font-weight: var(--font-weight-semibold);
+    line-height: 1;
+    /* Lockup tracking. Wider than --letter-spacing-caps, which is a type-scale
+       role and not a brand measurement. */
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .lw-wordmark[data-tone='inverse'] .lw-wordmark__text {
+    color: var(--color-text-inverse);
+  }
+  .lw-wordmark__accent {
+    color: var(--color-accent-primary);
+  }
+  .lw-wordmark[data-tone='mono'] .lw-wordmark__accent {
+    color: inherit;
+  }
+</style>

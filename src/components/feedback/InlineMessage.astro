@@ -14,6 +14,7 @@
  */
 import Icon from '../foundation/Icon.astro';
 import type { IconName } from '../foundation/icons.js';
+import { messages as m, resolveLocale } from '../../i18n/index.js';
 
 type MessageTone = 'info' | 'success' | 'warning' | 'danger' | 'neutral';
 
@@ -42,11 +43,12 @@ const TONE_ICON: Record<MessageTone, IconName> = {
  * word: it is the tone with no claim to make, so there is nothing true to
  * announce.
  */
+const messageOptions = { locale: resolveLocale(Astro.currentLocale) } as const;
 const TONE_WORD: Partial<Record<MessageTone, string>> = {
-  info: 'Information',
-  success: 'Success',
-  warning: 'Warning',
-  danger: 'Error',
+  info: m.status_tone_information({}, messageOptions),
+  success: m.status_tone_success({}, messageOptions),
+  warning: m.status_tone_warning({}, messageOptions),
+  danger: m.status_tone_error({}, messageOptions),
 };
 ---
 

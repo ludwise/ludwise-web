@@ -1,0 +1,65 @@
+/* Chip. A React island cannot use Astro's scoped <style>, so every class
+   here starts with `lw-chip` to avoid collisions with any other stylesheet
+   on the page. */
+
+.lw-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  height: 32px;
+  padding-inline: var(--space-3);
+  border: var(--border-width-hairline) solid var(--color-border-component);
+  border-radius: var(--radius-chip);
+  background: var(--color-surface-default);
+  color: var(--color-text-primary);
+  font: var(--text-label-md);
+  letter-spacing: var(--letter-spacing-label);
+  transition: var(--motion-transition-color);
+}
+.lw-chip[data-removable] {
+  padding-inline-end: var(--space-1);
+}
+
+/* Selected is never colour alone: the toggle also carries aria-pressed. */
+.lw-chip[data-selected] {
+  border-color: var(--color-accent-border);
+  background: var(--color-surface-selected);
+}
+.lw-chip:hover:has(.lw-chip__label:enabled) {
+  background: var(--color-surface-interactive-hover);
+}
+
+.lw-chip__label {
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  cursor: pointer;
+}
+.lw-chip__label:disabled {
+  color: var(--color-text-disabled);
+  cursor: not-allowed;
+}
+
+.lw-chip__count {
+  color: var(--color-text-tertiary);
+}
+
+.lw-chip__remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--target-min-inline);
+  height: var(--target-min-inline);
+  border: none;
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: var(--color-text-tertiary);
+  cursor: pointer;
+}
+.lw-chip__remove:disabled {
+  color: var(--color-text-disabled);
+  cursor: not-allowed;
+}

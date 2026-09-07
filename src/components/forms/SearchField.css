@@ -1,0 +1,65 @@
+/* SearchField, extracted from AppHeader.css. A React island cannot use
+   Astro's scoped <style>, so every class here starts with `lw-search` to
+   avoid collisions with any other stylesheet on the page. */
+
+.lw-search {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  padding: 0 var(--space-3);
+  background: var(--color-surface-default);
+  border: var(--border-width-hairline) solid var(--color-border-component);
+  border-radius: var(--radius-input);
+  transition: var(--motion-transition-color);
+}
+.lw-search[data-size='sm'] {
+  height: 36px;
+}
+.lw-search[data-size='md'] {
+  height: var(--target-min);
+}
+.lw-search[data-size='lg'] {
+  height: 48px;
+}
+
+.lw-search__icon {
+  display: inline-flex;
+  color: var(--color-text-tertiary);
+}
+.lw-search__spinner {
+  display: inline-flex;
+  animation: lw-spin var(--motion-duration-ambient) linear infinite;
+}
+@keyframes lw-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* No focus rule here. The one global rule in tokens/base.css owns the
+   indicator, and the input carries it. */
+.lw-search__input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  font: var(--text-body-md);
+  color: var(--color-text-primary);
+}
+.lw-search[data-size='lg'] .lw-search__input {
+  font: var(--text-body-lg);
+}
+
+.lw-search__clear {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--target-min-inline);
+  height: var(--target-min-inline);
+  border: none;
+  background: transparent;
+  color: var(--color-text-tertiary);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+}

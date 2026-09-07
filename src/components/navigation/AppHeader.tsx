@@ -2,12 +2,12 @@
  * Reference: design/system/components/navigation.md § AppHeader — prop contract
  * and `useIsCompactHeader` ported verbatim. Sticky, 60px, one hairline border.
  *
- * The one `client:load` island on the page. SearchField lives here because the
- * handoff makes it part of AppHeader rather than a standalone export.
+ * The one `client:load` island on the page. It contains SearchField, which
+ * design/README.md puts inside AppHeader rather than on its own.
  *
  * Icon, Button and Wordmark are Astro components a React island cannot import.
- * So this file renders its own glyphs from the framework-neutral
- * `../foundation/icons.js` map, plus its own button and wordmark markup.
+ * So this file uses the island glyph helper, plus its own button and wordmark
+ * markup.
  *
  * Search uses a native GET action, so it works before hydration. The account
  * control renders only when the host supplies `authed` at all: the prop has no
@@ -15,69 +15,36 @@
  */
 import { useEffect, useRef, useState, type ChangeEvent, type MouseEvent } from 'react';
 
-import { LUDWISE_ICONS, type IconName } from '../foundation/icons.js';
+import { IconGlyph } from '../foundation/icon-glyph.js';
+import {
+  WORDMARK_CAP_HEIGHT,
+  WORDMARK_GAP_RATIO,
+  WORDMARK_STEP_PATH,
+  WORDMARK_STEP_RATIO,
+  WORDMARK_STEP_STROKE_WIDTH,
+  WORDMARK_TILE_RADIUS_RATIO,
+  WORDMARK_TILE_RATIO,
+} from '../foundation/wordmark-geometry.js';
+import { SearchField } from '../forms/SearchField.js';
 import { serializeThemeCookie, type Theme } from '../../lib/http/theme.js';
 import './AppHeader.css';
 
 /**
- * One glyph from the compile-time icon map.
+ * The lockup, redrawn from Wordmark.astro because that is an Astro component
+ * this island cannot import.
  *
- * `markup` is a lookup into `LUDWISE_ICONS`, keyed by the closed `IconName`
- * union and never derived from a request or a database row. That constancy is
- * the whole basis for switching escaping off. So nothing variable may join the
- * string. `title` is a prop, and reaches the accessible name through
- * `aria-label`, which React escapes, rather than an interpolated `<title>`.
+ * Only the markup is redrawn. The measurements come from the shared module, so
+ * the two lockups cannot drift apart. Fixed at the reference's
+ * `<Wordmark size="md" />`, because the header's prop contract has no size or
+ * tone knob. The href is the one departure: the reference's `#` was a
+ * placeholder for a specimen with no router.
  */
-function IconGlyph({
-  name,
-  size,
-  title,
-}: {
-  name: IconName;
-  size: number;
-  title?: string | undefined;
-}) {
-  const markup = LUDWISE_ICONS[name];
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={1.75}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      role={title ? 'img' : undefined}
-      aria-hidden={title ? undefined : true}
-      aria-label={title}
-      focusable="false"
-      // Same technique as Icon.astro's set:html: the map holds markup
-      // strings (possibly several sibling <path>s), not a single element.
-      dangerouslySetInnerHTML={{ __html: markup }}
-    />
-  );
-}
-
-/**
- * Geometry for the lockup, reimplemented from Wordmark.astro because that is an
- * Astro component this island cannot import.
- *
- * Fixed at the reference's `<Wordmark size="md" />`. The header exposes no size
- * or tone knob, matching a prop contract that has none. The href is the one
- * departure: the reference's `#` was a placeholder for a specimen with no
- * router. This is the second tab stop on every real page.
- */
-const WORDMARK_PX = 19;
-const WORDMARK_TILE_RATIO = 1.22;
-const WORDMARK_GAP_RATIO = 0.42;
-const WORDMARK_TILE_RADIUS_RATIO = 0.22;
-const WORDMARK_STEP_RATIO = 0.64;
+const HEADER_WORDMARK_SIZE = 'md';
 
 function HeaderWordmark({ href, label }: { href: string; label: string }) {
-  const tileSize = Math.round(WORDMARK_PX * WORDMARK_TILE_RATIO);
-  const gap = Math.round(WORDMARK_PX * WORDMARK_GAP_RATIO);
+  const capHeight = WORDMARK_CAP_HEIGHT[HEADER_WORDMARK_SIZE];
+  const tileSize = Math.round(capHeight * WORDMARK_TILE_RATIO);
+  const gap = Math.round(capHeight * WORDMARK_GAP_RATIO);
   const radius = Math.round(tileSize * WORDMARK_TILE_RADIUS_RATIO);
   const stepSize = tileSize * WORDMARK_STEP_RATIO;
 
@@ -93,82 +60,17 @@ function HeaderWordmark({ href, label }: { href: string; label: string }) {
           height={stepSize}
           viewBox="0 0 24 24"
           fill="none"
-          stroke="var(--ludwise-neutral-1000)"
-          strokeWidth={2.2}
+          stroke="var(--color-action-primary-text)"
+          strokeWidth={WORDMARK_STEP_STROKE_WIDTH}
           strokeLinecap="square"
         >
-          <path d="M4 7h6v5h5v5h5" />
+          <path d={WORDMARK_STEP_PATH} />
         </svg>
       </span>
-      <span className="lw-header__wordmark-text" style={{ fontSize: WORDMARK_PX }}>
+      <span className="lw-header__wordmark-text" style={{ fontSize: capHeight }}>
         LUD<span className="lw-header__wordmark-accent">WISE</span>
       </span>
     </a>
-  );
-}
-
-interface SearchFieldProps {
-  value?: string | undefined;
-  onChange?: ((event: ChangeEvent<HTMLInputElement>) => void) | undefined;
-  onClear?: (() => void) | undefined;
-  /** Shows a spinner in place of the magnifier while results are in flight.
-   *  The previous results stay on screen — never blank them. */
-  loading?: boolean | undefined;
-  size?: 'sm' | 'md' | 'lg' | undefined;
-  placeholder: string;
-  label: string;
-  clearLabel: string;
-  name?: string | undefined;
-}
-
-/** design/system/components/forms.md § SearchField — prop contract ported
- *  verbatim. It drops the raw HTML-attribute passthrough the reference
- *  inherits via `extends Omit<InputHTMLAttributes, ...>`. This SearchField is
- *  used only from within AppHeader, and is not exported as a standalone
- *  public primitive. So that passthrough surface has no caller here. */
-function SearchField({
-  value,
-  onChange,
-  onClear,
-  placeholder,
-  label,
-  clearLabel,
-  size = 'md',
-  loading = false,
-  name = 'q',
-}: SearchFieldProps) {
-  const hasValue = value != null && value.length > 0;
-
-  return (
-    <div role="search" className="lw-search" data-size={size}>
-      <span className="lw-search__icon">
-        {loading ? (
-          <span className="lw-search__spinner">
-            <IconGlyph name="loader-circle" size={16} />
-          </span>
-        ) : (
-          <IconGlyph name="search" size={16} />
-        )}
-      </span>
-      <input
-        type="search"
-        aria-label={label}
-        placeholder={placeholder}
-        name={name}
-        {...(onChange === undefined ? { defaultValue: value } : { value, onChange })}
-        className="lw-search__input"
-      />
-      {hasValue && onClear && (
-        <button
-          type="button"
-          aria-label={clearLabel}
-          onClick={onClear}
-          className="lw-search__clear"
-        >
-          <IconGlyph name="x" size={14} />
-        </button>
-      )}
-    </div>
   );
 }
 
