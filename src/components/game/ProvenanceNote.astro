@@ -1,0 +1,85 @@
+---
+/**
+ * Reference: design/system/components/game.md § ProvenanceNote — prop contract
+ * ported verbatim.
+ *
+ * The disclosure body behind "Updated 8 min ago". It lives inside a Popover or
+ * a details panel, never inline on a card. One group per data cluster.
+ */
+import Icon from '../foundation/Icon.astro';
+import { messages as m, resolveLocale } from '../../i18n/index.js';
+
+interface ProvenanceItem {
+  /** One of the five permitted labels: Source, Provider, Observed, Updated,
+   *  Last checked. Do not invent new ones without a system change. */
+  label: string;
+  value: string;
+}
+
+interface Props {
+  items: ProvenanceItem[];
+  /** Marks the whole group as LUDWISE-derived rather than provider-supplied. */
+  derived?: boolean | undefined;
+  compact?: boolean | undefined;
+  class?: string | undefined;
+}
+
+const { items, derived = false, compact = false, class: className } = Astro.props;
+const locale = resolveLocale(Astro.currentLocale);
+---
+
+<div class:list={['lw-provenance', className]} data-compact={compact || undefined}>
+  {
+    derived && (
+      <p class="lw-provenance__derived">
+        <Icon name="info" size="sm" />
+        <span>{m.provenance_derived({}, { locale })}</span>
+      </p>
+    )
+  }
+  <dl class="lw-provenance__list">
+    {
+      items.map((item) => (
+        <Fragment>
+          <dt class="lw-provenance__label">{item.label}</dt>
+          <dd class="lw-provenance__value lw-tabular">{item.value}</dd>
+        </Fragment>
+      ))
+    }
+  </dl>
+</div>
+
+<style>
+  .lw-provenance {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    color: var(--color-text-tertiary);
+    font: var(--text-caption);
+  }
+  .lw-provenance[data-compact] {
+    gap: var(--space-1);
+  }
+  .lw-provenance__derived {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+  }
+  .lw-provenance__list {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    column-gap: var(--space-4);
+    row-gap: var(--space-1);
+    margin: 0;
+  }
+  .lw-provenance[data-compact] .lw-provenance__list {
+    row-gap: var(--space-05);
+  }
+  .lw-provenance__label {
+    color: var(--color-text-tertiary);
+  }
+  .lw-provenance__value {
+    margin: 0;
+    color: var(--color-text-secondary);
+  }
+</style>

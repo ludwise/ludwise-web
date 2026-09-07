@@ -1,0 +1,147 @@
+---
+/**
+ * Reference: design/system/components/game.md § GameRow — prop contract ported
+ * verbatim, against this repository's Price and FreshnessIndicator.
+ *
+ * The list counterpart to GameCard. Below 768px a card grid becomes a row list,
+ * not a one-column stack of tall cards.
+ *
+ * The contract types `price` as `PriceProps` and `freshness` as
+ * `FreshnessIndicatorProps`. Those are the props of the two sibling components,
+ * which this repository states against the wire contract. So both prop names
+ * carry, and their shapes follow the siblings. `discountPercentage` is inside
+ * `price`, because Price owns the discount badge here.
+ */
+import GameArtwork from '../game/GameArtwork.astro';
+import Price from '../game/Price.astro';
+import FreshnessIndicator from '../game/FreshnessIndicator.astro';
+
+/** Structural, so both the sales and game-detail money views satisfy it. */
+interface RowMoney {
+  amountMinor: number;
+  currencyCode: string;
+  minorUnit: number;
+}
+
+/** The props of Price.astro. */
+interface RowPrice {
+  price: RowMoney | null;
+  referencePrice: RowMoney | null;
+  discountPercentage: number | null;
+  availability: 'available' | 'unavailable' | 'unknown' | null;
+}
+
+/** The props of FreshnessIndicator.astro. */
+interface RowFreshness {
+  availability: 'available' | 'unavailable' | 'unknown' | null;
+  observedAtMs: number | null;
+  storeName: string;
+  nowMs?: number | undefined;
+}
+
+interface Props {
+  title: string;
+  /** Developer, release year, or genre. One line only. */
+  subtitle?: string | undefined;
+  artworkSrc?: string | undefined;
+  price: RowPrice;
+  storeName?: string | undefined;
+  freshness?: RowFreshness | undefined;
+  /** comfortable 56px · compact 40px. Compact hides the freshness indicator. */
+  density?: 'comfortable' | 'compact' | undefined;
+  /** The canonical game page. Always internal — the row never links to a store. */
+  href: string;
+  class?: string | undefined;
+}
+
+const {
+  title,
+  subtitle,
+  artworkSrc,
+  price,
+  storeName,
+  freshness,
+  density = 'comfortable',
+  href,
+  class: className,
+} = Astro.props;
+
+const compact = density === 'compact';
+---
+
+<a class:list={['lw-game-row', className]} href={href} data-density={density}>
+  <div class="lw-game-row__artwork">
+    <GameArtwork src={artworkSrc} title={title} ratio="capsule" radius="var(--radius-sm)" />
+  </div>
+
+  <div class="lw-game-row__identity">
+    <span class="lw-game-row__title">{title}</span>
+    {subtitle && <span class="lw-game-row__meta">{subtitle}</span>}
+    {storeName && <span class="lw-game-row__meta">{storeName}</span>}
+  </div>
+
+  <div class="lw-game-row__trailing">
+    {freshness && !compact && <FreshnessIndicator {...freshness} />}
+    <Price {...price} />
+  </div>
+</a>
+
+<style>
+  .lw-game-row {
+    display: grid;
+    grid-template-columns: 64px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: var(--space-4);
+    min-height: var(--density-row-height-comfortable);
+    padding: var(--space-3) var(--space-4);
+    border-block-end: var(--border-width-hairline) solid var(--color-border-decorative);
+    background: transparent;
+    color: inherit;
+    text-decoration: none;
+    transition: var(--motion-transition-color);
+  }
+  .lw-game-row[data-density='compact'] {
+    grid-template-columns: 48px minmax(0, 1fr) auto;
+    gap: var(--space-3);
+    min-height: var(--density-row-height-compact);
+    padding: var(--space-2) var(--space-3);
+  }
+  .lw-game-row:hover {
+    background: var(--color-surface-interactive-hover);
+  }
+
+  .lw-game-row__artwork {
+    display: block;
+    min-width: 0;
+  }
+  .lw-game-row__identity {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-05);
+    min-width: 0;
+  }
+  .lw-game-row__title {
+    overflow: hidden;
+    color: var(--color-text-primary);
+    font: var(--text-label-lg);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .lw-game-row[data-density='compact'] .lw-game-row__title {
+    font: var(--text-label-md);
+  }
+  .lw-game-row__meta {
+    overflow: hidden;
+    color: var(--color-text-secondary);
+    font: var(--text-caption);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .lw-game-row__trailing {
+    display: flex;
+    align-items: center;
+    justify-self: end;
+    gap: var(--space-3);
+  }
+</style>

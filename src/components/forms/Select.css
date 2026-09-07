@@ -1,0 +1,72 @@
+/* Select. A React island cannot use Astro's scoped <style>, so the class names
+   stay prefixed with `lw-select__` to avoid collisions with any other
+   stylesheet on the page. */
+
+.lw-select__label {
+  display: block;
+  margin-block-end: var(--space-2);
+  color: var(--color-text-secondary);
+  font: var(--text-label-md);
+  letter-spacing: var(--letter-spacing-label);
+}
+
+.lw-select__control {
+  display: flex;
+  align-items: center;
+  height: var(--target-min);
+  padding-inline: var(--space-3);
+  border: var(--border-width-hairline) solid var(--color-border-component);
+  border-radius: var(--radius-input);
+  background: var(--color-surface-default);
+  color: var(--color-text-primary);
+  transition: var(--motion-transition-color);
+}
+.lw-select[data-size='sm'] .lw-select__control {
+  height: 32px;
+}
+.lw-select[data-size='lg'] .lw-select__control {
+  height: 48px;
+}
+.lw-select__control[data-invalid] {
+  border-color: var(--color-status-danger-border);
+}
+.lw-select__control:has(.lw-select__native:disabled) {
+  background: var(--color-action-disabled-surface);
+  color: var(--color-text-disabled);
+}
+
+.lw-select__native {
+  flex: 1;
+  min-width: 0;
+  padding-inline-end: var(--space-2);
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: var(--text-body-md);
+  appearance: none;
+  cursor: pointer;
+}
+.lw-select__native:disabled {
+  cursor: not-allowed;
+}
+
+.lw-select__chevron {
+  display: inline-flex;
+  color: var(--color-text-tertiary);
+  pointer-events: none;
+}
+
+.lw-select__hint {
+  margin-block-start: var(--space-2);
+  color: var(--color-text-tertiary);
+  font: var(--text-caption);
+}
+
+.lw-select__error {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin-block-start: var(--space-2);
+  color: var(--color-status-danger-text);
+  font: var(--text-caption);
+}

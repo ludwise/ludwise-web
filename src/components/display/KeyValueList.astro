@@ -1,0 +1,101 @@
+---
+/**
+ * Reference: design/system/components/display.md § KeyValueList — prop contract
+ * ported verbatim.
+ *
+ * Canonical game metadata. A null value prints "Not provided", which is a true
+ * statement about provider coverage. PRODUCT.md §120 forbids 0, a dash or
+ * "N/A" in its place.
+ *
+ * `value` is `React.ReactNode | null` in the reference. Here it is text,
+ * because every field this list carries is text.
+ */
+import { messages as m, resolveLocale } from '../../i18n/index.js';
+
+interface KeyValueItem {
+  label: string;
+  /** null renders the literal "Not provided". Never pass 0, "-" or "N/A" to
+   *  stand in for an unknown value. */
+  value: string | null;
+}
+
+interface Props {
+  items: KeyValueItem[];
+  columns?: 1 | 2 | 3 | undefined;
+  density?: 'comfortable' | 'compact' | undefined;
+  class?: string | undefined;
+}
+
+const { items, columns = 1, density = 'comfortable', class: className } = Astro.props;
+
+const locale = resolveLocale(Astro.currentLocale);
+const notProvided = m.field_not_provided({}, { locale });
+---
+
+<dl class:list={['lw-kv', className]} data-columns={columns} data-density={density}>
+  {
+    items.map((item) => (
+      <div class="lw-kv__item">
+        <dt class="lw-kv__label">{item.label}</dt>
+        <dd class="lw-kv__value" data-missing={item.value === null || undefined}>
+          {item.value ?? notProvided}
+        </dd>
+      </div>
+    ))
+  }
+</dl>
+
+<style>
+  .lw-kv {
+    display: grid;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    column-gap: var(--space-8);
+    row-gap: var(--space-3);
+    margin: 0;
+  }
+  .lw-kv[data-density='compact'] {
+    row-gap: var(--space-2);
+  }
+
+  /* Two columns from 768px, one below. Three only above 1280px, and only
+     where the caller asked for three. */
+  @media (min-width: 768px) {
+    .lw-kv[data-columns='2'],
+    .lw-kv[data-columns='3'] {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @media (min-width: 1280px) {
+    .lw-kv[data-columns='3'] {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  .lw-kv__item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-05);
+    min-width: 0;
+    padding-block-start: var(--space-3);
+    border-block-start: var(--border-width-hairline) solid var(--color-border-decorative);
+  }
+  .lw-kv[data-density='compact'] .lw-kv__item {
+    padding-block-start: var(--space-2);
+  }
+
+  .lw-kv__label {
+    color: var(--color-text-tertiary);
+    font: var(--text-label-sm);
+    letter-spacing: var(--letter-spacing-caps);
+    text-transform: uppercase;
+  }
+  .lw-kv__value {
+    margin: 0;
+    color: var(--color-text-primary);
+    font: var(--text-body-md);
+    text-wrap: pretty;
+  }
+  .lw-kv__value[data-missing] {
+    color: var(--color-text-secondary);
+  }
+</style>

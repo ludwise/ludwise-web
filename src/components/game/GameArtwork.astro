@@ -1,0 +1,160 @@
+---
+/**
+ * Reference: design/system/components/game.md § GameArtwork — prop contract
+ * ported verbatim, with `eager` added.
+ *
+ * The reference switches to the placeholder from an `onError` handler. Here the
+ * placeholder is always behind the picture, so a picture that fails to load
+ * reveals it with no JavaScript. An empty `alt` paints nothing on failure,
+ * which is what makes the layering work, and the frame is aria-hidden either
+ * way. design/system/guidelines/accessibility.md requires that the accessible
+ * output does not change with the load result.
+ *
+ * `eager` is the addition. Issue #80 requires the above-the-fold hero and the
+ * promoted cover to take the eager path.
+ */
+import Icon from '../foundation/Icon.astro';
+import Skeleton from '../feedback/Skeleton.astro';
+import { messages as m, resolveLocale } from '../../i18n/index.js';
+
+type ArtworkRatio = 'capsule' | 'header' | 'hero' | 'cover' | 'screenshot';
+
+interface Props {
+  /** Provider artwork URL. Omit or let it fail — the placeholder is a designed
+   *  state, not a fallback of last resort. */
+  src?: string | undefined;
+  /** Game title. Used in the placeholder and as the artwork's context. The
+   *  <img> itself is alt="" because the title always appears next to it. Where
+   *  a set of pictures has no per-item naming, the section heading is the
+   *  alternative, and the screenshot placeholder prints no title. */
+  title: string;
+  /** capsule 3:2 grid cards · header 460:215 store art · hero 8:3 detail page ·
+   *  cover 2:3 library · screenshot 16:9. Never crop outside these. The
+   *  screenshot ratio also selects the icon-only placeholder. */
+  ratio?: ArtworkRatio | undefined;
+  radius?: string | undefined;
+  /** Adds the bottom-up protection gradient. Required whenever text is
+   *  overlaid on artwork; forbidden when nothing sits on top. */
+  scrim?: boolean | undefined;
+  loading?: boolean | undefined;
+  /** Loads the picture eagerly, at high fetch priority. The hero and the
+   *  promoted cover only. Every other picture stays lazy. */
+  eager?: boolean | undefined;
+  class?: string | undefined;
+}
+
+const {
+  src,
+  title,
+  ratio = 'capsule',
+  radius = 'var(--radius-artwork)',
+  scrim = false,
+  loading = false,
+  eager = false,
+  class: className,
+} = Astro.props;
+
+const ASPECT: Record<ArtworkRatio, string> = {
+  capsule: 'var(--aspect-capsule)',
+  header: 'var(--aspect-header)',
+  hero: 'var(--aspect-hero)',
+  cover: 'var(--aspect-cover)',
+  screenshot: 'var(--aspect-screenshot)',
+};
+
+/** A gallery member carries no per-item naming, so it prints no title. */
+const iconOnly = ratio === 'screenshot';
+const locale = resolveLocale(Astro.currentLocale);
+---
+
+<div
+  class:list={['lw-artwork', className]}
+  style={{ aspectRatio: ASPECT[ratio], borderRadius: radius }}
+>
+  {
+    loading ? (
+      <Skeleton width="100%" height="100%" radius={radius} />
+    ) : (
+      <Fragment>
+        <div aria-hidden="true" class="lw-artwork__placeholder">
+          <Icon name="image-off" size="lg" />
+          {!iconOnly && (
+            <Fragment>
+              <span class="lw-artwork__title">{title}</span>
+              <span class="lw-artwork__note">{m.artwork_none_available({}, { locale })}</span>
+            </Fragment>
+          )}
+        </div>
+        {src && (
+          <img
+            class="lw-artwork__image"
+            src={src}
+            alt=""
+            loading={eager ? 'eager' : 'lazy'}
+            decoding="async"
+            fetchpriority={eager ? 'high' : undefined}
+          />
+        )}
+        {scrim && <div aria-hidden="true" class="lw-artwork__scrim" />}
+      </Fragment>
+    )
+  }
+</div>
+
+<style>
+  .lw-artwork {
+    position: relative;
+    flex: none;
+    overflow: hidden;
+    width: 100%;
+    border: var(--border-width-hairline) solid var(--color-border-decorative);
+    background: var(--color-background-tertiary);
+  }
+
+  /* The hatch marks the frame as empty by shape, not by colour alone. */
+  .lw-artwork__placeholder {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    padding: var(--space-3);
+    color: var(--color-text-tertiary);
+    text-align: center;
+    background-image: repeating-linear-gradient(
+      135deg,
+      transparent,
+      transparent 7px,
+      var(--color-border-decorative) 7px,
+      var(--color-border-decorative) 8px
+    );
+  }
+  .lw-artwork__title {
+    overflow: hidden;
+    max-width: 100%;
+    color: var(--color-text-secondary);
+    font: var(--text-label-md);
+    text-overflow: ellipsis;
+  }
+  .lw-artwork__note {
+    font: var(--text-caption);
+  }
+
+  .lw-artwork__image {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* Key art runs from snowfield to near-black horror. Only a protection
+     gradient guarantees that overlaid text stays legible. */
+  .lw-artwork__scrim {
+    position: absolute;
+    inset: 0;
+    background-image: linear-gradient(to top, var(--color-surface-scrim) 0%, transparent 72%);
+  }
+</style>

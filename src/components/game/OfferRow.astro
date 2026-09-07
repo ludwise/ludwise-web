@@ -1,0 +1,182 @@
+---
+/**
+ * Reference: design/system/components/game.md § OfferRow — prop contract ported
+ * verbatim, against this repository's Price, StoreIdentity and
+ * FreshnessIndicator.
+ *
+ * `best` marks the cheapest comparable offer, chosen by price alone, and it
+ * takes the only primary button in the table. An unavailable offer stays in the
+ * list, because removing it hides that the store carries the game at all.
+ *
+ * Two contract props do not ship. `affiliate` renders the standing disclosure,
+ * and issue #71 found that no commissions exist at launch, which is why
+ * AffiliateDisclosure is excluded from this subset. `onOpen` is a handler; the
+ * action is a link out of LUDWISE, so it takes `href`.
+ */
+import Price from '../game/Price.astro';
+import StoreIdentity from '../game/StoreIdentity.astro';
+import FreshnessIndicator from '../game/FreshnessIndicator.astro';
+import Button from '../actions/Button.astro';
+import { messages as m, resolveLocale } from '../../i18n/index.js';
+
+/** Structural, so both the sales and game-detail money views satisfy it. */
+interface OfferMoney {
+  amountMinor: number;
+  currencyCode: string;
+  minorUnit: number;
+}
+
+/** The props of Price.astro. */
+interface OfferPrice {
+  price: OfferMoney | null;
+  referencePrice: OfferMoney | null;
+  discountPercentage: number | null;
+  availability: 'available' | 'unavailable' | 'unknown' | null;
+}
+
+/** The props of FreshnessIndicator.astro. */
+interface OfferFreshness {
+  availability: 'available' | 'unavailable' | 'unknown' | null;
+  observedAtMs: number | null;
+  storeName: string;
+  nowMs?: number | undefined;
+}
+
+interface OfferStore {
+  name: string;
+}
+
+interface Props {
+  store: OfferStore;
+  /** The exact purchasable thing: "Standard Edition", "Ultimate Edition",
+   *  "Franchise Bundle". Never blank — an unlabelled offer is uncomparable. */
+  edition: string;
+  price: OfferPrice;
+  freshness?: OfferFreshness | undefined;
+  /** Marks the best COMPARABLE offer. Exactly one per comparison set, chosen
+   *  by price alone. Never by affiliate value. */
+  best?: boolean | undefined;
+  unavailable?: boolean | undefined;
+  density?: 'comfortable' | 'compact' | undefined;
+  ctaLabel?: string | undefined;
+  /** The store page for this offer. */
+  href: string;
+  class?: string | undefined;
+}
+
+const {
+  store,
+  edition,
+  price,
+  freshness,
+  best = false,
+  unavailable = false,
+  density = 'comfortable',
+  ctaLabel,
+  href,
+  class: className,
+} = Astro.props;
+
+const locale = resolveLocale(Astro.currentLocale);
+const messageOptions = { locale } as const;
+const actionLabel = unavailable
+  ? m.offer_unavailable({}, messageOptions)
+  : (ctaLabel ?? m.offer_view({}, messageOptions));
+---
+
+<div
+  class:list={['lw-offer-row', className]}
+  data-density={density}
+  data-best={best || undefined}
+  data-unavailable={unavailable || undefined}
+>
+  <div class="lw-offer-row__identity">
+    <StoreIdentity name={store.name} />
+    <span class="lw-offer-row__edition">{edition}</span>
+  </div>
+
+  <div class="lw-offer-row__price">
+    <Price {...price} />
+    {freshness && <FreshnessIndicator {...freshness} />}
+  </div>
+
+  <div class="lw-offer-row__signal"><slot name="signal" /></div>
+
+  <Button
+    variant={best ? 'primary' : 'secondary'}
+    size="sm"
+    iconEnd="arrow-up-right"
+    disabled={unavailable}
+    href={href}
+  >
+    {actionLabel}
+  </Button>
+</div>
+
+<style>
+  .lw-offer-row {
+    display: grid;
+    grid-template-columns: minmax(150px, 1.3fr) minmax(120px, 1fr) auto auto;
+    align-items: center;
+    gap: var(--space-4);
+    padding: var(--space-3) var(--space-4);
+    border-inline-start: var(--border-width-identity) solid transparent;
+    border-block-end: var(--border-width-hairline) solid var(--color-border-decorative);
+    background: var(--color-surface-default);
+    transition: var(--motion-transition-color);
+  }
+  .lw-offer-row[data-density='compact'] {
+    padding: var(--space-2) var(--space-3);
+  }
+  .lw-offer-row:hover {
+    background: var(--color-surface-interactive-hover);
+  }
+
+  /* The amber rule and the primary button are the two carriers of "best".
+     Nothing else in the table may look like a call to action. */
+  .lw-offer-row[data-best] {
+    border-inline-start-color: var(--color-accent-primary);
+  }
+  .lw-offer-row[data-unavailable] {
+    opacity: 0.6;
+  }
+
+  .lw-offer-row__identity {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    min-width: 0;
+  }
+  .lw-offer-row__edition {
+    color: var(--color-text-secondary);
+    font: var(--text-body-sm);
+    overflow-wrap: anywhere;
+  }
+
+  .lw-offer-row__price {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-1);
+    min-width: 0;
+  }
+
+  .lw-offer-row__signal {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  /* Below the laptop breakpoint the row stacks. It never becomes a card: a
+     price comparison read as a stack of cards is no longer a comparison. */
+  @media (max-width: 767.98px) {
+    .lw-offer-row {
+      grid-template-columns: minmax(0, 1fr) auto;
+    }
+    .lw-offer-row__signal {
+      justify-content: flex-start;
+    }
+  }
+</style>

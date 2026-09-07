@@ -1,0 +1,88 @@
+---
+/**
+ * Reference: design/system/components/display.md § Badge — prop contract
+ * ported verbatim. `children` is the default slot.
+ *
+ * A non-interactive status marker. A badge is never a button. If it is
+ * clickable it is a Chip.
+ */
+import Icon from '../foundation/Icon.astro';
+import type { IconName } from '../foundation/icons.js';
+
+type BadgeTone = 'neutral' | 'accent' | 'success' | 'warning' | 'danger' | 'info';
+
+interface Props {
+  tone?: BadgeTone | undefined;
+  /** Overrides the tone's default glyph. Pass null to remove it — only valid
+   *  when the badge text alone is unambiguous. */
+  icon?: IconName | null | undefined;
+  size?: 'sm' | 'md' | undefined;
+  class?: string | undefined;
+}
+
+const { tone = 'neutral', icon, size = 'md', class: className } = Astro.props;
+
+/** The glyph that keeps each semantic tone readable without colour. */
+const TONE_ICON: Record<BadgeTone, IconName | null> = {
+  neutral: null,
+  accent: null,
+  success: 'circle-check',
+  warning: 'triangle-alert',
+  danger: 'circle-alert',
+  info: 'info',
+};
+
+const glyph = icon === null ? null : (icon ?? TONE_ICON[tone]);
+---
+
+<span class:list={['lw-badge', className]} data-tone={tone} data-size={size}>
+  {glyph && <Icon name={glyph} size="xs" />}
+  <slot />
+</span>
+
+<style>
+  .lw-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    height: 24px;
+    padding-inline: var(--space-2);
+    border: var(--border-width-hairline) solid var(--color-status-neutral-border);
+    border-radius: var(--radius-badge);
+    background: var(--color-status-neutral-surface);
+    color: var(--color-status-neutral-text);
+    font: var(--text-label-md);
+    letter-spacing: var(--letter-spacing-label);
+    white-space: nowrap;
+  }
+  .lw-badge[data-size='sm'] {
+    height: 20px;
+    font: var(--text-label-sm);
+  }
+
+  .lw-badge[data-tone='accent'] {
+    border-color: var(--color-accent-border);
+    background: var(--color-accent-quiet);
+    color: var(--color-accent-text);
+  }
+  .lw-badge[data-tone='success'] {
+    border-color: var(--color-status-success-border);
+    background: var(--color-status-success-surface);
+    color: var(--color-status-success-text);
+  }
+  .lw-badge[data-tone='warning'] {
+    border-color: var(--color-status-warning-border);
+    background: var(--color-status-warning-surface);
+    color: var(--color-status-warning-text);
+  }
+  .lw-badge[data-tone='danger'] {
+    border-color: var(--color-status-danger-border);
+    background: var(--color-status-danger-surface);
+    color: var(--color-status-danger-text);
+  }
+  .lw-badge[data-tone='info'] {
+    border-color: var(--color-status-info-border);
+    background: var(--color-status-info-surface);
+    color: var(--color-status-info-text);
+  }
+</style>

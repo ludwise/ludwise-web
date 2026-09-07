@@ -1,0 +1,116 @@
+---
+/**
+ * Reference: design/system/components/feedback.md § Banner — prop contract
+ * ported verbatim, except for the dismiss control.
+ *
+ * A message about the whole application, pinned under the header. At most one
+ * at a time, and never for marketing or a consent prompt.
+ *
+ * `children` and `action` are ReactNode in the reference and become the default
+ * slot and a named slot, as they do in InlineMessage. `onDismiss` is a handler,
+ * which a static component cannot hold. `dismissible` renders the same control
+ * and keeps the same meaning: omit it for a condition the visitor cannot
+ * dismiss. The host wires the behaviour.
+ */
+import Icon from '../foundation/Icon.astro';
+import IconButton from '../actions/IconButton.astro';
+import type { IconName } from '../foundation/icons.js';
+import { messages as m, resolveLocale } from '../../i18n/index.js';
+
+type BannerTone = 'info' | 'warning' | 'danger';
+
+interface Props {
+  tone?: BannerTone | undefined;
+  /** Renders the dismiss control. Omit for conditions the user cannot dismiss,
+   *  e.g. an active incident. */
+  dismissible?: boolean | undefined;
+  class?: string | undefined;
+}
+
+const { tone = 'info', dismissible = false, class: className } = Astro.props;
+
+const TONE_ICON: Record<BannerTone, IconName> = {
+  info: 'info',
+  warning: 'triangle-alert',
+  danger: 'circle-alert',
+};
+
+/** The word that carries tone for a screen reader, as in InlineMessage. */
+const TONE_WORD: Record<BannerTone, string> = {
+  info: 'Information',
+  warning: 'Warning',
+  danger: 'Error',
+};
+
+const locale = resolveLocale(Astro.currentLocale);
+---
+
+<div
+  role={tone === 'danger' ? 'alert' : 'status'}
+  class:list={['lw-banner', className]}
+  data-tone={tone}
+>
+  <span class="lw-banner__icon">
+    <Icon name={TONE_ICON[tone]} size="md" />
+  </span>
+  <div class="lw-banner__body">
+    <span class="lw-visually-hidden">{TONE_WORD[tone]}: </span>
+    <slot />
+  </div>
+  {
+    Astro.slots.has('action') && (
+      <div class="lw-banner__action">
+        <slot name="action" />
+      </div>
+    )
+  }
+  {dismissible && <IconButton icon="x" label={m.banner_dismiss({}, { locale })} size="sm" />}
+</div>
+
+<style>
+  .lw-banner {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    width: 100%;
+    padding: var(--space-3) var(--space-4);
+    border-block-end: var(--border-width-hairline) solid var(--color-status-info-border);
+    background: var(--color-status-info-surface);
+  }
+  .lw-banner[data-tone='warning'] {
+    border-block-end-color: var(--color-status-warning-border);
+    background: var(--color-status-warning-surface);
+  }
+  .lw-banner[data-tone='danger'] {
+    border-block-end-color: var(--color-status-danger-border);
+    background: var(--color-status-danger-surface);
+  }
+
+  .lw-banner__icon {
+    display: inline-flex;
+    color: var(--color-status-info-text);
+  }
+  .lw-banner[data-tone='warning'] .lw-banner__icon {
+    color: var(--color-status-warning-text);
+  }
+  .lw-banner[data-tone='danger'] .lw-banner__icon {
+    color: var(--color-status-danger-text);
+  }
+
+  .lw-banner__body {
+    flex: 1;
+    min-width: 0;
+    color: var(--color-status-info-text);
+    font: var(--text-body-sm);
+    text-wrap: pretty;
+  }
+  .lw-banner[data-tone='warning'] .lw-banner__body {
+    color: var(--color-status-warning-text);
+  }
+  .lw-banner[data-tone='danger'] .lw-banner__body {
+    color: var(--color-status-danger-text);
+  }
+  .lw-banner__action {
+    flex: none;
+  }
+</style>
