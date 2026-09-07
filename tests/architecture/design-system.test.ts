@@ -189,10 +189,13 @@ describe('every component has a consumer', () => {
   const orphansIn = (files: string[]): string[] =>
     files.filter((file) => {
       // `group/Name` is how every import of it is written, from a page or from
-      // a sibling alike. Matching the path rather than the bare name avoids
-      // counting prose in a comment as a use. The extension goes, because a
-      // TypeScript module is imported under the `.js` name it compiles to.
-      const importPath = file.split('/').slice(-2).join('/').replace(/\.\w+$/, '');
+      // a sibling alike. The extension goes, because a TypeScript module is
+      // imported by the `.js` name it compiles to.
+      const importPath = file
+        .split('/')
+        .slice(-2)
+        .join('/')
+        .replace(/\.\w+$/, '');
 
       return !listSourceFiles('src')
         .filter((candidate) => candidate !== file)

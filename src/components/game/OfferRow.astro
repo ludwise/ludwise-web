@@ -8,9 +8,10 @@
  * takes the only primary button in the table. An unavailable offer stays in the
  * list, because removing it hides that the store carries the game at all.
  *
- * Two contract props do not ship. `affiliate` renders the standing disclosure,
- * and issue #71 found that no commissions exist at launch, which is why
- * AffiliateDisclosure is excluded from this subset. `onOpen` is a handler; the
+ * `signal` is a ReactNode in the reference, so it becomes a named slot, as
+ * `action` does in InlineMessage. `affiliate` is absent, because issue #71
+ * found that no commissions exist at launch. That is also why
+ * AffiliateDisclosure is excluded from this subset. `onOpen` is a handler. The
  * action is a link out of LUDWISE, so it takes `href`.
  */
 import Price from '../game/Price.astro';
@@ -18,30 +19,15 @@ import StoreIdentity from '../game/StoreIdentity.astro';
 import FreshnessIndicator from '../game/FreshnessIndicator.astro';
 import Button from '../actions/Button.astro';
 import { messages as m, resolveLocale } from '../../i18n/index.js';
+import type { FreshnessView, PriceView } from './view-models.js';
 
-/** Structural, so both the sales and game-detail money views satisfy it. */
-interface OfferMoney {
-  amountMinor: number;
-  currencyCode: string;
-  minorUnit: number;
-}
-
-/** The props of Price.astro. */
-interface OfferPrice {
-  price: OfferMoney | null;
-  referencePrice: OfferMoney | null;
-  discountPercentage: number | null;
-  availability: 'available' | 'unavailable' | 'unknown' | null;
-}
-
-/** The props of FreshnessIndicator.astro. */
-interface OfferFreshness {
-  availability: 'available' | 'unavailable' | 'unknown' | null;
-  observedAtMs: number | null;
-  storeName: string;
-  nowMs?: number | undefined;
-}
-
+/**
+ * The reference also carries `logoSrc` and `verified`.
+ *
+ * Neither ships, because StoreIdentity renders neither: the bundle ships no
+ * retailer logos, and nothing in the contract answers whether a store is
+ * verified.
+ */
 interface OfferStore {
   name: string;
 }
@@ -51,8 +37,8 @@ interface Props {
   /** The exact purchasable thing: "Standard Edition", "Ultimate Edition",
    *  "Franchise Bundle". Never blank — an unlabelled offer is uncomparable. */
   edition: string;
-  price: OfferPrice;
-  freshness?: OfferFreshness | undefined;
+  price: PriceView;
+  freshness?: FreshnessView | undefined;
   /** Marks the best COMPARABLE offer. Exactly one per comparison set, chosen
    *  by price alone. Never by affiliate value. */
   best?: boolean | undefined;

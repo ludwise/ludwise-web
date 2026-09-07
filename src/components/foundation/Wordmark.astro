@@ -4,20 +4,24 @@
  * ported verbatim.
  *
  * The lockup: the amber step tile beside the split wordmark. `WISE` carries the
- * accent, except in `mono`, where one colour is the whole point.
+ * accent, except in `mono`, where one color is the whole point.
  *
  * The name of the mark alone is the brand name, which no locale translates.
  * The link takes the catalogued name AppHeader already uses.
  */
 import LudwiseMark from '../foundation/LudwiseMark.astro';
+import {
+  WORDMARK_CAP_HEIGHT,
+  WORDMARK_GAP_RATIO,
+  WORDMARK_TILE_RATIO,
+  type WordmarkSize,
+} from '../foundation/wordmark-geometry.js';
 import { messages as m, resolveLocale } from '../../i18n/index.js';
-
-type WordmarkSize = 'sm' | 'md' | 'lg' | 'xl';
 
 interface Props {
   size?: WordmarkSize | undefined;
   /** default = amber tile + ink/amber wordmark · inverse = for dark brand
-   *  surfaces · mono = single colour, for print, favicons and embroidery. */
+   *  surfaces · mono = one color, for print, favicons and embroidery. */
   tone?: 'default' | 'inverse' | 'mono' | undefined;
   /** Set false for the wordmark alone — footers, legal pages, and anywhere the
    *  mark already appears within the same view. */
@@ -28,14 +32,9 @@ interface Props {
 
 const { size = 'md', tone = 'default', mark = true, href, class: className } = Astro.props;
 
-/** Cap height in px per size step. The tile and the gap derive from it. */
-const CAP_HEIGHT: Record<WordmarkSize, number> = { sm: 15, md: 19, lg: 26, xl: 34 };
-const TILE_RATIO = 1.22;
-const GAP_RATIO = 0.42;
-
-const capHeight = CAP_HEIGHT[size];
-const tileSize = Math.round(capHeight * TILE_RATIO);
-const gap = Math.round(capHeight * GAP_RATIO);
+const capHeight = WORDMARK_CAP_HEIGHT[size];
+const tileSize = Math.round(capHeight * WORDMARK_TILE_RATIO);
+const gap = Math.round(capHeight * WORDMARK_GAP_RATIO);
 
 const locale = resolveLocale(Astro.currentLocale);
 

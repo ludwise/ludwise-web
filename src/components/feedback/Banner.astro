@@ -3,14 +3,14 @@
  * Reference: design/system/components/feedback.md § Banner — prop contract
  * ported verbatim, except for the dismiss control.
  *
- * A message about the whole application, pinned under the header. At most one
+ * A message about the whole application, pinned below the header. At most one
  * at a time, and never for marketing or a consent prompt.
  *
  * `children` and `action` are ReactNode in the reference and become the default
  * slot and a named slot, as they do in InlineMessage. `onDismiss` is a handler,
  * which a static component cannot hold. `dismissible` renders the same control
  * and keeps the same meaning: omit it for a condition the visitor cannot
- * dismiss. The host wires the behaviour.
+ * dismiss. The host wires the behavior.
  */
 import Icon from '../foundation/Icon.astro';
 import IconButton from '../actions/IconButton.astro';
@@ -21,8 +21,8 @@ type BannerTone = 'info' | 'warning' | 'danger';
 
 interface Props {
   tone?: BannerTone | undefined;
-  /** Renders the dismiss control. Omit for conditions the user cannot dismiss,
-   *  e.g. an active incident. */
+  /** Renders the dismiss control. Omit for a condition the visitor cannot
+   *  dismiss, for example an active incident. */
   dismissible?: boolean | undefined;
   class?: string | undefined;
 }
@@ -35,14 +35,15 @@ const TONE_ICON: Record<BannerTone, IconName> = {
   danger: 'circle-alert',
 };
 
+const locale = resolveLocale(Astro.currentLocale);
+const messageOptions = { locale } as const;
+
 /** The word that carries tone for a screen reader, as in InlineMessage. */
 const TONE_WORD: Record<BannerTone, string> = {
-  info: 'Information',
-  warning: 'Warning',
-  danger: 'Error',
+  info: m.status_tone_information({}, messageOptions),
+  warning: m.status_tone_warning({}, messageOptions),
+  danger: m.status_tone_error({}, messageOptions),
 };
-
-const locale = resolveLocale(Astro.currentLocale);
 ---
 
 <div
@@ -64,7 +65,7 @@ const locale = resolveLocale(Astro.currentLocale);
       </div>
     )
   }
-  {dismissible && <IconButton icon="x" label={m.banner_dismiss({}, { locale })} size="sm" />}
+  {dismissible && <IconButton icon="x" label={m.banner_dismiss({}, messageOptions)} size="sm" />}
 </div>
 
 <style>

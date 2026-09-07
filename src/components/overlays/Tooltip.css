@@ -1,6 +1,6 @@
-/* Tooltip. A React island cannot use Astro's scoped <style>, so the class
-   names stay prefixed with `lw-tooltip__` to avoid collisions with any other
-   stylesheet on the page. */
+/* Tooltip. A React island cannot use Astro's scoped <style>, so every class
+   here starts with `lw-tooltip` to avoid collisions with any other stylesheet
+   on the page. */
 
 .lw-tooltip {
   position: relative;
@@ -18,7 +18,8 @@
   background: var(--color-background-inverse);
   color: var(--color-text-inverse);
   font: var(--text-caption);
-  white-space: nowrap;
+  /* No `white-space: nowrap`, which the reference carries. It cancels the
+     max-width above, and the bubble then overflows at 200% zoom. */
   pointer-events: none;
   transition: opacity var(--motion-duration-fast) var(--motion-easing-standard);
 }

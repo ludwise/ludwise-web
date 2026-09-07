@@ -13,19 +13,27 @@
 import { IconGlyph } from '../foundation/icon-glyph.js';
 import './Chip.css';
 
-export interface ChipProps {
+interface ChipBase {
   label: string;
   /** Matching result count. Tabular, tertiary. */
   count?: number | string | undefined;
   selected?: boolean | undefined;
-  /** Present = the chip is a removable active filter and grows an × button. */
-  onRemove?: (() => void) | undefined;
   /** Present = the chip is a toggle. */
   onClick?: (() => void) | undefined;
   disabled?: boolean | undefined;
-  /** Accessible name of the remove control, for example "Remove filter GOG". */
-  removeLabel?: string | undefined;
 }
+
+/**
+ * `onRemove` carries the name of the control it grows.
+ *
+ * The two travel together because the contract says the handler alone grows the
+ * button, and an icon button with no accessible name is a defect.
+ */
+type ChipRemoval =
+  /** Present = the chip is a removable active filter and grows an × button. */
+  { onRemove: () => void; removeLabel: string } | { onRemove?: undefined; removeLabel?: undefined };
+
+export type ChipProps = ChipBase & ChipRemoval;
 
 export function Chip({
   label,
@@ -56,7 +64,7 @@ export function Chip({
         <span className="lw-chip__label">{label}</span>
       )}
       {count != null && <span className="lw-chip__count lw-tabular">{count}</span>}
-      {onRemove && removeLabel && (
+      {onRemove !== undefined && (
         <button
           type="button"
           className="lw-chip__remove"

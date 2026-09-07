@@ -10,11 +10,11 @@ import { listSourceFiles } from '../helpers/imports.js';
 /**
  * Pins which of the 44 design-system primitives this repository holds.
  *
- * Issue #77 adopts a subset of 20 and excludes 12, each exclusion for a stated
+ * Issue #77 adopts a subset of 20 and excludes 12. Each exclusion has a stated
  * reason: no data in the contract, no surface that needs it, or a decision
  * another issue already took. Neither half survives as prose. A missing
  * primitive is found by whoever needs it, at the worst moment. An excluded one
- * reappears because its markdown file sits beside the ones that shipped, and
+ * comes back, because its markdown file sits beside the adopted ones and
  * nothing says it must not.
  *
  * The island split is asserted for the same reason. It is a performance
@@ -70,9 +70,27 @@ describe('the design-system subset', () => {
 
 describe('the island split', () => {
   it.each(ADOPTED_SUBSET)('$name is a $kind component', ({ file, kind }) => {
-    // design/README.md: a static primitive is `.astro` with zero client
-    // JavaScript, an island is `.tsx` behind an explicit `client:` directive.
+    // design/README.md: a static primitive is `.astro`, an island is `.tsx`
+    // behind an explicit `client:` directive.
     expect(file.endsWith(kind === 'island' ? '.tsx' : '.astro')).toBe(true);
+  });
+
+  /**
+   * "Static - .astro, zero client JS" is the half of the split that decays
+   * quietly: a <script> in an .astro file is invisible to the extension rule
+   * above.
+   *
+   * Checkbox is the one exception, on the same footing as the inline error
+   * handler design/README.md grants GameArtwork. No HTML attribute expresses
+   * the `indeterminate` DOM property, so without it a screen reader announces
+   * "not checked" beside a minus glyph.
+   */
+  it('ships client JavaScript from one static primitive, for a stated reason', () => {
+    const scripted = ADOPTED_SUBSET.filter(
+      (component) => component.kind === 'static' && /<script[\s>]/.test(read(component.file)),
+    ).map((component) => component.name);
+
+    expect(scripted).toEqual(['Checkbox']);
   });
 });
 

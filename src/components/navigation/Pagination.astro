@@ -3,11 +3,11 @@
  * Reference: design/system/components/navigation.md § Pagination — prop
  * contract ported verbatim, except for the navigation route.
  *
- * The reference calls `onChange`. design/README.md replaces it: "Pagination is
- * real `<a>` links to real URLs. A crawler and a keyboard user both need a URL
- * per page." So the caller supplies the two hrefs, and a null href is the
- * end of the set. Both controls carry text, because a chevron alone fails at
- * 200% zoom.
+ * The reference calls `onChange`. design/README.md replaces it with real links
+ * to real URLs, because a crawler and a keyboard visitor both need one URL per
+ * page. So the caller supplies the two hrefs, and a null href is the end of
+ * the set. Both controls carry text, because a chevron alone fails at 200%
+ * zoom.
  */
 import Icon from '../foundation/Icon.astro';
 import { messages as m, resolveLocale } from '../../i18n/index.js';
@@ -19,8 +19,8 @@ interface Props {
   previousHref?: string | null | undefined;
   /** The next page URL, or null on the last page. */
   nextHref?: string | null | undefined;
-  /** Overrides the default text, e.g. "1–48 of 2,914 games". Preferred, because
-   *  the result count is more useful than the page count. */
+  /** Overrides the default text, for example "1–48 of 2,914 games". Preferred,
+   *  because the result count is more useful than the page count. */
   totalLabel?: string | undefined;
   class?: string | undefined;
 }

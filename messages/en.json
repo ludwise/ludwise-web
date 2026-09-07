@@ -39,5 +39,9 @@
   "shell_sign_in": "Sign in",
   "shell_skip_to_content": "Skip to content",
   "shell_theme_switch_to_dark": "Switch to dark theme",
-  "shell_theme_switch_to_light": "Switch to light theme"
+  "shell_theme_switch_to_light": "Switch to light theme",
+  "status_tone_error": "Error",
+  "status_tone_information": "Information",
+  "status_tone_success": "Success",
+  "status_tone_warning": "Warning"
 }

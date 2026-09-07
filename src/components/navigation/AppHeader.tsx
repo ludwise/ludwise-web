@@ -16,28 +16,35 @@
 import { useEffect, useRef, useState, type ChangeEvent, type MouseEvent } from 'react';
 
 import { IconGlyph } from '../foundation/icon-glyph.js';
+import {
+  WORDMARK_CAP_HEIGHT,
+  WORDMARK_GAP_RATIO,
+  WORDMARK_STEP_PATH,
+  WORDMARK_STEP_RATIO,
+  WORDMARK_STEP_STROKE_WIDTH,
+  WORDMARK_TILE_RADIUS_RATIO,
+  WORDMARK_TILE_RATIO,
+} from '../foundation/wordmark-geometry.js';
 import { SearchField } from '../forms/SearchField.js';
 import { serializeThemeCookie, type Theme } from '../../lib/http/theme.js';
 import './AppHeader.css';
 
 /**
- * Geometry for the lockup, reimplemented from Wordmark.astro because that is an
- * Astro component this island cannot import.
+ * The lockup, redrawn from Wordmark.astro because that is an Astro component
+ * this island cannot import.
  *
- * Fixed at the reference's `<Wordmark size="md" />`. The header exposes no size
- * or tone knob, matching a prop contract that has none. The href is the one
- * departure: the reference's `#` was a placeholder for a specimen with no
- * router. This is the second tab stop on every real page.
+ * Only the markup is redrawn. The measurements come from the shared module, so
+ * the two lockups cannot drift apart. Fixed at the reference's
+ * `<Wordmark size="md" />`, because the header's prop contract has no size or
+ * tone knob. The href is the one departure: the reference's `#` was a
+ * placeholder for a specimen with no router.
  */
-const WORDMARK_PX = 19;
-const WORDMARK_TILE_RATIO = 1.22;
-const WORDMARK_GAP_RATIO = 0.42;
-const WORDMARK_TILE_RADIUS_RATIO = 0.22;
-const WORDMARK_STEP_RATIO = 0.64;
+const HEADER_WORDMARK_SIZE = 'md';
 
 function HeaderWordmark({ href, label }: { href: string; label: string }) {
-  const tileSize = Math.round(WORDMARK_PX * WORDMARK_TILE_RATIO);
-  const gap = Math.round(WORDMARK_PX * WORDMARK_GAP_RATIO);
+  const capHeight = WORDMARK_CAP_HEIGHT[HEADER_WORDMARK_SIZE];
+  const tileSize = Math.round(capHeight * WORDMARK_TILE_RATIO);
+  const gap = Math.round(capHeight * WORDMARK_GAP_RATIO);
   const radius = Math.round(tileSize * WORDMARK_TILE_RADIUS_RATIO);
   const stepSize = tileSize * WORDMARK_STEP_RATIO;
 
@@ -53,14 +60,14 @@ function HeaderWordmark({ href, label }: { href: string; label: string }) {
           height={stepSize}
           viewBox="0 0 24 24"
           fill="none"
-          stroke="var(--ludwise-neutral-1000)"
-          strokeWidth={2.2}
+          stroke="var(--color-action-primary-text)"
+          strokeWidth={WORDMARK_STEP_STROKE_WIDTH}
           strokeLinecap="square"
         >
-          <path d="M4 7h6v5h5v5h5" />
+          <path d={WORDMARK_STEP_PATH} />
         </svg>
       </span>
-      <span className="lw-header__wordmark-text" style={{ fontSize: WORDMARK_PX }}>
+      <span className="lw-header__wordmark-text" style={{ fontSize: capHeight }}>
         LUD<span className="lw-header__wordmark-accent">WISE</span>
       </span>
     </a>

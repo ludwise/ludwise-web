@@ -7,46 +7,23 @@
  * not a one-column stack of tall cards.
  *
  * The contract types `price` as `PriceProps` and `freshness` as
- * `FreshnessIndicatorProps`. Those are the props of the two sibling components,
- * which this repository states against the wire contract. So both prop names
- * carry, and their shapes follow the siblings. `discountPercentage` is inside
- * `price`, because Price owns the discount badge here.
+ * `FreshnessIndicatorProps`. Both prop names carry, and ./view-models.js states
+ * the shapes. `discountPercentage` is inside `price`, because Price owns the
+ * discount badge here.
  */
 import GameArtwork from '../game/GameArtwork.astro';
 import Price from '../game/Price.astro';
 import FreshnessIndicator from '../game/FreshnessIndicator.astro';
-
-/** Structural, so both the sales and game-detail money views satisfy it. */
-interface RowMoney {
-  amountMinor: number;
-  currencyCode: string;
-  minorUnit: number;
-}
-
-/** The props of Price.astro. */
-interface RowPrice {
-  price: RowMoney | null;
-  referencePrice: RowMoney | null;
-  discountPercentage: number | null;
-  availability: 'available' | 'unavailable' | 'unknown' | null;
-}
-
-/** The props of FreshnessIndicator.astro. */
-interface RowFreshness {
-  availability: 'available' | 'unavailable' | 'unknown' | null;
-  observedAtMs: number | null;
-  storeName: string;
-  nowMs?: number | undefined;
-}
+import type { FreshnessView, PriceView } from './view-models.js';
 
 interface Props {
   title: string;
   /** Developer, release year, or genre. One line only. */
   subtitle?: string | undefined;
   artworkSrc?: string | undefined;
-  price: RowPrice;
+  price: PriceView;
   storeName?: string | undefined;
-  freshness?: RowFreshness | undefined;
+  freshness?: FreshnessView | undefined;
   /** comfortable 56px · compact 40px. Compact hides the freshness indicator. */
   density?: 'comfortable' | 'compact' | undefined;
   /** The canonical game page. Always internal — the row never links to a store. */

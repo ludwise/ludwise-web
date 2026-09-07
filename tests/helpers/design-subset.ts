@@ -1,9 +1,9 @@
 /**
  * The design-system adoption, as data.
  *
- * `design/system/components/` holds 44 primitives. Issue #77 adopts a subset of
- * 20 of them, states the island split, and names what does not ship and why.
- * All three answers live here, so the subset test and the orphan rule in
+ * `design/system/components/` holds 44 primitives. Issue #77 adopts a subset
+ * of 20, states the island split, and names what is absent and why. All three
+ * answers live here, so the subset test and the orphan rule in
  * design-system.test.ts read the same list.
  */
 
@@ -84,8 +84,8 @@ export const EXCLUDED_COMPONENTS: readonly string[] = [
  *
  * Issue #77 adopts the primitives and touches no page, because issue #93 owns
  * the composition. So the "every component has a consumer" rule in
- * design-system.test.ts cannot hold for these until #93 lands. The exemption is
- * pinned rather than open: that test also asserts every entry is still an
+ * design-system.test.ts cannot hold for these until #93 lands. The exemption
+ * is pinned rather than open. That test also asserts every entry is still an
  * orphan, so a composed component has to leave this list.
  */
 export const AWAITING_COMPOSITION: readonly string[] = [

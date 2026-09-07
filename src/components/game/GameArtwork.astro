@@ -23,10 +23,10 @@ interface Props {
   /** Provider artwork URL. Omit or let it fail — the placeholder is a designed
    *  state, not a fallback of last resort. */
   src?: string | undefined;
-  /** Game title. Used in the placeholder and as the artwork's context. The
-   *  <img> itself is alt="" because the title always appears next to it. Where
-   *  a set of pictures has no per-item naming, the section heading is the
-   *  alternative, and the screenshot placeholder prints no title. */
+  /** The name of the game. Used in the placeholder and as the artwork's
+   *  context. The <img> itself is alt="" because the name always appears next
+   *  to it. Where a set of pictures has no per-item naming, the section
+   *  heading is the alternative, and the screenshot placeholder prints none. */
   title: string;
   /** capsule 3:2 grid cards · header 460:215 store art · hero 8:3 detail page ·
    *  cover 2:3 library · screenshot 16:9. Never crop outside these. The
@@ -34,7 +34,7 @@ interface Props {
   ratio?: ArtworkRatio | undefined;
   radius?: string | undefined;
   /** Adds the bottom-up protection gradient. Required whenever text is
-   *  overlaid on artwork; forbidden when nothing sits on top. */
+   *  overlaid on artwork. Forbidden when nothing sits on top. */
   scrim?: boolean | undefined;
   loading?: boolean | undefined;
   /** Loads the picture eagerly, at high fetch priority. The hero and the
@@ -62,7 +62,7 @@ const ASPECT: Record<ArtworkRatio, string> = {
   screenshot: 'var(--aspect-screenshot)',
 };
 
-/** A gallery member carries no per-item naming, so it prints no title. */
+/** A gallery member carries no per-item naming, so it prints no name. */
 const iconOnly = ratio === 'screenshot';
 const locale = resolveLocale(Astro.currentLocale);
 ---

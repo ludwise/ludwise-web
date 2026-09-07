@@ -5,7 +5,16 @@
  *
  * The tile mark on its own: favicons, app icons, avatars, square slots. The
  * step is the shape the price chart draws, and it also reads as an L.
+ *
+ * ./wordmark-geometry.js holds the measurements, which AppHeader.tsx needs too.
  */
+import {
+  WORDMARK_STEP_PATH,
+  WORDMARK_STEP_RATIO,
+  WORDMARK_STEP_STROKE_WIDTH,
+  WORDMARK_TILE_RADIUS_RATIO,
+} from '../foundation/wordmark-geometry.js';
+
 interface Props {
   /** Tile edge in px. The mark floors at 20px, where the treads merge. */
   size?: number | undefined;
@@ -15,21 +24,9 @@ interface Props {
 
 const { size = 24, tone = 'default', class: className } = Astro.props;
 
-const TILE_RADIUS_RATIO = 0.22;
-const STEP_RATIO = 0.64;
-
-/**
- * A constant stroke at every size.
- *
- * The prop comment in the bundle says the stroke thickens below 22px. The
- * rules paragraph above it, and the reference implementation, both keep 2.2
- * at every size. The rules paragraph wins.
- */
-const STEP_STROKE_WIDTH = 2.2;
-
 const tileSize = Math.round(size);
-const stepSize = tileSize * STEP_RATIO;
-const radius = Math.round(tileSize * TILE_RADIUS_RATIO);
+const stepSize = tileSize * WORDMARK_STEP_RATIO;
+const radius = Math.round(tileSize * WORDMARK_TILE_RADIUS_RATIO);
 ---
 
 <span
@@ -43,23 +40,26 @@ const radius = Math.round(tileSize * TILE_RADIUS_RATIO);
     height={stepSize}
     viewBox="0 0 24 24"
     fill="none"
-    stroke-width={STEP_STROKE_WIDTH}
+    stroke-width={WORDMARK_STEP_STROKE_WIDTH}
     stroke-linecap="square"
   >
-    <path d="M4 7h6v5h5v5h5"></path>
+    <path d={WORDMARK_STEP_PATH}></path>
   </svg>
 </span>
 
 <style>
-  /* Amber tile, near-black step, in both themes. Near-black on the amber
-     clears 9:1 either way, so the mark is one object and not two designs. */
+  /* Amber tile, near-black step, in both themes. Both tokens hold the same
+     value in either theme, and accessibility.md measures the pair at 9.2:1. */
   .lw-mark {
     display: inline-flex;
     flex: none;
     align-items: center;
     justify-content: center;
-    background: var(--ludwise-amber-400);
+    background: var(--color-accent-primary);
   }
+  /* The one primitive this file reaches. `inverse` is for a dark brand surface
+     outside the theme system, and the semantic layer holds no light neutral
+     that stays light in both themes. governance.md is the route to one. */
   .lw-mark[data-tone='inverse'] {
     background: var(--ludwise-neutral-50);
   }
@@ -67,7 +67,7 @@ const radius = Math.round(tileSize * TILE_RADIUS_RATIO);
     background: currentcolor;
   }
   .lw-mark > svg {
-    stroke: var(--ludwise-neutral-1000);
+    stroke: var(--color-action-primary-text);
   }
   .lw-mark[data-tone='mono'] > svg {
     stroke: var(--color-background-primary);

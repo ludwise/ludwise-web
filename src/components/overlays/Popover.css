@@ -1,6 +1,6 @@
-/* Popover. A React island cannot use Astro's scoped <style>, so the class
-   names stay prefixed with `lw-popover__` to avoid collisions with any other
-   stylesheet on the page. */
+/* Popover. A React island cannot use Astro's scoped <style>, so every class
+   here starts with `lw-popover` to avoid collisions with any other stylesheet
+   on the page. */
 
 .lw-popover {
   position: relative;
@@ -25,6 +25,9 @@
   z-index: 50;
   top: calc(100% + 6px);
   left: 0;
+  /* `width` is a prop with a 300px default. This keeps it from overflowing a
+     narrow viewport, which accessibility.md forbids. */
+  max-width: calc(100vw - var(--space-8));
   padding: var(--space-4);
   border: var(--border-width-hairline) solid var(--color-border-component);
   border-radius: var(--radius-popover);

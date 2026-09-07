@@ -3,9 +3,9 @@
  * Reference: design/system/components/actions.md § IconButton — prop contract
  * ported verbatim.
  *
- * Static, for the same reason Button is: the glyph and the state render on the
- * server, and the handler belongs to the island or the form that owns the
- * action. `href` renders an anchor, as it does on Button.
+ * Static, for the same reason Button is. The glyph and the state render on the
+ * backend. The handler belongs to the island or the form that owns the action.
+ * `href` renders an anchor, as it does on Button.
  */
 import Icon from '../foundation/Icon.astro';
 import type { IconName } from '../foundation/icons.js';
@@ -18,7 +18,7 @@ interface Props {
    *  label is a defect — screen readers announce nothing. */
   label: string;
   variant?: 'ghost' | 'secondary' | 'primary' | undefined;
-  /** sm 32 desktop-toolbar only; md 40 default; lg 44 for touch surfaces. */
+  /** sm 32 for a desktop toolbar only. md 40 default. lg 44 for touch. */
   size?: IconButtonSize | undefined;
   /** Toggle buttons only (theme switch, view density, wishlist). */
   pressed?: boolean | undefined;

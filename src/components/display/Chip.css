@@ -1,6 +1,6 @@
-/* Chip. A React island cannot use Astro's scoped <style>, so the class names
-   stay prefixed with `lw-chip__` to avoid collisions with any other
-   stylesheet on the page. */
+/* Chip. A React island cannot use Astro's scoped <style>, so every class
+   here starts with `lw-chip` to avoid collisions with any other stylesheet
+   on the page. */
 
 .lw-chip {
   display: inline-flex;

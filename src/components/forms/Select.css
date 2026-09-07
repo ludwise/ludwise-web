@@ -1,6 +1,6 @@
-/* Select. A React island cannot use Astro's scoped <style>, so the class names
-   stay prefixed with `lw-select__` to avoid collisions with any other
-   stylesheet on the page. */
+/* Select. A React island cannot use Astro's scoped <style>, so every class
+   here starts with `lw-select` to avoid collisions with any other stylesheet
+   on the page. */
 
 .lw-select__label {
   display: block;

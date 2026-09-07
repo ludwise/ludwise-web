@@ -1,7 +1,6 @@
 /* SearchField, extracted from AppHeader.css. A React island cannot use
-   Astro's scoped <style>, so the class names stay prefixed with
-   `lw-search__` to avoid collisions with any other stylesheet on the
-   page. */
+   Astro's scoped <style>, so every class here starts with `lw-search` to
+   avoid collisions with any other stylesheet on the page. */
 
 .lw-search {
   display: flex;
@@ -38,16 +37,8 @@
   }
 }
 
-/* Nothing in this file reacts to focus any more. There was previously a
-   hand-rolled ring on the `.lw-search` container — a border-colour and
-   box-shadow pair driven by a container-level pseudo-class that fires
-   whenever any descendant has focus — plus a property on this input
-   suppressing its own native ring so the container's hand-rolled one could
-   stand in instead. Both are gone: the design system's rule is one global
-   focus-visible rule, in tokens/base.css, and no per-component override of
-   it, which is what the removed pair amounted to (and, combined, drew two
-   concentric rings at once). Focusing the input now shows that ordinary
-   global ring around the input itself. */
+/* No focus rule here. The one global rule in tokens/base.css owns the
+   indicator, and the input carries it. */
 .lw-search__input {
   flex: 1;
   min-width: 0;

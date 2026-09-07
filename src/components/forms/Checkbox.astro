@@ -4,8 +4,8 @@
  * ported verbatim.
  *
  * design/README.md keeps it static inside a form that submits filters as query
- * parameters. `onChange` therefore belongs to the island that owns live
- * filtering. `checked` is the initial state the server rendered.
+ * parameters. Thus `onChange` belongs to the island that owns live filtering.
+ * `checked` is the initial state this application rendered.
  *
  * The one line of script sets the `indeterminate` DOM property, which no HTML
  * attribute can express. Without it a screen reader announces "not checked"
@@ -14,6 +14,7 @@
 import Icon from '../foundation/Icon.astro';
 
 interface Props {
+  /** ReactNode in the reference. Text here, because a facet label is text. */
   label: string;
   description?: string | undefined;
   /** Facet result count, right-aligned and tabular. Omit when unknown —
