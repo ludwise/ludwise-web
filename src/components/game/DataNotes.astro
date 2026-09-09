@@ -1,0 +1,78 @@
+---
+/**
+ * What the words beside a price mean, for a visitor who wants to know.
+ *
+ * Progressive disclosure, so the surface still leads with the prices. It is a
+ * details element rather than a tooltip for three reasons. The answer is a
+ * paragraph, a touch pointer must reach it, and the page needs no script.
+ *
+ * `src/lib/state/provenance.ts` decides which notes the surface has earned.
+ * Each one is a claim about data on the page, and a page without that data
+ * must not describe it.
+ */
+import { explainsProvenance, type SurfaceProvenance } from '../../lib/state/provenance.js';
+
+interface Props {
+  provenance: SurfaceProvenance;
+  class?: string | undefined;
+}
+
+const { provenance, class: className } = Astro.props;
+---
+
+{
+  explainsProvenance(provenance) && (
+    <details class:list={['lw-data-notes', className]}>
+      <summary>How to read these prices</summary>
+      <div class="lw-data-notes__body">
+        {provenance.hasCheckTimes && (
+          <p>
+            A price here carries the time LUDWISE last read it at the store. That is not the time
+            the store last changed it.
+          </p>
+        )}
+        {provenance.hasUntimedPrices && (
+          <p>
+            Not provided means the source did not say when it read the price. LUDWISE does not guess
+            one.
+          </p>
+        )}
+        {provenance.hasOldCheckTimes && (
+          <p>
+            A price LUDWISE read more than a day ago may be out of date. Open the store page to see
+            what it costs now.
+          </p>
+        )}
+        {provenance.hasDerivedDiscounts && (
+          <p>
+            The store gives both the current price and the regular price. LUDWISE works out the
+            discount from the two.
+          </p>
+        )}
+        <p>
+          LUDWISE keeps no record of earlier prices, so nothing here tells you how a price compares
+          with the past.
+        </p>
+      </div>
+    </details>
+  )
+}
+
+<style>
+  .lw-data-notes {
+    max-width: 640px;
+    color: var(--color-text-secondary);
+    font: var(--text-body-sm);
+  }
+  .lw-data-notes summary {
+    width: fit-content;
+    cursor: pointer;
+  }
+  .lw-data-notes__body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    margin-top: var(--space-2);
+    text-wrap: pretty;
+  }
+</style>

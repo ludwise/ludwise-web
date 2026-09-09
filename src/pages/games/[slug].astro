@@ -1,16 +1,19 @@
 ---
 import EmptyState from '../../components/feedback/EmptyState.astro';
 import InlineMessage from '../../components/feedback/InlineMessage.astro';
+import DataNotes from '../../components/game/DataNotes.astro';
 import DataSources from '../../components/game/DataSources.astro';
 import FreshnessNotice from '../../components/game/FreshnessNotice.astro';
 import OfferTable from '../../components/game/OfferTable.astro';
 import PageContainer from '../../components/layout/PageContainer.astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import type { GameDetailView } from '../../lib/api/contract.js';
+import type { GameDetailView, ProvenanceView } from '../../lib/api/contract.js';
 import { isApiError, toLogContext } from '../../lib/api/errors.js';
 import { formatReleaseDate } from '../../lib/formatting/game-detail.js';
+import { provenanceFieldLabel } from '../../lib/formatting/provenance.js';
 import { EVENTS } from '../../lib/logging/events.js';
 import { surfaceFreshness } from '../../lib/state/freshness.js';
+import { surfaceProvenance } from '../../lib/state/provenance.js';
 
 export const prerender = false;
 
@@ -67,11 +70,16 @@ const hasMetadata =
 const hasCatalogueDetails = hasMetadata || (metadata?.summary ?? null) !== null;
 
 const nowMs = Astro.locals.nowMs ?? Date.now();
-const offerFreshness = surfaceFreshness(
-  view?.offerGroups.flatMap((group) => group.offers) ?? [],
-  nowMs,
-);
+const offers = view?.offerGroups.flatMap((group) => group.offers) ?? [];
+const offerFreshness = surfaceFreshness(offers, nowMs);
+const offerProvenance = surfaceProvenance(offers, nowMs);
 const retryHref = `${Astro.url.pathname}${Astro.url.search}`;
+
+/** How a value reached LUDWISE, in words rather than in the contract's terms. */
+const PROVENANCE_METHODS: Record<ProvenanceView['method'], string> = {
+  direct: 'supplied by the source',
+  derived: 'worked out by LUDWISE',
+};
 ---
 
 <BaseLayout title={`${pageTitle} — LUDWISE`} description={pageDescription} activeNavId="games">
@@ -183,11 +191,13 @@ const retryHref = `${Astro.url.pathname}${Astro.url.search}`;
                 </dl>
                 {view.metadataProvenance.length > 0 && (
                   <details class="lw-game-detail__provenance">
-                    <summary>Metadata source details</summary>
+                    <summary>Where this information came from</summary>
+                    <p>LUDWISE took each value from the source named beside it.</p>
                     <ul>
                       {view.metadataProvenance.map((item) => (
                         <li>
-                          {item.field.replaceAll('_', ' ')}: {item.sourceName} ({item.method})
+                          {provenanceFieldLabel(item.field)}: {item.sourceName},{' '}
+                          {PROVENANCE_METHODS[item.method]}
                         </li>
                       ))}
                     </ul>
@@ -212,6 +222,7 @@ const retryHref = `${Astro.url.pathname}${Astro.url.search}`;
                 )}
               </div>
               <FreshnessNotice freshness={offerFreshness} nowMs={nowMs} />
+              <DataNotes provenance={offerProvenance} />
 
               {view.offerGroups.length === 0 ? (
                 <EmptyState icon="store" title="No current offers" compact>
@@ -322,6 +333,11 @@ const retryHref = `${Astro.url.pathname}${Astro.url.search}`;
   .lw-game-detail__provenance summary {
     width: fit-content;
     cursor: pointer;
+  }
+  .lw-game-detail__provenance p {
+    max-width: 640px;
+    margin-top: var(--space-2);
+    text-wrap: pretty;
   }
   .lw-game-detail__provenance ul {
     display: flex;

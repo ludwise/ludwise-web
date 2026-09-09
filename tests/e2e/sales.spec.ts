@@ -1,6 +1,8 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
 
+import { DATA_NOTES, DATA_NOTES_SUMMARY } from '../helpers/data-notes.js';
+
 /**
  * The sales page against a populated database.
  *
@@ -128,6 +130,35 @@ test.describe('sales browsing', () => {
     // One statement for the page, not one per card. A warning repeated on
     // every result is a warning a visitor stops reading.
     await expect(notice).toHaveCount(1);
+  });
+
+  test('explains the words on a card in the same wording the game page uses', async ({ page }) => {
+    // A visitor who learned what a check time means on one surface must not
+    // have to learn it again on the next. The shared list in
+    // tests/helpers/data-notes.ts is what makes that assertable.
+    await page.goto('/sales');
+
+    const summary = page.getByText(DATA_NOTES_SUMMARY);
+    await expect(summary).toHaveCount(1);
+    await summary.click();
+
+    await expect(page.getByText(DATA_NOTES.checkTimes)).toBeVisible();
+    await expect(page.getByText(DATA_NOTES.oldCheckTimes)).toBeVisible();
+    // Every card here is a sale, and the backend worked out each percentage.
+    await expect(page.getByText(DATA_NOTES.derivedDiscounts)).toBeVisible();
+    await expect(page.getByText(DATA_NOTES.noHistory)).toBeVisible();
+    // A sale offer always carries the moment it was read, so nothing on this
+    // page is a missing check time.
+    await expect(page.getByText(DATA_NOTES.untimedPrices)).toHaveCount(0);
+  });
+
+  test('explains nothing beside a market that holds no sale', async ({ page }) => {
+    // The notes describe prices on the page. This one has none, and the
+    // sentence for that is the empty state above them.
+    await page.goto('/sales?market=US&currency=USD');
+
+    await expect(page.getByText(DATA_NOTES_SUMMARY)).toHaveCount(0);
+    await expect(page.getByText(DATA_NOTES.checkTimes)).toHaveCount(0);
   });
 
   test('switches market and currency together, and never mixes them', async ({ page }) => {

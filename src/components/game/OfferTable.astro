@@ -1,8 +1,10 @@
 ---
 import type { OfferGroupView, OfferView } from '../../lib/api/contract.js';
+import { formatObservationTimestamp } from '../../lib/formatting/freshness.js';
 import { offersForRendering } from '../../lib/game/offer-order.js';
 import FreshnessIndicator from '../game/FreshnessIndicator.astro';
 import Price from '../game/Price.astro';
+import ProvenanceNote from '../game/ProvenanceNote.astro';
 import StoreIdentity from '../game/StoreIdentity.astro';
 
 interface Props {
@@ -30,6 +32,22 @@ function editionLabel(offer: OfferView): string {
 function actionUrl(offer: OfferView): string | null {
   return offer.availability === 'available' ? (offer.offerUrl ?? offer.storePageUrl) : null;
 }
+
+/**
+ * Where this row's price came from and when LUDWISE read it.
+ *
+ * Both are absent often enough that the disclosure has to survive either one
+ * alone. A group with neither renders no summary, so nothing invites a
+ * visitor to open an empty panel.
+ */
+function provenanceItems(offer: OfferView): { label: string; value: string }[] {
+  return [
+    ...(offer.sourceName === null ? [] : [{ label: 'Source', value: offer.sourceName }]),
+    ...(offer.observedAtMs === null
+      ? []
+      : [{ label: 'Last checked', value: formatObservationTimestamp(offer.observedAtMs) }]),
+  ];
+}
 ---
 
 <div class="lw-offer-table__viewport">
@@ -53,17 +71,15 @@ function actionUrl(offer: OfferView): string | null {
       {
         offers.map((offer) => {
           const href = actionUrl(offer);
+          const provenance = provenanceItems(offer);
           return (
             <tr data-availability={offer.availability ?? 'unknown'}>
               <td data-label="Store">
                 <StoreIdentity name={offer.storeName} />
-                {offer.sourceName && (
+                {provenance.length > 0 && (
                   <details class="lw-offer-table__source">
                     <summary>Source details</summary>
-                    <dl>
-                      <dt>Source</dt>
-                      <dd>{offer.sourceName}</dd>
-                    </dl>
+                    <ProvenanceNote compact items={provenance} class="lw-offer-table__provenance" />
                   </details>
                 )}
               </td>
@@ -157,17 +173,8 @@ function actionUrl(offer: OfferView): string | null {
     width: fit-content;
     cursor: pointer;
   }
-  .lw-offer-table__source dl {
-    display: grid;
-    grid-template-columns: auto 1fr;
-    gap: var(--space-1) var(--space-2);
+  .lw-offer-table__source :global(.lw-offer-table__provenance) {
     margin-top: var(--space-2);
-  }
-  .lw-offer-table__source dt {
-    color: var(--color-text-secondary);
-  }
-  .lw-offer-table__source dd {
-    overflow-wrap: anywhere;
   }
   .lw-offer-table__action {
     text-align: end;
