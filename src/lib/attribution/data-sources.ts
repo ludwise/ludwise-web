@@ -6,7 +6,7 @@
  * visitor text belongs in the template that renders it.
  */
 import type { GameDetailView, GameMediaView } from '../api/contract.js';
-import { providerCredit, type ProviderCredit } from './providers.js';
+import { providerCredit, providerKey, type ProviderCredit } from './providers.js';
 
 export type DataSourceGroupId = 'gameInformation' | 'imagesAndVideo' | 'offersAndPrices';
 
@@ -16,11 +16,11 @@ export interface DataSourceGroup {
 }
 
 /** One credit per provider, in the order the page first carried it. */
-const credits = (names: readonly string[]): readonly ProviderCredit[] => {
+const creditsFor = (names: readonly string[]): readonly ProviderCredit[] => {
   const seen = new Map<string, ProviderCredit>();
   for (const name of names) {
     const credit = providerCredit(name);
-    const key = credit.url ?? name.trim().toLowerCase();
+    const key = credit.url ?? providerKey(name);
     if (!seen.has(key)) seen.set(key, credit);
   }
   return [...seen.values()];
@@ -50,10 +50,10 @@ export function dataSourceGroups(view: GameDetailView): readonly DataSourceGroup
   const groups: readonly DataSourceGroup[] = [
     {
       id: 'gameInformation',
-      credits: credits(view.metadataProvenance.map((item) => item.sourceName)),
+      credits: creditsFor(view.metadataProvenance.map((item) => item.sourceName)),
     },
-    { id: 'imagesAndVideo', credits: credits(mediaSourceNames(view.media)) },
-    { id: 'offersAndPrices', credits: credits(offerSourceNames(view)) },
+    { id: 'imagesAndVideo', credits: creditsFor(mediaSourceNames(view.media)) },
+    { id: 'offersAndPrices', credits: creditsFor(offerSourceNames(view)) },
   ];
 
   return groups.filter((group) => group.credits.length > 0);

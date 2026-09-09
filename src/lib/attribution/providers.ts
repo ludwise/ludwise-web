@@ -26,6 +26,15 @@ export const PROVIDER_SITES = {
 
 const sites = new Map<string, string>(Object.entries(PROVIDER_SITES));
 
+/**
+ * The key one display name matches on.
+ *
+ * Case and spacing are presentation, so a credit must not lose its link
+ * because the backend changed either. The keys of `PROVIDER_SITES` are written
+ * in this form.
+ */
+export const providerKey = (name: string): string => name.trim().toLowerCase();
+
 export function providerCredit(name: string): ProviderCredit {
-  return { name, url: sites.get(name.trim().toLowerCase()) ?? null };
+  return { name, url: sites.get(providerKey(name)) ?? null };
 }

@@ -194,6 +194,19 @@ test.describe('the application shell', () => {
     }
   });
 
+  test('serves the data sources page that the footer credit links to', async ({ page }) => {
+    await page.goto('/');
+    await page.getByRole('contentinfo').getByRole('link', { name: 'Data sources' }).click();
+
+    await expect(page).toHaveURL('/legal/sources');
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Data sources');
+    // The statement the IGDB and Valve terms both need, on the page that
+    // holds the full credit.
+    await expect(
+      page.getByText('LUDWISE is not affiliated with IGDB, Twitch or Valve.'),
+    ).toBeVisible();
+  });
+
   test('asks nothing of any third party, and serves its own typeface', async ({ page }) => {
     const requests: string[] = [];
     page.on('request', (request) => requests.push(request.url()));
@@ -346,7 +359,7 @@ test.describe('accessibility', () => {
     // The not-found route is audited too. It is composed differently from the
     // product routes, as an EmptyState standing alone rather than inside a
     // page. It is also the route a visitor is most likely to reach by accident.
-    for (const path of ['/', '/games', '/sales', '/this-route-does-not-exist']) {
+    for (const path of ['/', '/games', '/sales', '/legal/sources', '/this-route-does-not-exist']) {
       test(`${path} has no violations in the ${theme} theme`, async ({ browser }) => {
         const context = await browser.newContext();
         await context.addCookies([{ name: THEME_COOKIE, value: theme, url: BASE_URL }]);
