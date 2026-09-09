@@ -2,9 +2,9 @@
  * The sentences the interface uses to explain its own data.
  *
  * One list for every suite. Issue #15 requires the same wording on the game,
- * offer and sales surfaces, and the empty and degraded suites assert the
- * absence of exactly what the populated suites assert the presence of. A
- * rewrite that reaches one surface and not the others fails here.
+ * offer and sales surfaces. The empty and degraded suites assert the absence
+ * of exactly what the populated suites assert the presence of. A rewrite that
+ * reaches one surface and not the others fails here.
  *
  * Each entry is the whole paragraph. Playwright normalizes whitespace, so a
  * sentence the template wraps over several lines still matches.

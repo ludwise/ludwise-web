@@ -55,7 +55,7 @@ describe('what a surface may explain', () => {
   });
 
   it('ignores an offer the store quoted no price for', () => {
-    // Nothing about it reaches the screen beside a price, so it supports no
+    // Nothing about it reaches the page beside a price, so it supports no
     // sentence about one. `surfaceFreshness` reads its surface the same way.
     const unpriced = offer({ price: null, observedAtMs: null, discountPercentage: 40 });
 
