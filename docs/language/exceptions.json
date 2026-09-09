@@ -1,7 +1,20 @@
 {
   "$schemaVersion": 1,
-  "profile": { "name": "LUDWISE ASD-STE100 profile", "version": 1 },
+  "profile": {
+    "name": "LUDWISE ASD-STE100 profile",
+    "version": 1
+  },
   "policy": "An exception is central and auditable. There is no inline suppression comment, and the checker never reads one.",
   "requiredFields": ["id", "scope", "rules", "reason", "owner"],
-  "exceptions": []
+  "exceptions": [
+    {
+      "id": "data-sources-page-agreed-wording",
+      "scope": {
+        "paths": ["src/content/legal/en/sources.md"]
+      },
+      "rules": ["LW-STE-TERM-PROHIBITED"],
+      "reason": "The visible wording of this page is fixed by the resolution on issue ludwise/ludwise-web#71, and issue #58 makes an exact match an acceptance condition. The page states that LUDWISE uses the IGDB API under the Twitch Developer Services Agreement, which names the contract in the way the contract itself reads. The normal correction is a rewrite, and the author of this file does not own the wording. Removing the exception needs a wording decision on #71 first.",
+      "owner": "LUDWISE architecture"
+    }
+  ]
 }

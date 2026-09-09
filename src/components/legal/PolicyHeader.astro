@@ -92,7 +92,10 @@ const displayDate = (date: Date) =>
   }
 
   dt {
-    color: var(--color-text-tertiary);
+    /* Secondary rather than tertiary. At the 11px of this label, tertiary
+       measures 4.02:1 on the page background, below the 4.5:1 that WCAG 2
+       asks of small text. Pinned by the audit of /legal/sources. */
+    color: var(--color-text-secondary);
     font: var(--text-label-sm);
   }
 

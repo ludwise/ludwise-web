@@ -15,8 +15,11 @@ import {
 
 const real = loadLanguageDocuments(process.cwd());
 
+// The exception set is replaced because this run reads one temporary file. A
+// real exception covers a real file, and the run would report it as unused.
 const documents = {
   ...real,
+  exceptions: { ...real.exceptions, exceptions: [] },
   policy: {
     ...real.policy,
     rollout: { ...real.policy.rollout, mode: 'audit' },

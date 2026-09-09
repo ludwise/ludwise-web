@@ -13,12 +13,16 @@ import { loadLanguageDocuments } from '../../../../scripts/ste/policy.mjs';
  * The fixtures are ordinary files in the repository, so the classification
  * table has to be replaced here. In the real table they are exempt, which
  * is what keeps a deliberate violation out of the repository audit.
+ *
+ * The exception set is replaced for the same reason. A real exception covers a
+ * real file, and a run over one fixture would report it as unused.
  */
 
 const real = loadLanguageDocuments(process.cwd());
 
 const documents = {
   ...real,
+  exceptions: { ...real.exceptions, exceptions: [] },
   policy: {
     ...real.policy,
     rollout: { ...real.policy.rollout, mode: 'audit' },
