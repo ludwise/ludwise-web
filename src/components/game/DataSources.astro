@@ -1,0 +1,109 @@
+---
+/**
+ * The visible credit for every provider whose data reached this page.
+ *
+ * It renders in the open and never behind a disclosure element. A credit that
+ * a visitor must open first is a weak answer to a visibility duty, and issue
+ * #71 decided this placement. A group with no data does not render, so the
+ * block stays honest for a game with no offers and no pictures.
+ *
+ * Each link goes to the provider website and not to the entry for this game,
+ * because the contract carries no address for one game.
+ */
+import type { GameDetailView } from '../../lib/api/contract.js';
+import { dataSourceGroups, type DataSourceGroupId } from '../../lib/attribution/data-sources.js';
+
+interface Props {
+  view: GameDetailView;
+}
+
+const { view } = Astro.props;
+const groups = dataSourceGroups(view);
+
+const GROUP_LABELS: Record<DataSourceGroupId, string> = {
+  gameInformation: 'Game information',
+  imagesAndVideo: 'Images and video',
+  offersAndPrices: 'Offers and prices',
+};
+---
+
+{
+  groups.length > 0 && (
+    <section class="lw-data-sources" aria-labelledby="data-sources-title">
+      <h2 id="data-sources-title" class="lw-text-heading-md">
+        Data sources
+      </h2>
+      <dl class="lw-data-sources__groups">
+        {groups.map((group) => (
+          <div class="lw-data-sources__group">
+            <dt>{GROUP_LABELS[group.id]}</dt>
+            <dd>
+              <ul class="lw-data-sources__credits">
+                {group.credits.map((credit) => (
+                  <li>
+                    {credit.url === null ? credit.name : <a href={credit.url}>{credit.name}</a>}
+                  </li>
+                ))}
+              </ul>
+            </dd>
+          </div>
+        ))}
+      </dl>
+    </section>
+  )
+}
+
+<style>
+  .lw-data-sources {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    max-width: 900px;
+  }
+
+  .lw-data-sources__groups {
+    display: grid;
+    grid-template-columns: minmax(7rem, auto) minmax(0, 1fr);
+    gap: var(--space-3) var(--space-6);
+    max-width: 640px;
+  }
+
+  .lw-data-sources__group {
+    display: grid;
+    grid-column: 1 / -1;
+    grid-template-columns: subgrid;
+  }
+
+  .lw-data-sources__groups dt {
+    color: var(--color-text-secondary);
+    font: var(--text-label-md);
+  }
+
+  .lw-data-sources__groups dd {
+    overflow-wrap: anywhere;
+  }
+
+  .lw-data-sources__credits {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-4);
+    padding: 0;
+    margin: 0;
+    list-style: none;
+  }
+
+  @media (max-width: 600px) {
+    .lw-data-sources__groups {
+      grid-template-columns: 1fr;
+      gap: var(--space-1);
+    }
+
+    .lw-data-sources__group {
+      display: block;
+    }
+
+    .lw-data-sources__group + .lw-data-sources__group {
+      margin-top: var(--space-3);
+    }
+  }
+</style>

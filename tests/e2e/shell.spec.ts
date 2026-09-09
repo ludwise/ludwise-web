@@ -164,6 +164,36 @@ test.describe('the application shell', () => {
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('Page not found');
   });
 
+  /**
+   * The credit that the IGDB terms and the Valve brand and links clause ask
+   * for. Checked on three routes, the not-found page included, because the
+   * duty is to show it on every page that carries provider data.
+   */
+  test('credits both data providers in the footer of every page', async ({ page }) => {
+    for (const route of ['/', '/games', '/this-route-does-not-exist']) {
+      await page.goto(route);
+      const footer = page.getByRole('contentinfo');
+
+      await expect(footer).toContainText(
+        'Game information comes from IGDB.com. Store information comes from Steam, a Valve service.',
+      );
+      await expect(footer.getByRole('link', { name: 'IGDB.com' })).toHaveAttribute(
+        'href',
+        'https://www.igdb.com/',
+      );
+      await expect(footer.getByRole('link', { name: 'Steam', exact: true })).toHaveAttribute(
+        'href',
+        'https://store.steampowered.com/',
+      );
+      // Valve forbids a link that discourages a search engine from following
+      // it. Asserted on the rendered page, and not only on the template.
+      await expect(footer.getByRole('link', { name: 'Steam', exact: true })).not.toHaveAttribute(
+        'rel',
+        /nofollow/u,
+      );
+    }
+  });
+
   test('asks nothing of any third party, and serves its own typeface', async ({ page }) => {
     const requests: string[] = [];
     page.on('request', (request) => requests.push(request.url()));

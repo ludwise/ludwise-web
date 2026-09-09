@@ -8,6 +8,7 @@ import {
   legalPolicyLocale,
   selectLegalFooterPolicies,
 } from '../../lib/legal/policies.js';
+import { PROVIDER_SITES } from '../../lib/attribution/providers.js';
 import PageContainer from '../layout/PageContainer.astro';
 
 interface Props {
@@ -54,6 +55,18 @@ const year = new Date().getFullYear();
 
       <p class="lw-site-footer__copyright">© {year} LUDWISE</p>
     </div>
+
+    {
+      /* The credit that the IGDB terms and the Valve brand and links clause
+         both ask for. It is static because it credits the integration and not
+         the page. The duty attaches to LUDWISE calling each API, rather than
+         to whether one response carried that provider. Issue #71 fixed this
+         wording, and no provider link may carry `nofollow`. */
+    }
+    <p class="lw-site-footer__credit">
+      Game information comes from <a href={PROVIDER_SITES.igdb}>IGDB.com</a>. Store information
+      comes from <a href={PROVIDER_SITES.steam}>Steam</a>, a Valve service.
+    </p>
   </PageContainer>
 </footer>
 
@@ -103,6 +116,13 @@ const year = new Date().getFullYear();
 
   .lw-site-footer__copyright {
     white-space: nowrap;
+  }
+
+  .lw-site-footer__credit {
+    padding-bottom: var(--space-6);
+    color: var(--color-text-secondary);
+    font: var(--text-body-sm);
+    text-wrap: pretty;
   }
 
   @media (max-width: 767px) {

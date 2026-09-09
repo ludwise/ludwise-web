@@ -249,6 +249,30 @@ test.describe('game detail', () => {
     await expect(page.getByText('These prices may be out of date')).toHaveCount(0);
   });
 
+  /**
+   * The credit for the sources this page carried, checked as a visitor meets
+   * it. The visibility assertion is the one that matters. Content in a closed
+   * disclosure element is not visible, so this test fails if the block is ever
+   * folded into one.
+   */
+  test('credits the sources it carried, in the open', async ({ page }) => {
+    await page.goto(DETAIL_ROUTE);
+    const block = page.getByRole('region', { name: 'Data sources' });
+
+    await expect(block).toBeVisible();
+    await expect(block).toContainText('Game information');
+    await expect(block).toContainText('Images and video');
+    await expect(block).toContainText('Offers and prices');
+
+    await expect(block.getByRole('link', { name: 'IGDB' })).toHaveAttribute(
+      'href',
+      'https://www.igdb.com/',
+    );
+    // A name the address map does not hold is still credited, as plain text.
+    await expect(block).toContainText('Orbit Source');
+    await expect(block.getByRole('link', { name: 'Orbit Source' })).toHaveCount(0);
+  });
+
   test('answers an unknown canonical slug with a 404 page', async ({ page }) => {
     const response = await page.goto('/games/does-not-exist');
 

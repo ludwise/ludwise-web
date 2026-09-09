@@ -1,6 +1,7 @@
 ---
 import EmptyState from '../../components/feedback/EmptyState.astro';
 import InlineMessage from '../../components/feedback/InlineMessage.astro';
+import DataSources from '../../components/game/DataSources.astro';
 import FreshnessNotice from '../../components/game/FreshnessNotice.astro';
 import OfferTable from '../../components/game/OfferTable.astro';
 import PageContainer from '../../components/layout/PageContainer.astro';
@@ -235,6 +236,8 @@ const retryHref = `${Astro.url.pathname}${Astro.url.search}`;
                 </div>
               )}
             </section>
+
+            <DataSources view={view} />
           </article>
         )
       )

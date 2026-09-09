@@ -142,7 +142,7 @@ describe('production code has no provider-specific metadata dependency', () => {
     ],
     [
       'provider API calls or URL construction',
-      /\b(?:api\.)?(?:igdb\.com|twitch\.tv|id\.twitch\.tv)\b/iu,
+      /\b(?:api\.igdb\.com|images\.igdb\.com|twitch\.tv|id\.twitch\.tv)\b/iu,
     ],
     [
       'provider-specific contract types',
@@ -152,6 +152,36 @@ describe('production code has no provider-specific metadata dependency', () => {
 
   it.each(FORBIDDEN_PROVIDER_CONCEPTS)('contains no %s', (_label, pattern) => {
     const offenders = sourceFiles.filter((file) => pattern.test(codeOf(file)));
+    expect(offenders).toEqual([]);
+  });
+});
+
+/**
+ * The one module that may write a provider's public address.
+ *
+ * A visible credit that names a provider must link to it, which issue #58
+ * makes a release condition. That link is a public website and not the API
+ * dependency the rules above refuse. So it lives in one module, and the
+ * absence rule above stays exact rather than being widened for it.
+ */
+describe('provider attribution keeps the public addresses in one module', () => {
+  const ATTRIBUTION = 'src/lib/attribution/providers.ts';
+
+  it('holds the address of each credited provider', () => {
+    // Stated positively, so deleting the credit fails here rather than
+    // leaving the rule below guarding an empty set.
+    const source = codeOf(ATTRIBUTION);
+    expect(source).toContain('https://www.igdb.com/');
+    expect(source).toContain('https://store.steampowered.com/');
+  });
+
+  it('is the only file that writes a provider address', () => {
+    // The address, and not the name. The footer credit reads "IGDB.com" as
+    // visible text, which is the credit the terms ask for.
+    const address = /https?:\/\/[^\s"'`]*(?:igdb\.com|steampowered\.com)/iu;
+    const offenders = sourceFiles.filter(
+      (file) => file !== ATTRIBUTION && address.test(codeOf(file)),
+    );
     expect(offenders).toEqual([]);
   });
 });
