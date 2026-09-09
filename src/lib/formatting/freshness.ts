@@ -40,3 +40,29 @@ export function formatObservationTime(
   }
   return relative.format(-Math.floor(ageMs / FRESHNESS_DAY_MS), 'day');
 }
+
+/**
+ * The exact moment an observation was made.
+ *
+ * Content style requires that the exact timestamp stays reachable from the
+ * relative wording. One function states it, so a row and the disclosure behind
+ * it never present the same moment two different ways.
+ *
+ * `timeZone` pins the zone for a test. Production callers omit it and get the
+ * runtime's own, which is what names a zone a reader recognizes.
+ */
+export function formatObservationTimestamp(
+  observedAtMs: number,
+  locale = 'en-US',
+  timeZone?: string,
+): string {
+  return new Intl.DateTimeFormat(locale, {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    timeZoneName: 'short',
+    ...(timeZone === undefined ? {} : { timeZone }),
+  }).format(new Date(observedAtMs));
+}

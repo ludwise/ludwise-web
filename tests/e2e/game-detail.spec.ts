@@ -2,6 +2,7 @@ import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
 
 import { THEME_COOKIE_NAME } from '../../src/lib/http/theme.js';
+import { DATA_NOTES, DATA_NOTES_SUMMARY, DATA_SOURCES_LEAD } from '../helpers/data-notes.js';
 import { E2E_NOW_MS } from '../helpers/e2e-time.js';
 
 const BASE_URL = 'http://localhost:4321';
@@ -250,6 +251,79 @@ test.describe('game detail', () => {
   });
 
   /**
+   * What the words beside a price mean, for a visitor who asks. Each note is a
+   * claim about this page's data. So each is asserted against the fixture that
+   * earns it, rather than as decoration the page always carries.
+   */
+  test('explains the words a price carries, behind one disclosure', async ({ page }) => {
+    await page.goto(DETAIL_ROUTE);
+
+    const summary = page.getByText(DATA_NOTES_SUMMARY);
+    await expect(summary).toHaveCount(1);
+    // The page leads with the prices. The explanation is one click away, and
+    // reachable without script, which is why it is a details element.
+    await expect(page.getByText(DATA_NOTES.checkTimes)).toBeHidden();
+    await summary.click();
+
+    await expect(page.getByText(DATA_NOTES.checkTimes)).toBeVisible();
+    // Every price here was read in June 2025 against a clock of August 2026.
+    await expect(page.getByText(DATA_NOTES.oldCheckTimes)).toBeVisible();
+    // One offer is discounted, and the backend worked that percentage out.
+    await expect(page.getByText(DATA_NOTES.derivedDiscounts)).toBeVisible();
+    await expect(page.getByText(DATA_NOTES.noHistory)).toBeVisible();
+    // Every store here reported when it was read, so there is no absence to
+    // explain. A note that fires anyway describes a state nobody can see.
+    await expect(page.getByText(DATA_NOTES.untimedPrices)).toHaveCount(0);
+  });
+
+  test('explains a missing check time only where one is missing', async ({ page }) => {
+    await gotoStatesDetail(page);
+
+    await page.getByText(DATA_NOTES_SUMMARY).click();
+    await expect(page.getByText(DATA_NOTES.untimedPrices)).toBeVisible();
+    // One row was read two days ago, so the note that explains an old price
+    // belongs here even though the page-level warning stays silent. That
+    // warning reads the newest observation. A visitor reads one row.
+    await expect(page.getByText(DATA_NOTES.oldCheckTimes)).toBeVisible();
+    await expect(page.getByText('These prices may be out of date')).toHaveCount(0);
+    // No offer in this fixture is discounted.
+    await expect(page.getByText(DATA_NOTES.derivedDiscounts)).toHaveCount(0);
+  });
+
+  test('names the source of each price and the moment it was read', async ({ page }) => {
+    await page.goto(DETAIL_ROUTE);
+    const row = offerRow(page, 'Copper Shop').first();
+
+    await row.getByText('Source details').click();
+    const provenance = row.locator('.lw-provenance');
+    // The store sells the game. The source is where LUDWISE read the price,
+    // and the two are different parties that a row must not merge.
+    await expect(provenance.getByText('Source', { exact: true })).toBeVisible();
+    await expect(provenance.getByText('Copper Source')).toBeVisible();
+    await expect(provenance.getByText('Last checked', { exact: true })).toBeVisible();
+    // The exact timestamp behind "Last checked 441 days ago". The zone is the
+    // runtime's, so the assertion reads the parts that do not depend on it.
+    await expect(provenance.locator('dd').last()).toHaveText(
+      /Jun \d{1,2}, 2025, \d{1,2}:\d{2}\s(AM|PM)/u,
+    );
+  });
+
+  test('says which source each catalogue value came from, in words', async ({ page }) => {
+    // The contract states this as `release_date` and `direct`. Neither is a
+    // phrase a visitor has met before.
+    await page.goto(DETAIL_ROUTE);
+
+    await page.getByText('Where this information came from').click();
+    await expect(
+      page.getByText('LUDWISE took each value from the source named beside it.'),
+    ).toBeVisible();
+    await expect(
+      page.getByText('Release date: Orbit Source, supplied by the source'),
+    ).toBeVisible();
+    await expect(page.getByText('release_date')).toHaveCount(0);
+  });
+
+  /**
    * The credit for the sources this page carried, checked as a visitor meets
    * it. The visibility assertion is the one that matters. Content in a closed
    * disclosure element is not visible, so this test fails if the block is ever
@@ -260,6 +334,13 @@ test.describe('game detail', () => {
     const block = page.getByRole('region', { name: 'Data sources' });
 
     await expect(block).toBeVisible();
+    // Issue #71 decided the placement and issue #15 keeps it. Visibility alone
+    // would still pass inside an open details element, so the ancestor is
+    // asserted directly.
+    await expect(page.locator('details .lw-data-sources')).toHaveCount(0);
+    // A credit with no explanation reads as a list of partners. These
+    // providers supplied data, and none of them sells the game.
+    await expect(block.getByText(DATA_SOURCES_LEAD)).toBeVisible();
     await expect(block).toContainText('Game information');
     await expect(block).toContainText('Images and video');
     await expect(block).toContainText('Offers and prices');

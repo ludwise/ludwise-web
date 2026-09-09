@@ -1,6 +1,8 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
 
+import { PROVENANCE_EXPLANATIONS } from '../helpers/data-notes.js';
+
 /**
  * What the site says when LUDWISE has ingested nothing at all.
  *
@@ -59,6 +61,17 @@ test.describe('an empty catalogue', () => {
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('Game not found');
   });
 
+  test('credits and explains nothing on a page that carried no data', async ({ page }) => {
+    // No game, so no provider supplied anything for it. A credit block here
+    // would name providers that had no part in this page.
+    await page.goto('/games/anything-at-all');
+
+    await expect(page.getByRole('region', { name: 'Data sources' })).toHaveCount(0);
+    for (const explanation of PROVENANCE_EXPLANATIONS) {
+      await expect(page.getByText(explanation)).toHaveCount(0);
+    }
+  });
+
   test('offers the way back out of a search that could never match', async ({ page }) => {
     // The catalog holds nothing, so this search matches nothing. The sentence
     // for that is not the sentence for an empty catalog, and a visitor who
@@ -99,6 +112,20 @@ test.describe('an empty catalogue', () => {
 
       await expect(page.getByText('These prices may be out of date')).toHaveCount(0);
       await expect(page.getByText('No store reported a check time')).toHaveCount(0);
+    });
+
+    test(`${path} explains nothing about data it never observed`, async ({ page }) => {
+      // An explanation is a claim too. Each of these describes a price that
+      // this page does not hold. Together they read as though some price is
+      // simply out of view.
+      await page.goto(path);
+
+      for (const explanation of PROVENANCE_EXPLANATIONS) {
+        await expect(page.getByText(explanation), `${path} explained: ${explanation}`).toHaveCount(
+          0,
+        );
+      }
+      await expect(page.getByRole('region', { name: 'Data sources' })).toHaveCount(0);
     });
   }
 

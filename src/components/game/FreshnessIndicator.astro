@@ -7,6 +7,7 @@
  * would let a row and its page disagree.
  */
 import Icon from '../foundation/Icon.astro';
+import { formatObservationTimestamp } from '../../lib/formatting/freshness.js';
 import {
   FRESHNESS_DAY_MS,
   FRESHNESS_HOUR_MS,
@@ -46,17 +47,7 @@ function labelFor(state: FreshnessLevel, age: number | null, store: string): str
 
 const label = labelFor(level, ageMs, storeName);
 
-const absolute =
-  observedAtMs === null
-    ? null
-    : new Intl.DateTimeFormat('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: 'numeric',
-        minute: '2-digit',
-        timeZoneName: 'short',
-      }).format(new Date(observedAtMs));
+const absolute = observedAtMs === null ? null : formatObservationTimestamp(observedAtMs);
 const iso = observedAtMs === null ? null : new Date(observedAtMs).toISOString();
 const icon =
   level === 'unavailable'

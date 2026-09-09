@@ -2,6 +2,7 @@
 import EmptyState from '../components/feedback/EmptyState.astro';
 import InlineMessage from '../components/feedback/InlineMessage.astro';
 import Icon from '../components/foundation/Icon.astro';
+import DataNotes from '../components/game/DataNotes.astro';
 import FreshnessNotice from '../components/game/FreshnessNotice.astro';
 import GameCard from '../components/game/GameCard.astro';
 import PageContainer from '../components/layout/PageContainer.astro';
@@ -15,6 +16,7 @@ import {
   pathWithoutFilter,
 } from '../lib/http/sales-filter-links.js';
 import { surfaceFreshness } from '../lib/state/freshness.js';
+import { surfaceProvenance } from '../lib/state/provenance.js';
 import { PAIR_SEPARATOR, toBrowseSalesInput } from '../lib/http/sales-query.js';
 import { compareText } from '../lib/text/order.js';
 import { EVENTS } from '../lib/logging/events.js';
@@ -123,7 +125,9 @@ const pageOutOfRange = view !== null && view.games.length === 0 && view.resultCo
  * sales" claims the opposite until it says so.
  */
 const nowMs = Astro.locals.nowMs ?? Date.now();
-const salesFreshness = surfaceFreshness(view?.games.map((game) => game.offer) ?? [], nowMs);
+const saleOffers = view?.games.map((game) => game.offer) ?? [];
+const salesFreshness = surfaceFreshness(saleOffers, nowMs);
+const salesProvenance = surfaceProvenance(saleOffers, nowMs);
 const retryHref = `${Astro.url.pathname}${Astro.url.search}`;
 const clearedFiltersPath = pathWithFiltersCleared(params);
 ---
@@ -480,6 +484,7 @@ const clearedFiltersPath = pathWithFiltersCleared(params);
                 <>
                   <div class="lw-sales__notice">
                     <FreshnessNotice freshness={salesFreshness} nowMs={nowMs} />
+                    <DataNotes provenance={salesProvenance} />
                   </div>
 
                   <p class="lw-text-body-sm lw-sales__range">
@@ -568,6 +573,9 @@ const clearedFiltersPath = pathWithFiltersCleared(params);
   }
 
   .lw-sales__notice:not(:empty) {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
     margin-block-end: var(--space-4);
   }
 

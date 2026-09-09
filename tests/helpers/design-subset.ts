@@ -99,7 +99,6 @@ export const AWAITING_COMPOSITION: readonly string[] = [
   'src/components/foundation/Wordmark.astro',
   'src/components/game/GameRow.astro',
   'src/components/game/OfferRow.astro',
-  'src/components/game/ProvenanceNote.astro',
   'src/components/navigation/Breadcrumbs.astro',
   'src/components/navigation/Pagination.astro',
   'src/components/overlays/Popover.tsx',

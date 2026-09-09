@@ -33,6 +33,10 @@ const GROUP_LABELS: Record<DataSourceGroupId, string> = {
       <h2 id="data-sources-title" class="lw-text-heading-md">
         Data sources
       </h2>
+      <p class="lw-data-sources__lead">
+        LUDWISE read this page's data from these providers. A provider is where the data came from,
+        not the store that sells the game.
+      </p>
       <dl class="lw-data-sources__groups">
         {groups.map((group) => (
           <div class="lw-data-sources__group">
@@ -59,6 +63,13 @@ const GROUP_LABELS: Record<DataSourceGroupId, string> = {
     flex-direction: column;
     gap: var(--space-4);
     max-width: 900px;
+  }
+
+  .lw-data-sources__lead {
+    max-width: 640px;
+    color: var(--color-text-secondary);
+    font: var(--text-body-sm);
+    text-wrap: pretty;
   }
 
   .lw-data-sources__groups {

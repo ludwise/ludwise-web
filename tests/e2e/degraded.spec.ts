@@ -1,6 +1,8 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
 
+import { PROVENANCE_EXPLANATIONS } from '../helpers/data-notes.js';
+
 /**
  * What a visitor sees when the backend does not answer.
  *
@@ -70,6 +72,21 @@ test.describe('the backend is unavailable', () => {
       for (const leak of LEAKS) {
         expect(body, `${path} leaked ${leak}`).not.toContain(leak);
       }
+    });
+
+    test(`${path} explains data it never received`, async ({ page }) => {
+      // "Unavailable is not empty", in the help rather than in the results.
+      // Each sentence describes prices, check times or providers that reached
+      // the page. None did, so each one sends a visitor looking for nothing.
+      await page.goto(path);
+
+      for (const explanation of PROVENANCE_EXPLANATIONS) {
+        await expect(page.getByText(explanation), `${path} explained: ${explanation}`).toHaveCount(
+          0,
+        );
+      }
+      await expect(page.getByRole('region', { name: 'Data sources' })).toHaveCount(0);
+      await expect(page.getByText('Source details')).toHaveCount(0);
     });
 
     test(`${path} shows the request id a visitor can quote`, async ({ page }) => {
