@@ -118,6 +118,7 @@ const DETAIL_CASES = [
   'game-detail',
   'game-detail-canonical',
   'game-detail-no-offers',
+  'game-detail-promoted-cover',
   'game-detail-states',
 ];
 const ABSENT_CASE = 'game-detail-absent';
