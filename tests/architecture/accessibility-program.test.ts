@@ -65,8 +65,16 @@ const EXPECTED_A_AA = [
   '4.1.3',
 ] as const;
 
-const WCAG_22_A_AA_ADDITIONS = ['2.4.11', '2.5.7', '2.5.8', '3.2.6', '3.3.7', '3.3.8'] as const;
-const MATRIX_ROW = /^\| \[([0-9.]+)\]\([^)]*\) \| (A|AA) \| ([^|]+) \| ([^|]+) \| ([^|]+) \| ([^|]+) \| ([^|]+) \|$/gmu;
+const WCAG_22_A_AA_ADDITIONS = [
+  '2.4.11',
+  '2.5.7',
+  '2.5.8',
+  '3.2.6',
+  '3.3.7',
+  '3.3.8',
+] as const;
+const MATRIX_ROW =
+  /^\| \[([0-9.]+)\]\([^)]*\) \| (A|AA) \| ([^|]+) \| ([^|]+) \| ([^|]+) \| ([^|]+) \| ([^|]+) \|$/gmu;
 
 function matrixRows(): Array<{
   criterion: string;
@@ -106,10 +114,10 @@ function stripComments(source: string): string {
 describe('WCAG 2.2 accessibility program', () => {
   it('tracks every Level A and AA success criterion exactly once', () => {
     const rows = matrixRows();
+    const criteria = rows.map(({ criterion }) => criterion);
 
-    expect(rows.map(({ criterion }) => criterion)).toEqual(EXPECTED_A_AA);
-    expect(new Set(rows.map(({ criterion }) => criterion).size)).toBeUndefined();
-    expect(new Set(rows.map(({ criterion }) => criterion)).toHaveLength(EXPECTED_A_AA.length);
+    expect(criteria).toEqual(EXPECTED_A_AA);
+    expect(new Set(criteria).size).toBe(EXPECTED_A_AA.length);
     expect(rows.some(({ criterion }) => criterion === '4.1.1')).toBe(false);
   });
 
@@ -128,9 +136,11 @@ describe('WCAG 2.2 accessibility program', () => {
     for (const criterion of WCAG_22_A_AA_ADDITIONS) {
       expect(rows.get(criterion)?.version).toBe('2.2');
     }
-    expect(matrixRows().filter(({ version }) => version === '2.2').map(({ criterion }) => criterion)).toEqual(
-      WCAG_22_A_AA_ADDITIONS,
-    );
+    expect(
+      matrixRows()
+        .filter(({ version }) => version === '2.2')
+        .map(({ criterion }) => criterion),
+    ).toEqual(WCAG_22_A_AA_ADDITIONS);
   });
 
   it('keeps the standards and gate boundaries explicit', () => {
@@ -174,7 +184,8 @@ describe('reusable accessibility invariants', () => {
 
   it('prohibits positive tabindex in product UI', () => {
     const files = ['src/components', 'src/layouts', 'src/pages'].flatMap(sourceFiles);
-    const positiveTabIndex = /\btabindex\s*=\s*(?:["']?[1-9]\d*["']?|\{\s*[1-9]\d*\s*\})/giu;
+    const positiveTabIndex =
+      /\btabindex\s*=\s*(?:["']?[1-9]\d*["']?|\{\s*[1-9]\d*\s*\})/giu;
     const offenders = files.flatMap((file) => {
       const source = stripComments(readFileSync(join(REPO_ROOT, file), 'utf8'));
       return (source.match(positiveTabIndex) ?? []).map((match) => `${file}: ${match}`);
