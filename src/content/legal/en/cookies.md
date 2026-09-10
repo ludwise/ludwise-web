@@ -21,7 +21,7 @@ This policy describes cookies and browser storage used by the public LUDWISE MVP
 
 LUDWISE uses one first-party cookie named `theme` after you use the theme control.
 The value is either `light` or `dark`.
-The cookie lets the server render your selected theme on later pages.
+The cookie lets LUDWISE render your selected theme on later pages.
 It expires after one year and uses `SameSite=Lax`.
 Production also marks it `Secure`.
 
