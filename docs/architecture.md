@@ -118,3 +118,192 @@ the binding has been authenticated by nothing. That is why `/ops` authorization
 lives in the backend's own middleware and must never move to the edge. It is
 also why the API client in this repository exposes three named operations and
 no path parameter. A client that could be handed a path would be a proxy into a service
+with no other public surface.
+
+### Consequences
+
+- No CORS anywhere in this repository.
+- No `PUBLIC_`-prefixed environment variables. Astro inlines those into client
+  JavaScript, and nothing here is read by the browser.
+- Every read happens during SSR. There is no client-side data fetching.
+- Both Workers must live in the same Cloudflare account, and the backend must
+  exist before this Worker is deployed. That is now stricter: Wrangler refuses a
+  binding naming an entrypoint the target Worker does not export. So a backend
+  that has not yet published `VisitorRead` fails this deploy rather than serving
+  a broken site. **Deploy the backend first.**
+- Binding changes are two-phase: add the binding in one release, use it in the
+  next. Remove one at least a release after the code stops reading it.
+  Otherwise rolling back code lands on a Worker whose bindings no longer match.
+
+## The API client
+
+`src/lib/api/` is the only place this site talks to the backend, and
+[`tests/architecture/boundaries.test.ts`](../tests/architecture/boundaries.test.ts)
+enforces it rather than leaving it to convention. A scattered `fetch` is a place
+where things go wrong. A timeout is forgotten, a correlation header is not
+forwarded, a malformed response is trusted, or a backend error message ends up
+in a page.
+
+| File          | What it is                                              |
+| ------------- | ------------------------------------------------------- |
+| `contract.ts` | The authoritative wire types. See below.                |
+| `client.ts`   | Transport: URLs, timeout, retry, correlation, decoding. |
+| `errors.ts`   | The failure taxonomy and what may be logged from it.    |
+
+### Failure handling
+
+| Kind          | Cause                               | Retried?                   | What a visitor sees                             |
+| ------------- | ----------------------------------- | -------------------------- | ----------------------------------------------- |
+| `rejected`    | 400, the request was refused        | Never                      | Which filters were wrong, with the form redrawn |
+| `unavailable` | Binding failed, or a 5xx            | Only when nothing answered | "We could not load this right now"              |
+| `timeout`     | Backend did not answer in time      | Once                       | The same                                        |
+| `malformed`   | Answered, but not with the contract | Never                      | The same                                        |
+
+Two attempts at most, with a short fixed pause. The bound is the point. An
+unbounded retry chain turns one slow backend into a queue of Workers all
+waiting. That converts a degraded dependency into an outage of this site too.
+
+A rejection is never retried — the request was refused for what it contained.
+A 5xx carrying a backend error code is never retried either. It means the
+backend reached its dependency and the dependency failed, and retrying
+immediately adds load to something already struggling.
+
+Nothing method-aware appears in that logic because every request is a GET. When
+a write appears, the retry rule must not simply be widened. An unsafe request
+needs an idempotency key before it may be retried at all.
+
+### Unavailable is not empty
+
+This is the distinction the whole error layer exists to preserve. A failed read
+**throws**. It never returns an empty view. Rendering "no games found" when the
+truth is "we could not ask" is a false claim about the market rather than a
+cosmetic slip. The same applies to sales, offers, and a game detail page —
+where a failure must never render as a 404. This is because that tells a visitor
+following a good link that their link is broken.
+
+## The contract
+
+`src/lib/api/contract.ts` is the **authoritative** statement of the wire shape,
+and it lives here rather than in the backend on purpose. This repository must
+build without access to the private one. So it cannot import those types and
+cannot be generated from a schema that is not present.
+
+The backend vendors this file into its own `tests/contract/` and proves
+conformance at compile time. A view type there that stops satisfying a type here
+fails **that** build with TS2344.
+
+So the direction is: the backend is authoritative about behavior, this file is
+authoritative about the shape that behavior must keep. The conformance test
+is the joint. A hand-written type is only as true as the test that checks it,
+which is why that test is not optional.
+
+### Evolution
+
+Additively. A response may gain a field. It may never lose or narrow one without
+a version change.
+
+```
+old frontend + new backend  → works (unknown fields ignored)
+new frontend + old backend  → works (new fields must be optional)
+```
+
+That is what lets the two repositories deploy in either order. A field added to
+the contract before the backend serves it must be optional and read as absent.
+When a genuinely incompatible change is needed it goes to `/v2`, and both
+contracts exist for a while.
+
+### Changing it <!-- ste-prose: procedural -->
+
+1. Change `src/lib/api/contract.ts` here.
+2. Copy it verbatim into the backend's `tests/contract/contract.ts`.
+3. Run the backend's `typecheck:tests`. It fails if the backend cannot satisfy
+   the new shape.
+4. Make the backend satisfy it, and deploy the backend **first** for an additive
+   change.
+
+### The recorded corpus
+
+`tests/fixtures/corpus/` holds responses the backend really produced, written by
+its `tests/contract/corpus.test.ts` and copied here byte for byte. The fake
+backend replays them. That replay is what makes the end-to-end suites evidence
+about the real contract, rather than about shapes invented to match the code
+these tests exercise.
+
+To change one: add or edit the case in the backend's `CASES`, run its
+`pnpm run contract:corpus` to re-record, then copy the files across unmodified.
+
+Do not edit these files here, and do not format them. `.prettierignore` excludes
+the directory. The reason is that collapsing one short array is enough to break
+the backend's byte comparison against a response it really does emit.
+`tests/integration/corpus-integrity.test.ts` re-serialises every file the way
+the recorder did, and fails if the bytes have moved. That is the strongest
+check available from a repository that cannot see the backend.
+
+## Environments
+
+|            | Site                     | Backend              | Hostname              |
+| ---------- | ------------------------ | -------------------- | --------------------- |
+| local      | `ludwise-web`            | `ludwise`            | `localhost:4321`      |
+| staging    | `ludwise-web-staging`    | `ludwise-staging`    | `staging.ludwise.com` |
+| production | `ludwise-web-production` | `ludwise-production` | `ludwise.com`         |
+
+Each environment names its own backend in `wrangler.jsonc`. The name is written
+out in full rather than inherited. Inheritance would make the most dangerous
+possible mistake invisible in the file where it happens.
+
+A service binding names a Worker script, so there is no URL a mistyped variable
+could redirect. `assertEnvironmentsMatch` in `src/lib/config/index.ts` is the
+second line: it refuses to serve a page built from one environment's site and
+another's data. The only permitted crossing is local → staging, which is a
+real workflow reading disposable data. Nothing may read production.
+
+## Observability
+
+One log record per request, carrying `request_id`, `trace_id` and `span_id`.
+Both are forwarded to the backend as `x-request-id` and `traceparent`. So the
+two Workers' records join into one trace — without that, splitting the
+repositories would have doubled the logging bill for less than it bought.
+
+Deliberately absent from every record: raw URLs, query strings, cookies,
+authorization headers, user agent, client IP. Only the route template is
+recorded — `/games/[slug]`, never the game somebody looked at.
+
+A failed backend call logs the safe error code, the HTTP status, the request id
+and the duration. Never the response body, never the cause, never the values a
+field was rejected for.
+
+## Analytics
+
+No visitor analytics run in the MVP.
+The web Worker emits operational request logs only.
+It does not create or dispatch page-view events.
+
+Issue #13 owns any later analytics implementation.
+That work must define a new event contract and a reviewed transport before collection starts.
+
+## Caching
+
+No caching, in the first cut. `no-store` everywhere, matching the behavior
+before the split, so the migration is provably behavior-preserving.
+
+That is a starting point rather than a conclusion. Adding a short cache later is
+unusually safe here because every price carries `observedAtMs` and the interface
+renders freshness from it. A cached response is honest about its own age. When
+it happens, two rules are non-negotiable. Never cache across different
+market/currency inputs. Never let a shared cache hold a response carrying a
+request id.
+
+Static assets are the exception and always were. `public/_headers` marks the
+fonts immutable. They are content-addressed by filename and never change in
+place.
+
+## Performance
+
+SSR-first, deliberately. The only client-side JavaScript is the header island
+and the pre-paint theme script. There is no client-side router, no data
+fetching in the browser, and no state management library. A visitor comparing
+prices must not download the catalog to read one page.
+
+One backend request per page. A rejected filter combination is the exception. It
+costs one request, and gets its filter form rebuilt in the same response rather
+than in a second round trip.
