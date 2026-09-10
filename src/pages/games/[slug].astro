@@ -1,9 +1,11 @@
 ---
 import EmptyState from '../../components/feedback/EmptyState.astro';
 import InlineMessage from '../../components/feedback/InlineMessage.astro';
+import Icon from '../../components/foundation/Icon.astro';
 import DataNotes from '../../components/game/DataNotes.astro';
 import DataSources from '../../components/game/DataSources.astro';
 import FreshnessNotice from '../../components/game/FreshnessNotice.astro';
+import GameArtwork from '../../components/game/GameArtwork.astro';
 import OfferTable from '../../components/game/OfferTable.astro';
 import PageContainer from '../../components/layout/PageContainer.astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
@@ -11,6 +13,7 @@ import type { GameDetailView, ProvenanceView } from '../../lib/api/contract.js';
 import { isApiError, toLogContext } from '../../lib/api/errors.js';
 import { formatReleaseDate } from '../../lib/formatting/game-detail.js';
 import { provenanceFieldLabel } from '../../lib/formatting/provenance.js';
+import { mediaForRendering } from '../../lib/game/media.js';
 import { EVENTS } from '../../lib/logging/events.js';
 import { surfaceFreshness } from '../../lib/state/freshness.js';
 import { surfaceProvenance } from '../../lib/state/provenance.js';
@@ -69,6 +72,8 @@ const hasMetadata =
  */
 const hasCatalogueDetails = hasMetadata || (metadata?.summary ?? null) !== null;
 
+const media = mediaForRendering(view?.media);
+
 const nowMs = Astro.locals.nowMs ?? Date.now();
 const offers = view?.offerGroups.flatMap((group) => group.offers) ?? [];
 const offerFreshness = surfaceFreshness(offers, nowMs);
@@ -120,8 +125,19 @@ const PROVENANCE_METHODS: Record<ProvenanceView['method'], string> = {
             </nav>
 
             <header class="lw-game-detail__header">
-              <p class="lw-text-label-sm">Game</p>
-              <h1 class="lw-text-heading-xl">{view.title}</h1>
+              {media.cover && (
+                <GameArtwork
+                  class="lw-game-detail__cover"
+                  src={media.cover.src ?? undefined}
+                  title={view.title}
+                  ratio="cover"
+                  eager={media.cover.eager}
+                />
+              )}
+              <div class="lw-game-detail__identity">
+                <p class="lw-text-label-sm">Game</p>
+                <h1 class="lw-text-heading-xl">{view.title}</h1>
+              </div>
             </header>
 
             {!hasCatalogueDetails && (
@@ -248,6 +264,45 @@ const PROVENANCE_METHODS: Record<ProvenanceView['method'], string> = {
               )}
             </section>
 
+            {media.gallery && (
+              <section class="lw-game-detail__section" aria-labelledby="screenshots-title">
+                <h2 id="screenshots-title" class="lw-text-heading-md">
+                  {media.gallery.heading}
+                </h2>
+                {/* A plain container and not a list. A screenshot carries no name, so
+                    list semantics would announce members that say nothing. */}
+                <div class="lw-game-detail__gallery">
+                  {media.gallery.pictures.map((screenshot) => (
+                    <GameArtwork
+                      src={screenshot.src ?? undefined}
+                      title={view.title}
+                      ratio="screenshot"
+                      eager={screenshot.eager}
+                    />
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {media.videos && (
+              <section class="lw-game-detail__section" aria-labelledby="videos-title">
+                <h2 id="videos-title" class="lw-text-heading-md">
+                  {media.videos.heading}
+                </h2>
+                <ul class="lw-game-detail__videos">
+                  {media.videos.links.map((video) => (
+                    <li>
+                      <a href={video.href} target="_blank" rel="noopener noreferrer">
+                        {video.label}
+                        <Icon name="external-link" size="sm" />
+                        <span class="lw-visually-hidden">Opens in a new tab</span>
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
+
             <DataSources view={view} />
           </article>
         )
@@ -280,12 +335,39 @@ const PROVENANCE_METHODS: Record<ProvenanceView['method'], string> = {
   }
   .lw-game-detail__header {
     display: flex;
+    align-items: flex-end;
+    gap: var(--space-5);
+    max-width: 800px;
+  }
+  .lw-game-detail__header :global(.lw-game-detail__cover) {
+    flex: 0 0 140px;
+  }
+  .lw-game-detail__identity {
+    display: flex;
     flex-direction: column;
     gap: var(--space-2);
-    max-width: 800px;
+    min-width: 0;
   }
   .lw-game-detail__header .lw-text-label-sm {
     color: var(--color-text-secondary);
+  }
+  .lw-game-detail__gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
+    gap: var(--space-4);
+  }
+  .lw-game-detail__videos {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    padding: 0;
+    margin: 0;
+    list-style: none;
+  }
+  .lw-game-detail__videos a {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
   }
   .lw-game-detail__section {
     display: flex;
@@ -386,6 +468,15 @@ const PROVENANCE_METHODS: Record<ProvenanceView['method'], string> = {
   @media (max-width: 600px) {
     .lw-game-detail {
       gap: var(--space-6);
+    }
+    .lw-game-detail__header {
+      gap: var(--space-4);
+    }
+    .lw-game-detail__header :global(.lw-game-detail__cover) {
+      flex-basis: 104px;
+    }
+    .lw-game-detail__gallery {
+      grid-template-columns: 1fr;
     }
     .lw-game-detail__metadata {
       grid-template-columns: 1fr;
