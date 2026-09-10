@@ -363,6 +363,119 @@ test.describe('game detail', () => {
   });
 });
 
+/**
+ * Every picture and every video the canonical media contract supplies.
+ *
+ * The unit suite states what `src/lib/game/media.ts` decides. Only a rendered
+ * page can carry these three facts. They are the origin of each address, the
+ * absence of a player, and the count in the heading above the frames.
+ */
+test.describe('game detail media', () => {
+  test('serves every picture from the LUDWISE origin and renders no player', async ({ page }) => {
+    await page.goto(DETAIL_ROUTE);
+
+    const foreign = await page
+      .locator('img')
+      .evaluateAll((images) =>
+        images
+          .map((image) => image.getAttribute('src') ?? '')
+          .filter((src) => new URL(src, location.href).origin !== location.origin),
+      );
+
+    await expect(page.locator('img')).not.toHaveCount(0);
+    expect(foreign).toEqual([]);
+    // `embedUrl` is never read, so a page that carries videos carries no frame.
+    await expect(page.locator('iframe')).toHaveCount(0);
+  });
+
+  test('loads the hero first and every screenshot last', async ({ page }) => {
+    await page.goto(DETAIL_ROUTE);
+    const hero = page.locator('.lw-game-detail__hero img');
+
+    await expect(hero).toHaveAttribute('loading', 'eager');
+    await expect(hero).toHaveAttribute('fetchpriority', 'high');
+
+    const screenshots = await page.locator('.lw-game-detail__gallery img').evaluateAll((images) =>
+      images.map((image) => ({
+        alt: image.getAttribute('alt'),
+        decoding: image.getAttribute('decoding'),
+        loading: image.getAttribute('loading'),
+        priority: image.getAttribute('fetchpriority'),
+      })),
+    );
+
+    expect(screenshots).not.toEqual([]);
+    expect(screenshots).toEqual(
+      screenshots.map(() => ({ alt: '', decoding: 'async', loading: 'lazy', priority: null })),
+    );
+  });
+
+  test('counts the frames a visitor sees in the heading above them', async ({ page }) => {
+    // The heading is the text alternative for the set, because no screenshot
+    // carries a description. A count that disagrees with the frames is a lie.
+    await page.goto(DETAIL_ROUTE);
+
+    const heading = (await page.locator('#screenshots-title').textContent()) ?? '';
+    const stated = Number(/^\d+/u.exec(heading.trim())?.[0]);
+
+    expect(stated).toBeGreaterThan(0);
+    await expect(page.locator('.lw-game-detail__gallery img')).toHaveCount(stated);
+    expect(heading.trim()).toBe(`${String(stated)} screenshots`);
+  });
+
+  test('lists a video as an outbound link that names neither host', async ({ page }) => {
+    await page.goto(DETAIL_ROUTE);
+    const section = page.getByRole('region', { name: '1 video' });
+    const link = section.getByRole('link').first();
+
+    await expect(link).toHaveAttribute('href', 'https://www.youtube.com/watch?v=demo-000001');
+    await expect(link).toHaveAttribute('target', '_blank');
+    await expect(link).toHaveAttribute('rel', 'noopener noreferrer');
+    await expect(link).toHaveAccessibleName('Canonical Demo Game in motion Opens in a new tab');
+    // IGDB is the provenance and YouTube is the destination. A link that only
+    // says what it is names neither, and the `Data sources` block credits IGDB.
+    await expect(section).not.toContainText('YouTube');
+    await expect(section).not.toContainText('IGDB');
+    await expect(section).not.toContainText('Trailer');
+  });
+
+  test('frames a promoted cover in the identity block and shows no band', async ({ page }) => {
+    // Staging holds no hero-kind asset, so a cover the backend promoted is one
+    // of the two shapes that exist. Cropping it to 8:3 keeps a middle strip.
+    const response = await page.goto('/games/promoted-cover-demo');
+
+    expect(response?.status()).toBe(200);
+    await expect(page.locator('.lw-game-detail__hero')).toHaveCount(0);
+    const cover = page.locator('.lw-game-detail__cover img');
+    await expect(cover).toHaveAttribute(
+      'src',
+      '/media/images.igdb.com/igdb/image/upload/t_cover_big/demo-cover-only.jpg',
+    );
+    await expect(cover).toHaveAttribute('loading', 'eager');
+    await expect(cover).toHaveAttribute('fetchpriority', 'high');
+    await auditFor(page);
+  });
+
+  test('says nothing at all about media on a game that carries none', async ({ page }) => {
+    for (const route of ['/games/half-off-demo', '/games/no-offers-demo']) {
+      await page.goto(route);
+
+      await expect(page.locator('.lw-artwork'), route).toHaveCount(0);
+      await expect(page.getByRole('heading', { name: /screenshots?$/u }), route).toHaveCount(0);
+      await expect(page.getByRole('heading', { name: /videos?$/u }), route).toHaveCount(0);
+      // No empty state announces the absence. The page is complete without one.
+      await expect(page.getByText('No artwork available'), route).toHaveCount(0);
+    }
+  });
+
+  test('keeps the media sections clean under an accessibility audit', async ({ page }) => {
+    await page.goto(DETAIL_ROUTE);
+
+    await expectCanonicalDetail(page);
+    await auditFor(page);
+  });
+});
+
 test.describe('canonical game search', () => {
   test('submits the native GET search with the canonical result URL', async ({ page }) => {
     await page.goto('/games');
@@ -540,7 +653,7 @@ test.describe('game detail offer ordering', () => {
 });
 
 test.describe('game detail responsive layout', () => {
-  for (const width of [320, 375, 768, 1024, 1280]) {
+  for (const width of [320, 375, 480, 768, 1024, 1280, 1600]) {
     test(`keeps the canonical detail usable at ${String(width)}px`, async ({ page }) => {
       await page.setViewportSize({ width, height: VIEWPORT_HEIGHT });
       const response = await page.goto(DETAIL_ROUTE);
