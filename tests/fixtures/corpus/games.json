@@ -27,6 +27,12 @@
         "releaseDate": null
       },
       {
+        "id": "00000000-0000-7000-8000-000000000015",
+        "slug": "promoted-cover-demo",
+        "title": "Promoted Cover Demo Game",
+        "releaseDate": null
+      },
+      {
         "id": "00000000-0000-7000-8000-000000000115",
         "slug": "steep-discount-demo",
         "title": "Steep Discount Demo Game",
@@ -51,7 +57,7 @@
         "releaseDate": null
       }
     ],
-    "resultCount": 8,
+    "resultCount": 9,
     "page": 1,
     "pageSize": 24,
     "pageCount": 1,
