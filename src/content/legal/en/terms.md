@@ -6,7 +6,7 @@ title: Terms of Service
 navLabel: Terms
 footer: true
 order: 10
-description: Rules for using the public LUDWISE service.
+description: Rules for the public LUDWISE service.
 version: '1.0'
 status: current
 lastUpdated: 2026-09-10
@@ -55,7 +55,7 @@ LUDWISE does not promise uninterrupted availability.
 ## No account, payment, or subscription terms
 
 The MVP has no visitor accounts, subscriptions, advertising controls, or payment handling.
-These terms therefore make no promise about account deletion, paid service levels, refunds, or subscription management.
+These terms make no promise about account deletion, paid service levels, refunds, or subscription management.
 
 ## Changes to these terms
 
