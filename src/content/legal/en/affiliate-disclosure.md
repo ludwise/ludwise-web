@@ -4,38 +4,25 @@ policyId: affiliate-disclosure
 translationStatus: source
 title: Affiliate Disclosure
 navLabel: Affiliate Disclosure
-footer: true
+footer: false
 order: 40
-description: How LUDWISE will explain affiliate relationships and commissions.
-version: 0.1-draft
-status: draft
-lastUpdated: 2026-08-28
+description: Current affiliate-link status for the public LUDWISE service.
+version: '1.0'
+status: current
+lastUpdated: 2026-09-10
+effectiveDate: 2026-09-10
 ---
 
-## About this disclosure
+## Current status
 
-This page is a draft. It is not the final LUDWISE Affiliate Disclosure.
+LUDWISE does not use affiliate links at launch.
+It does not receive a commission when you follow a store link or buy a game.
 
-## Affiliate links
+Store links carry no affiliate or tracking parameter added by LUDWISE.
+Affiliate relationships do not affect rankings because no affiliate relationship is active in the MVP.
 
-This section will explain when a LUDWISE link is an affiliate link.
-
-## Commissions
-
-This section will explain when LUDWISE can receive a commission from a purchase.
-
-## Ranking independence
-
-This section will state how affiliate relationships affect rankings and recommendations.
-
-## Prices
-
-This section will explain that affiliate relationships do not change the price shown to a visitor.
-
-## Store relationships
-
-This section will identify relevant affiliate relationships before those links become active.
+If LUDWISE enables affiliate links later, this disclosure will be updated before those links become active.
 
 ## Contact
 
-This section will provide the correct contact information before publication.
+See [Contact](/legal/contact) for the public contact route.
