@@ -46,6 +46,7 @@ This repository owns every decision about presentation:
 - accessibility
 - SEO presentation: titles, canonicals, `robots.txt`, indexability
 - loading, empty and failure states
+- media delivery, so a browser never contacts a provider network
 - operational request logging
 - the API client and how it handles failure
 
@@ -296,6 +297,13 @@ request id.
 Static assets are the exception and always were. `public/_headers` marks the
 fonts immutable. They are content-addressed by filename and never change in
 place.
+
+The media route is the second exception. `/media/*` proxies a provider image
+and answers `public, max-age=86400`, with the same ceiling on the edge cache.
+That response carries no request id and no `vary` header. Those are the two
+rules above, applied to the one response a shared cache may hold. The route
+never sends `immutable`, because a one-day ceiling contradicts it. See
+`src/lib/media/`.
 
 ## Performance
 

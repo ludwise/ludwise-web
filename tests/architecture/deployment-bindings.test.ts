@@ -38,11 +38,14 @@ interface AuthoredEnvironment {
   readonly routes?: readonly Route[];
   readonly workers_dev?: boolean;
   readonly services?: readonly ServiceBinding[];
+  readonly vars?: Readonly<Record<string, string>>;
 }
 
 interface AuthoredConfig {
   readonly workers_dev?: boolean;
   readonly services?: readonly ServiceBinding[];
+  readonly vars?: Readonly<Record<string, string>>;
+  readonly assets?: { readonly run_worker_first?: readonly string[] };
   readonly env?: Readonly<Record<string, AuthoredEnvironment>>;
 }
 
@@ -285,6 +288,29 @@ describe('the authored deployment routing', () => {
 
       expect(backend, `${name} declares no BACKEND binding`).toBeDefined();
       expect(backend?.entrypoint, `${name} binds the wrong entrypoint`).toBe('VisitorRead');
+    }
+  });
+
+  it('sends the media path to Worker code and leaves every other path asset-first', () => {
+    // Workers Assets answers a matching request without invoking the Worker.
+    // Without this the media route never runs. The request reaches the asset
+    // server instead, and finds nothing.
+    expect(authored.assets?.run_worker_first).toEqual(['/media/*']);
+  });
+
+  it('declares the media allow-list in every block, because vars are not inherited', () => {
+    // The one setting whose absence is silent. An environment without it fails
+    // configuration validation and answers 503 for every request.
+    const blocks = [
+      ['local', authored],
+      ...(['staging', 'production'] as const).map((name) => [name, authored.env?.[name]] as const),
+    ] as const;
+
+    for (const [name, block] of blocks) {
+      expect(
+        block?.vars?.['MEDIA_UPSTREAM_HOSTS'],
+        `${name} names no media allow-list`,
+      ).toBeTruthy();
     }
   });
 

@@ -82,7 +82,11 @@ export default defineConfig({
       url: `${BASE_URL}/api/health`,
       reuseExistingServer: false,
       timeout: 120_000,
-      env: { ASTRO_DEV_BACKGROUND: '0', BACKEND_DEV_URL: `http://localhost:${BACKEND_PORT}` },
+      env: {
+        ASTRO_DEV_BACKGROUND: '0',
+        BACKEND_DEV_URL: `http://localhost:${BACKEND_PORT}`,
+        MEDIA_DEV_URL: `http://localhost:${BACKEND_PORT}`,
+      },
     },
   ],
 });

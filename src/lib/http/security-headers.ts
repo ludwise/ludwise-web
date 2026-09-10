@@ -1,17 +1,17 @@
 /**
- * The response headers that are the same on every response the Worker produces,
- * and why each one is here.
+ * The response headers the Worker sends, and why each one is here.
+ *
+ * They are the same on every response but one. `MEDIA_HEADERS` below is that
+ * exception, with the reason for each difference.
  *
  * The accurate scope is every Worker response, not every response. Workers
- * Assets serves a request that matches `dist/client` without invoking
- * the Worker, so `/fonts/*.woff2` never passes through. Those are same-origin
- * static files. A committed `public/_headers` is the route if they ever need
- * these.
+ * Assets serves a request matching `dist/client` without invoking the Worker,
+ * so `/fonts/*.woff2` never passes through. `public/_headers` is the route if
+ * those ever need these.
  *
- * Deliberately absent: a `script-src` policy. Doing it properly means nonces or
- * hashes for the theme script and Astro's hydration script, and a policy
- * carrying `unsafe-inline` says nothing. Astro has first-class CSP support.
- * Wiring it is its own change. That covers `script-src` only.
+ * Deliberately absent: a `script-src` policy. Doing it properly means nonces
+ * or hashes, and a policy carrying `unsafe-inline` says nothing. Wiring
+ * Astro's own support for it is its own change.
  */
 
 import type { Environment } from '../config/index.js';
@@ -32,9 +32,13 @@ export const SECURITY_HEADERS = Object.freeze({
    * link on the page. That is the standard escalation from a partial HTML
    * injection to full script control. `object-src` and `form-action` cost
    * nothing and close a plugin and a form-hijack vector.
+   *
+   * `img-src 'self'` is what the media route buys. Every picture is served
+   * from this origin, so a provider host written into markup stops working
+   * rather than reaching a visitor's browser unnoticed.
    */
   'content-security-policy':
-    "frame-ancestors 'none'; base-uri 'none'; object-src 'none'; form-action 'self'",
+    "frame-ancestors 'none'; base-uri 'none'; object-src 'none'; form-action 'self'; img-src 'self'",
 
   /**
    * HTML varies by the theme cookie and carries a per-request id.
@@ -44,7 +48,8 @@ export const SECURITY_HEADERS = Object.freeze({
    * cached page sends an operator to a third party's record.
    *
    * Set rather than merged, deliberately. The security-headers test pins that
-   * choice and says why merge logic would be unreachable today.
+   * choice and says why merge logic would be unreachable today. `MEDIA_HEADERS`
+   * withholds this header, and that route carries no request id either.
    */
   vary: 'cookie',
 
@@ -79,6 +84,38 @@ export const INDEXING_HEADERS = Object.freeze({
 });
 
 /**
+ * The media route's headers, which differ from the shared set in two ways.
+ *
+ * `vary` is withheld. HTML varies by the theme cookie, and an image does not.
+ * That header would split the browser cache by the theme a visitor chose.
+ *
+ * `x-robots-tag` is sent in every environment, production included, which no
+ * other response does. The reason is rights rather than search performance. An
+ * indexed image stands alone, without the provider credit its display terms
+ * require.
+ *
+ * Derived from the shared set, so a header added above reaches this one too.
+ * `withSecurityHeaders` also deletes `vary` from the response, because the
+ * framework can set one on a response this constant never built.
+ */
+export const MEDIA_HEADERS = Object.freeze({
+  ...withoutVary(SECURITY_HEADERS),
+  'x-robots-tag': 'noindex',
+});
+
+function withoutVary(headers: Readonly<Record<string, string>>): Record<string, string> {
+  const copy = { ...headers };
+  delete copy['vary'];
+  return copy;
+}
+
+/** Which response is being answered, where that changes the headers. */
+export interface HeaderScope {
+  /** The media route, which is publicly cacheable and carries no visitor state. */
+  readonly media?: boolean | undefined;
+}
+
+/**
  * Applies the headers, rebuilding the response if its headers are immutable.
  *
  * A response served from the ASSETS binding can carry immutable headers - the
@@ -92,24 +129,46 @@ export const INDEXING_HEADERS = Object.freeze({
  * publish a deployment whose configuration is broken to a crawler. The
  * restrictive guess costs nothing.
  */
-export function withSecurityHeaders(response: Response, environment?: Environment): Response {
-  const applied =
-    environment === 'production' ? SECURITY_HEADERS : { ...SECURITY_HEADERS, ...INDEXING_HEADERS };
+export function withSecurityHeaders(
+  response: Response,
+  environment?: Environment,
+  scope: HeaderScope = {},
+): Response {
+  const media = scope.media === true;
+  const applied = media
+    ? MEDIA_HEADERS
+    : environment === 'production'
+      ? SECURITY_HEADERS
+      : { ...SECURITY_HEADERS, ...INDEXING_HEADERS };
 
   try {
-    for (const [name, value] of Object.entries(applied)) {
-      response.headers.set(name, value);
-    }
+    writeHeaders(response.headers, applied, media);
     return response;
   } catch {
     const headers = new Headers(response.headers);
-    for (const [name, value] of Object.entries(applied)) {
-      headers.set(name, value);
-    }
+    writeHeaders(headers, applied, media);
     return new Response(response.body, {
       status: response.status,
       statusText: response.statusText,
       headers,
     });
   }
+}
+
+/**
+ * Writes each header, and optionally removes `vary`.
+ *
+ * Removed rather than merely left unset. `MEDIA_HEADERS` carries no `vary`, but
+ * the framework can put one on a response before this runs. The media route's
+ * guarantee is that none reaches the browser at all.
+ */
+function writeHeaders(
+  headers: Headers,
+  applied: Readonly<Record<string, string>>,
+  dropVary: boolean,
+): void {
+  for (const [name, value] of Object.entries(applied)) {
+    headers.set(name, value);
+  }
+  if (dropVary) headers.delete('vary');
 }

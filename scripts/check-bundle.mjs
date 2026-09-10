@@ -76,6 +76,7 @@ for (const file of files) {
  */
 const SERVER_ONLY = [
   'BACKEND_DEV_URL',
+  'MEDIA_DEV_URL',
   'backend.invalid',
   'cloudflare:workers',
   '/v1/games',

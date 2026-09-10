@@ -1,8 +1,19 @@
+import { isMediaPath } from '../media/target.js';
+
 const MAX_SEGMENTS = 8;
 const LONG_SEGMENT_LENGTH = 48;
 const UUID_LIKE = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
 const HEX_LIKE = /^[0-9a-fA-F]{16,}$/;
 const NUMERIC = /^\d+$/;
+
+/**
+ * What the media route records, in place of the path it was asked for.
+ *
+ * That path carries an upstream host and an upstream path. Collapsing it
+ * segment by segment would leave the address in a log record, and this site
+ * records no address at all. So the whole tail goes.
+ */
+const MEDIA_ROUTE = '/media/:host/:path';
 
 export interface RouteInfo {
   readonly route: string;
@@ -17,6 +28,8 @@ export interface RouteInfo {
  * It also inflates metric cardinality without adding information.
  */
 export function sanitizePathname(pathname: string): string {
+  if (isMediaPath(pathname)) return MEDIA_ROUTE;
+
   const segments = pathname.split('/').filter((segment) => segment.length > 0);
   const mapped = segments.slice(0, MAX_SEGMENTS).map((segment) => {
     if (NUMERIC.test(segment)) return ':num';

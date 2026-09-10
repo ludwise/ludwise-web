@@ -15,12 +15,34 @@
  */
 
 import { createServer } from 'node:http';
-import { appendFileSync, readFileSync, readdirSync } from 'node:fs';
-import { dirname, resolve } from 'node:path';
+import { appendFileSync, existsSync, readFileSync, readdirSync } from 'node:fs';
+import { dirname, extname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const CORPUS = resolve(root, 'tests', 'fixtures', 'corpus');
+
+/**
+ * Bytes for the image addresses the recordings carry.
+ *
+ * A separate directory from the corpus, which holds recordings alone. The file
+ * path below this one mirrors the upstream path of the address it answers, so
+ * two profiles of one picture stay two files.
+ *
+ * These are generated pictures rather than provider bytes, and
+ * tests/fixtures/media has the note that says so.
+ */
+const MEDIA = resolve(root, 'tests', 'fixtures', 'media');
+
+/** The image types these fixtures come in, by file extension. */
+const IMAGE_TYPES: Readonly<Record<string, string>> = {
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.png': 'image/png',
+  '.webp': 'image/webp',
+  '.avif': 'image/avif',
+  '.gif': 'image/gif',
+};
 
 /**
  * Where unmatched requests are recorded.
@@ -63,6 +85,20 @@ interface Recorded {
 const byRequest = new Map<string, Recorded>();
 const byDetailSlug = new Map<string, Recorded>();
 let absentDetail: Recorded | undefined;
+
+interface Fixture {
+  readonly file: string;
+  readonly contentType: string;
+}
+
+/**
+ * The image path of a recorded address, and the file that answers it.
+ *
+ * Keyed by the path alone, because the media route strips the host before it
+ * asks. `src/middleware.ts` points a development run at this server, so the
+ * route reads these bytes rather than reaching a provider.
+ */
+const byImagePath = new Map<string, Fixture>();
 
 /**
  * A request key: the path, then its parameters in a fixed order.
@@ -157,6 +193,66 @@ function load(): void {
   if (orphans.length > 0) {
     throw new Error(`corpus files nothing serves: ${orphans.join(', ')}`);
   }
+
+  loadImages(loaded);
+}
+
+/**
+ * Every image address the recordings carry, mapped onto committed bytes.
+ *
+ * An address with no fixture fails at startup rather than at the first request
+ * that needs it. Without the bytes the media route answers 404, the page still
+ * renders its designed empty frame, and a measurement of image weight silently
+ * measures nothing.
+ */
+function loadImages(loaded: ReadonlyMap<string, Recorded>): void {
+  for (const recorded of loaded.values()) {
+    for (const address of imageUrls(recorded.body)) {
+      // The whole path, not its last segment. A promoted cover is one picture
+      // at two profiles, so `t_cover_big/x.jpg` and `t_1080p/x.jpg` differ in
+      // size and must not share one file.
+      const { pathname } = new URL(address);
+      const file = resolve(MEDIA, `.${pathname}`);
+      const contentType = IMAGE_TYPES[extname(pathname).toLowerCase()];
+
+      if (contentType === undefined) {
+        throw new Error(`corpus carries an image type nothing serves: ${pathname}`);
+      }
+      if (!existsSync(file)) {
+        throw new Error(`tests/fixtures/media is missing bytes for ${pathname}`);
+      }
+
+      byImagePath.set(pathname, { file, contentType });
+    }
+  }
+}
+
+interface RecordedImage {
+  readonly url?: string;
+}
+
+/**
+ * Read from the contract's own media shape rather than by searching for
+ * anything that looks like an address. A video is not proxied and must not
+ * appear here.
+ */
+function imageUrls(body: unknown): string[] {
+  const media = (
+    body as {
+      media?: {
+        cover?: RecordedImage | null;
+        hero?: RecordedImage | null;
+        screenshots?: readonly RecordedImage[];
+      };
+    }
+  ).media;
+
+  if (media === undefined) return [];
+  return [
+    media.cover?.url,
+    media.hero?.url,
+    ...(media.screenshots ?? []).map((one) => one.url),
+  ].filter((address): address is string => typeof address === 'string');
 }
 
 load();
@@ -264,6 +360,20 @@ const server = createServer((request, response) => {
   }
 
   const send = () => {
+    const image = byImagePath.get(url.pathname);
+    if (image !== undefined) {
+      const bytes = readFileSync(image.file);
+      response.writeHead(200, {
+        'content-type': image.contentType,
+        'content-length': bytes.byteLength,
+        // The media route decides how long its own answer may be held. This
+        // server must not be the thing that decides it.
+        'cache-control': 'no-store',
+      });
+      response.end(bytes);
+      return;
+    }
+
     const recorded = answer(url);
 
     if (recorded === undefined) {
@@ -313,6 +423,7 @@ const server = createServer((request, response) => {
 server.listen(PORT, () => {
   process.stdout.write(
     `fake backend listening on ${String(PORT)} in ${MODE} mode, ` +
-      `${String(byRequest.size + byDetailSlug.size + 1)} recordings\n`,
+      `${String(byRequest.size + byDetailSlug.size + 1)} recordings, ` +
+      `${String(byImagePath.size)} images\n`,
   );
 });

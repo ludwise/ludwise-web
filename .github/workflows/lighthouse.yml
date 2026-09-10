@@ -132,6 +132,9 @@ jobs:
         if: steps.plan.outputs.lighthouse == 'true'
         env:
           BACKEND_DEV_URL: http://127.0.0.1:${{ env.LIGHTHOUSE_BACKEND_PORT }}
+          # The same process serves the image fixtures, so the deterministic run
+          # measures real image bytes.
+          MEDIA_DEV_URL: http://127.0.0.1:${{ env.LIGHTHOUSE_BACKEND_PORT }}
           TARGET: ${{ env.LIGHTHOUSE_TARGET }}
         run: |
           nohup pnpm exec wrangler dev --port 4321 --ip 127.0.0.1 > wrangler-dev.log 2>&1 &

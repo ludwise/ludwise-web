@@ -25,6 +25,25 @@ describe('sanitizePathname', () => {
   it('normalises the root path', () => {
     expect(sanitizePathname('/')).toBe('/');
   });
+
+  it('collapses the media path, whose segments are an upstream address', () => {
+    // The upstream address must never reach a log line. A matched request
+    // records the framework pattern. An unmatched one records this.
+    const route = sanitizePathname('/media/images.example.test/upload/t_cover_big/demo.jpg');
+
+    expect(route).toBe('/media/:host/:path');
+    expect(route).not.toContain('images.example.test');
+  });
+
+  it('collapses a media path however deep it goes', () => {
+    expect(sanitizePathname(`/media/images.example.test/${'a/'.repeat(40)}x.jpg`)).toBe(
+      '/media/:host/:path',
+    );
+  });
+
+  it('leaves a path that merely starts with the same letters alone', () => {
+    expect(sanitizePathname('/mediaeval')).toBe('/mediaeval');
+  });
 });
 
 describe('routeTemplate', () => {

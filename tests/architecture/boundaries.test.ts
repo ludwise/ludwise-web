@@ -17,6 +17,7 @@ import { readFileSync } from 'node:fs';
 
 import { describe, expect, it } from 'vitest';
 
+import { createMediaProxy } from '../../src/lib/media/proxy.js';
 import {
   importsInFile,
   listSourceFiles,
@@ -217,6 +218,19 @@ describe('cloudflare bindings are reached only from the composition root', () =>
 });
 
 /**
+ * The modules permitted to call the injected `fetch`, and nothing else.
+ *
+ * Two rather than one. `client.ts` is the backend's only door. `proxy.ts` is
+ * the media route's, and it exists because that route reaches a provider's
+ * image host rather than the backend. Each takes its `fetch` as an argument,
+ * and neither will build an address that a caller supplied.
+ *
+ * Each carve-out carries a positive rule of its own below. A rule that only
+ * says "these two are exempt" would grow a third entry and notice nothing.
+ */
+const FETCH_CALLERS = ['src/lib/api/client.ts', 'src/lib/media/proxy.ts'];
+
+/**
  * There is exactly one way to talk to the backend.
  *
  * The rule that a scattered `fetch` would break is not tidiness. Each call site
@@ -239,12 +253,12 @@ describe('the backend is reached only through the API client', () => {
   });
 
   it('no page or component calls fetch', () => {
-    // Deliberately covers the whole tree outside the client rather than only
+    // Covers the whole tree outside the carved-out modules rather than only
     // src/pages. A component that fetched would be doing it from the browser,
-    // which this site does not do at all - every read happens during SSR.
+    // which this site does not do at all.
     const callsFetch = /(?<![.\w])fetch\s*\(/u;
     const offenders = sourceFiles.filter(
-      (file) => file !== CLIENT && callsFetch.test(codeOf(file)),
+      (file) => !FETCH_CALLERS.includes(file) && callsFetch.test(codeOf(file)),
     );
     expect(offenders).toEqual([]);
   });
@@ -281,6 +295,82 @@ describe('the backend is reached only through the API client', () => {
     ]) {
       expect(readFileSync(page, 'utf8')).toMatch(/\.backend\(\)/u);
     }
+  });
+});
+
+/**
+ * The media route reaches an upstream only through the allow-list.
+ *
+ * This is the rule that replaces the one the fetch carve-out gave up. The
+ * route's own path carries a host and a path that somebody else wrote, so
+ * "which addresses may be fetched" is the whole security question here.
+ */
+describe('the media route reaches an upstream only through the allow-list', () => {
+  const PROXY = 'src/lib/media/proxy.ts';
+  const ROUTE = 'src/pages/media/[host]/[...path].ts';
+
+  it('the media module is the second thing that calls fetch', () => {
+    // The carve-out has to be seen being used, or the rule above is exempting
+    // a file that does nothing.
+    expect(readFileSync(PROXY, 'utf8')).toContain('options.fetch(');
+    expect(sourceFiles).toContain(PROXY);
+    expect(sourceFiles).toContain(ROUTE);
+  });
+
+  it('admits an allow-listed host and refuses one that merely ends the same way', async () => {
+    // Asserted by calling it rather than by reading it. These two hosts are
+    // the pair a suffix test cannot tell apart.
+    const attempted: string[] = [];
+    const proxy = createMediaProxy({
+      fetch: ((url: string) => {
+        attempted.push(url);
+        return Promise.resolve(new Response(null, { status: 200 }));
+      }) as typeof fetch,
+      upstream: { allowedHosts: ['images.example.test'] },
+      siteUrl: 'https://ludwise.test',
+    });
+
+    const refused = await proxy.serve({
+      host: 'images.example.test.attacker.test',
+      path: 'a.jpg',
+    });
+
+    expect(refused.status).toBe(404);
+    expect(attempted).toEqual([]);
+
+    await proxy.serve({ host: 'images.example.test', path: 'a.jpg' });
+    expect(attempted).toEqual(['https://images.example.test/a.jpg']);
+  });
+
+  it('takes its allow-list from configuration rather than from a literal', () => {
+    // The other half of the rule forbidding a provider host in src/. A host
+    // this file may not name has to arrive as a deployment setting.
+    expect(codeOf('src/lib/config/index.ts')).toContain('MEDIA_UPSTREAM_HOSTS');
+    expect(codeOf('src/middleware.ts')).toContain('mediaUpstreamHosts');
+  });
+
+  it('reads a development origin override in one guarded place', () => {
+    // Both overrides go through `developmentOrigin`, which checks the
+    // environment before it reads the setting. Honored outside development,
+    // one variable would point the live site at an arbitrary origin.
+    const source = codeOf('src/middleware.ts');
+
+    expect([...source.matchAll(/process\.env\[/gu)]).toHaveLength(1);
+    expect(source).toMatch(/environment !== 'development'/u);
+    expect(source).toContain(
+      "developmentOrigin(context.locals.config.environment, 'MEDIA_DEV_URL')",
+    );
+  });
+
+  it('hands the module the two path parameters and nothing from the visitor', () => {
+    // Structural rather than a filter. The visitor's request never reaches the
+    // media module, so there is no header, cookie or address it could forward.
+    const source = codeOf(ROUTE);
+
+    expect(source).toContain('locals.media().serve(');
+    expect(source).toContain('params.host');
+    expect(source).toContain('params.path');
+    expect(source).not.toContain('request');
   });
 });
 
