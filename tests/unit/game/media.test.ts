@@ -92,64 +92,17 @@ describe('mediaRouteAddress', () => {
   });
 });
 
-describe('the hero band', () => {
-  it('renders a landscape picture, eagerly, above the identity block', () => {
-    const view = mediaForRendering(media({ hero: image(UPSTREAM, 'artwork') }));
+describe('the cover', () => {
+  it('renders beside the name, and is the picture that loads first', () => {
+    const view = mediaForRendering(media({ cover: image(UPSTREAM, 'cover') }));
 
-    expect(view.heroBand).toEqual({ src: PROXIED, eager: true });
-  });
-
-  it('accepts a source hero as well as an artwork', () => {
-    expect(mediaForRendering(media({ hero: image(UPSTREAM, 'hero') })).heroBand).not.toBeNull();
-  });
-
-  it('shows no band for a hero the backend promoted from a cover', () => {
-    // Cropping portrait key art to 8:3 keeps a thin middle strip and upscales
-    // it across the page. The identity block frames it at its own ratio.
-    const view = mediaForRendering(media({ hero: image(UPSTREAM, 'cover') }));
-
-    expect(view.heroBand).toBeNull();
     expect(view.cover).toEqual({ src: PROXIED, eager: true });
   });
 
-  it('shows no band for a kind that fills neither slot', () => {
-    for (const kind of ['screenshot', 'logo'] as const) {
-      const view = mediaForRendering(media({ hero: image(UPSTREAM, kind) }));
+  it('takes a hero the backend promoted from a cover', () => {
+    const view = mediaForRendering(media({ hero: image(UPSTREAM, 'cover') }));
 
-      expect(view.heroBand, kind).toBeNull();
-      expect(view.cover, kind).toBeNull();
-    }
-  });
-
-  it('keeps the frame of a band whose address the route cannot express', () => {
-    // The contract says the picture exists. Only its address is unusable, so
-    // the frame renders the placeholder, as a picture that fails to load does.
-    const view = mediaForRendering(
-      media({ hero: image('http://images.example.test/a.jpg', 'artwork') }),
-    );
-
-    expect(view.heroBand).toEqual({ src: null, eager: true });
-  });
-});
-
-describe('the cover', () => {
-  it('renders beside the title at its own ratio, under a band', () => {
-    const view = mediaForRendering(
-      media({
-        cover: image(UPSTREAM, 'cover'),
-        hero: image('https://images.example.test/wide.jpg', 'artwork'),
-      }),
-    );
-
-    expect(view.cover).toEqual({ src: PROXIED, eager: false });
-    expect(view.heroBand).toEqual({ src: '/media/images.example.test/wide.jpg', eager: true });
-  });
-
-  it('loads eagerly when it is the one picture above the fold', () => {
-    expect(mediaForRendering(media({ cover: image(UPSTREAM, 'cover') })).cover).toEqual({
-      src: PROXIED,
-      eager: true,
-    });
+    expect(view.cover).toEqual({ src: PROXIED, eager: true });
   });
 
   it('prefers the cover slot over a hero that repeats it', () => {
@@ -163,7 +116,35 @@ describe('the cover', () => {
     );
 
     expect(view.cover).toEqual({ src: PROXIED, eager: true });
-    expect(view.heroBand).toBeNull();
+  });
+
+  it('stays eager beside a landscape hero, which the page does not render', () => {
+    const view = mediaForRendering(
+      media({
+        cover: image(UPSTREAM, 'cover'),
+        hero: image('https://images.example.test/wide.jpg', 'artwork'),
+      }),
+    );
+
+    expect(view.cover).toEqual({ src: PROXIED, eager: true });
+  });
+
+  it('fills no slot for a hero of any other kind', () => {
+    // The band waits for ludwise-web#121. A landscape picture arrives at one
+    // address, and the page has no way to ask for it at the painted width.
+    for (const kind of ['hero', 'artwork', 'screenshot', 'logo'] as const) {
+      expect(mediaForRendering(media({ hero: image(UPSTREAM, kind) })).cover, kind).toBeNull();
+    }
+  });
+
+  it('keeps the frame of a cover whose address the route cannot express', () => {
+    // The contract says the picture exists. Only its address is unusable, so
+    // the frame renders the placeholder, as a picture that fails to load does.
+    const view = mediaForRendering(
+      media({ cover: image('http://images.example.test/a.jpg', 'cover') }),
+    );
+
+    expect(view.cover).toEqual({ src: null, eager: true });
   });
 });
 
@@ -259,7 +240,6 @@ describe('the video list', () => {
 describe('a game with no media', () => {
   it('renders nothing at all when the deployment predates media', () => {
     expect(mediaForRendering(undefined)).toEqual({
-      heroBand: null,
       cover: null,
       gallery: null,
       videos: null,
@@ -268,7 +248,6 @@ describe('a game with no media', () => {
 
   it('renders nothing at all when the game carries none', () => {
     expect(mediaForRendering(corpusMedia('game-detail-no-offers'))).toEqual({
-      heroBand: null,
       cover: null,
       gallery: null,
       videos: null,
@@ -277,16 +256,14 @@ describe('a game with no media', () => {
 });
 
 describe('the recorded backend answers', () => {
-  it('gives the canonical game a band, a cover, a gallery and a video', () => {
+  it('gives the canonical game a cover, a gallery and a video', () => {
+    // The recording also holds a landscape artwork. The page renders no slot
+    // for it, so the cover is the picture that loads first.
     const view = mediaForRendering(corpusMedia('game-detail-canonical'));
 
-    expect(view.heroBand).toEqual({
-      src: '/media/images.igdb.com/igdb/image/upload/t_1080p/demo-artwork.jpg',
-      eager: true,
-    });
     expect(view.cover).toEqual({
       src: '/media/images.igdb.com/igdb/image/upload/t_cover_big/demo-cover.jpg',
-      eager: false,
+      eager: true,
     });
     expect(view.gallery?.heading).toBe('2 screenshots');
     expect(view.videos?.links).toEqual([
@@ -297,10 +274,9 @@ describe('the recorded backend answers', () => {
     ]);
   });
 
-  it('gives the promoted-cover game one eager cover and no band', () => {
+  it('gives the promoted-cover game one eager cover', () => {
     const view = mediaForRendering(corpusMedia('game-detail-promoted-cover'));
 
-    expect(view.heroBand).toBeNull();
     expect(view.cover).toEqual({
       src: '/media/images.igdb.com/igdb/image/upload/t_cover_big/demo-cover-only.jpg',
       eager: true,

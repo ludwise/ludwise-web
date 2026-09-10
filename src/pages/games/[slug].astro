@@ -124,16 +124,6 @@ const PROVENANCE_METHODS: Record<ProvenanceView['method'], string> = {
               </ol>
             </nav>
 
-            {media.heroBand && (
-              <GameArtwork
-                class="lw-game-detail__hero"
-                src={media.heroBand.src ?? undefined}
-                title={view.title}
-                ratio="hero"
-                eager={media.heroBand.eager}
-              />
-            )}
-
             <header class="lw-game-detail__header">
               {media.cover && (
                 <GameArtwork

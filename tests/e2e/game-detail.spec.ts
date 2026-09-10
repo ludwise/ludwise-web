@@ -388,12 +388,12 @@ test.describe('game detail media', () => {
     await expect(page.locator('iframe')).toHaveCount(0);
   });
 
-  test('loads the hero first and every screenshot last', async ({ page }) => {
+  test('loads the cover first and every screenshot last', async ({ page }) => {
     await page.goto(DETAIL_ROUTE);
-    const hero = page.locator('.lw-game-detail__hero img');
+    const cover = page.locator('.lw-game-detail__cover img');
 
-    await expect(hero).toHaveAttribute('loading', 'eager');
-    await expect(hero).toHaveAttribute('fetchpriority', 'high');
+    await expect(cover).toHaveAttribute('loading', 'eager');
+    await expect(cover).toHaveAttribute('fetchpriority', 'high');
 
     const screenshots = await page.locator('.lw-game-detail__gallery img').evaluateAll((images) =>
       images.map((image) => ({
@@ -439,13 +439,13 @@ test.describe('game detail media', () => {
     await expect(section).not.toContainText('Trailer');
   });
 
-  test('frames a promoted cover in the identity block and shows no band', async ({ page }) => {
+  test('frames a promoted cover in the identity block', async ({ page }) => {
     // Staging holds no hero-kind asset, so a cover the backend promoted is one
-    // of the two shapes that exist. Cropping it to 8:3 keeps a middle strip.
+    // of the two shapes that exist. The identity block frames it at its own
+    // ratio, which is the ratio the picture already has.
     const response = await page.goto('/games/promoted-cover-demo');
 
     expect(response?.status()).toBe(200);
-    await expect(page.locator('.lw-game-detail__hero')).toHaveCount(0);
     const cover = page.locator('.lw-game-detail__cover img');
     await expect(cover).toHaveAttribute(
       'src',
@@ -454,6 +454,18 @@ test.describe('game detail media', () => {
     await expect(cover).toHaveAttribute('loading', 'eager');
     await expect(cover).toHaveAttribute('fetchpriority', 'high');
     await auditFor(page);
+  });
+
+  test('renders no band, though the contract supplies a landscape picture', async ({ page }) => {
+    // The canonical recording holds an artwork of 1920 pixels. A page that
+    // paints it below 400 pixels wide fails the Lighthouse gate, and one
+    // address cannot make a srcset. Issue ludwise-web#121 holds the band.
+    await page.goto(DETAIL_ROUTE);
+
+    await expect(page.locator('.lw-artwork[style*="--aspect-hero"]')).toHaveCount(0);
+    // The cover is above the offers, so it is the first frame on the page.
+    const first = page.locator('.lw-artwork').first();
+    await expect(first).toHaveClass(/lw-game-detail__cover/u);
   });
 
   test('says nothing at all about media on a game that carries none', async ({ page }) => {

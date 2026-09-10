@@ -11,12 +11,7 @@
  * `tests/unit/game/media.test.ts` states the rules.
  */
 
-import type {
-  GameMediaView,
-  MediaImageKind,
-  MediaImageView,
-  MediaVideoView,
-} from '../api/contract.js';
+import type { GameMediaView, MediaImageView, MediaVideoView } from '../api/contract.js';
 import { MEDIA_PATH_PREFIX } from '../media/target.js';
 
 /** One picture in its frame. The frame's ratio is the page's, never the image's. */
@@ -54,18 +49,20 @@ export interface MediaVideoList {
   readonly links: readonly MediaVideoLink[];
 }
 
-/** Each slot the game page can fill. `null` means the page omits the section. */
+/**
+ * Each slot the game page can fill. `null` means the page omits the section.
+ *
+ * There is no band slot. The contract gives one address for each picture, and
+ * the band painted a picture of 1920 pixels into a width below 400. Issue
+ * ludwise-web#121 adds the band again, after ludwise-backend#214 publishes the
+ * widths the provider holds.
+ */
 export interface GameMediaPresentation {
-  /** A landscape picture above the identity block, at `--aspect-hero`. */
-  readonly heroBand: MediaPicture | null;
   /** A portrait picture in the identity block, at `--aspect-cover`. */
   readonly cover: MediaPicture | null;
   readonly gallery: MediaGallery | null;
   readonly videos: MediaVideoList | null;
 }
-
-/** The kinds the hero band accepts. A portrait picture cropped to 8:3 is a strip. */
-const BAND_KINDS: ReadonlySet<MediaImageKind> = new Set(['hero', 'artwork']);
 
 /**
  * The same picture, served from the LUDWISE origin.
@@ -93,25 +90,17 @@ export function mediaRouteAddress(upstreamUrl: string): string | null {
 }
 
 export function mediaForRendering(media: GameMediaView | undefined): GameMediaPresentation {
-  const band = slot(bandImage(media), true);
   const gallery = (media?.screenshots ?? []).map((screenshot) => frame(screenshot, false));
   const links = videoLinks(media?.videos ?? []);
 
   return {
-    heroBand: band,
-    cover: slot(coverImage(media), band === null),
+    cover: slot(coverImage(media), true),
     gallery:
       gallery.length === 0
         ? null
         : { heading: countHeading(gallery.length, 'screenshot'), pictures: gallery },
     videos: links.length === 0 ? null : { heading: countHeading(links.length, 'video'), links },
   };
-}
-
-/** The hero, when it is the landscape picture the band was designed around. */
-function bandImage(media: GameMediaView | undefined): MediaImageView | null {
-  const hero = media?.hero ?? null;
-  return hero !== null && BAND_KINDS.has(hero.sourceKind) ? hero : null;
 }
 
 /**
