@@ -43,5 +43,5 @@ landscape picture for that game.
 _Avoid_: fallback hero, substitute hero
 
 **Gallery**:
-The screenshots of one game, under a heading that states how many there are.
+The screenshots of one game, below a heading that states how many there are.
 _Avoid_: carousel, slider, lightbox

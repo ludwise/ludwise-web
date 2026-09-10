@@ -4,8 +4,8 @@ ste-prose: descriptive
 
 # Picture sizes come from the provider, not from an edge transformation
 
-The game page failed the Lighthouse gate on a telephone, because the hero band
-picture was 1920 pixels wide and the page painted it into 378 CSS pixels. A
+The game page failed the Lighthouse gate on a telephone. The hero band picture
+was 1920 pixels wide, and the page painted it into 378 CSS pixels. A
 browser chooses a smaller picture with a `srcset`, and a `srcset` needs more
 than one address. The media contract gave one.
 
@@ -22,7 +22,7 @@ Cloudflare bills one unique transformation for each picture at each parameter
 set each month. The first 5,000 each month cost nothing, and each further
 thousand costs $0.50. Staging held 21,367 games when this was decided, and the
 catalog is meant to grow faster. A crawler that indexes every game page asks
-for the eager pictures of every game, so a full monthly sweep is the number to
+for the eager pictures of every game. So a full monthly sweep is the number to
 plan for.
 
 That is about $19 each month for the hero band alone, and about $190 each month
