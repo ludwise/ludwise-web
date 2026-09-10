@@ -111,3 +111,8 @@ LUDWISE can ask for information needed to verify a request before acting on it.
 
 LUDWISE can update this policy when the service or its data practices change.
 The page shows its effective date and last update date.
+
+## Contact
+
+Use [hello@ludwise.com](mailto:hello@ludwise.com) for a privacy request.
+See [Contact](/legal/contact) for the public contact route.
