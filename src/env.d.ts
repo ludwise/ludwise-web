@@ -1,6 +1,5 @@
 /// <reference types="astro/client" />
 
-import type { AnalyticsProvider } from './lib/analytics/types.js';
 import type { LudwiseApi } from './lib/api/client.js';
 import type { AppConfig } from './lib/config/index.js';
 import type { Logger } from './lib/logging/types.js';
@@ -29,8 +28,6 @@ declare global {
       config: AppConfig;
       /** Request-scoped child logger carrying the correlation identifiers. */
       logger: Logger;
-      /** Visitor analytics sink. Never required for a request to succeed. */
-      analytics: AnalyticsProvider;
       /**
        * The backend client for this request.
        *
