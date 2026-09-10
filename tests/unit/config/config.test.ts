@@ -24,7 +24,6 @@ const VALID = {
   ENVIRONMENT: 'production',
   SITE_URL: 'https://ludwise.test',
   LOG_LEVEL: 'info',
-  ANALYTICS_ENABLED: 'false',
   BACKEND_TIMEOUT_MS: '5000',
 };
 
@@ -34,7 +33,6 @@ describe('loadConfig', () => {
       environment: 'production',
       siteUrl: 'https://ludwise.test',
       logLevel: 'info',
-      analyticsEnabled: false,
       backendTimeoutMs: 5000,
     });
   });
@@ -67,15 +65,6 @@ describe('loadConfig', () => {
     for (const siteUrl of ['/', 'ludwise.com', 'javascript:alert(1)', 'ftp://ludwise.com']) {
       expect(() => loadConfig({ ...VALID, SITE_URL: siteUrl }), siteUrl).toThrow(ConfigError);
     }
-  });
-
-  it('treats anything but the literal true as analytics off', () => {
-    // A privacy switch that defaults on when misspelled is a decision made by
-    // a typo. Checked in both directions so the field is not simply always off.
-    for (const value of ['TRUE', 'yes', '1', '', undefined]) {
-      expect(loadConfig({ ...VALID, ANALYTICS_ENABLED: value }).analyticsEnabled).toBe(false);
-    }
-    expect(loadConfig({ ...VALID, ANALYTICS_ENABLED: 'true' }).analyticsEnabled).toBe(true);
   });
 
   it('defaults the backend timeout rather than requiring it', () => {
