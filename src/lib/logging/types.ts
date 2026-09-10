@@ -24,9 +24,6 @@ export function isLogLevel(value: unknown): value is LogLevel {
  * audit records to stay conceptually distinct. Bound at logger construction
  * rather than passed per call. So it cannot be forgotten, and queryable as a
  * field so one transport can carry three concerns without blurring them.
- *
- * Product analytics is deliberately not a channel here. It is a separate module
- * with a separate contract - see src/lib/analytics.
  */
 export type LogChannel = 'operational' | 'security' | 'audit';
 

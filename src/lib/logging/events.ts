@@ -12,7 +12,6 @@ export const EVENTS = {
   HTTP_REQUEST_FAILED: 'http.request.failed',
   CONFIG_INVALID: 'config.invalid',
   ACCESS_DENIED: 'access.denied',
-  ANALYTICS_TRACK_FAILED: 'analytics.track_failed',
   APPLICATION_QUERY_FAILED: 'application.query_failed',
   CLOUDFLARE_REQUEST_FAILED: 'cloudflare.request_failed',
   PROVIDER_SYNC_STARTED: 'provider.sync.started',

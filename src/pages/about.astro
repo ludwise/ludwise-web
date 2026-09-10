@@ -1,0 +1,74 @@
+---
+import PageContainer from '../components/layout/PageContainer.astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+export const prerender = false;
+---
+
+<BaseLayout
+  title="About LUDWISE — LUDWISE"
+  description="What LUDWISE is, who operates it, and how its game and store information works."
+  activeNavId="about"
+>
+  <PageContainer width="reading">
+    <article class="lw-about">
+      <h1 class="lw-text-heading-xl">About LUDWISE</h1>
+      <p class="lw-text-body-lg">
+        LUDWISE is a public PC game discovery and store-information project operated by Daniel
+        Kindl.
+      </p>
+
+      <h2 class="lw-text-heading-md">What it does</h2>
+      <p class="lw-text-body-md">
+        LUDWISE brings game information, store offers, prices, and observed price history into one
+        interface. The MVP starts with Steam as its first store. More stores can be added later.
+      </p>
+      <p class="lw-text-body-md">
+        The site does not sell games. When you choose an offer, LUDWISE sends you to the store where
+        the purchase can take place.
+      </p>
+
+      <h2 class="lw-text-heading-md">Where the information comes from</h2>
+      <p class="lw-text-body-md">
+        Game information comes from IGDB. Store offers and prices come from Steam. LUDWISE also
+        creates some presentation values from provider observations, such as freshness information.
+        The site identifies source data and derived information where that distinction matters.
+      </p>
+      <p class="lw-text-body-md">
+        See <a href="/legal/sources">Data sources</a> for provider attribution and more detail.
+      </p>
+
+      <h2 class="lw-text-heading-md">How the MVP is funded</h2>
+      <p class="lw-text-body-md">
+        The public MVP has no advertising, affiliate links, subscriptions, or payments. Store order
+        is not influenced by a commercial relationship.
+      </p>
+
+      <h2 class="lw-text-heading-md">Privacy and contact</h2>
+      <p class="lw-text-body-md">
+        LUDWISE runs no product analytics at launch. The public policies describe the limited
+        technical data needed to serve and operate the site.
+      </p>
+      <p class="lw-text-body-md">
+        Read the <a href="/legal/privacy">Privacy Policy</a> or use the{' '}
+        <a href="/legal/contact">Contact</a> page to reach the operator.
+      </p>
+
+      <h2 class="lw-text-heading-md">Source code</h2>
+      <p class="lw-text-body-md">
+        The web interface is open source. You can inspect it in the{' '}
+        <a href="https://github.com/ludwise/ludwise-web">LUDWISE web repository</a>.
+      </p>
+    </article>
+  </PageContainer>
+</BaseLayout>
+
+<style>
+  .lw-about > * + * {
+    margin-block-start: var(--space-4);
+  }
+
+  .lw-about h2 {
+    margin-block-start: var(--space-8);
+  }
+</style>

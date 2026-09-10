@@ -46,7 +46,7 @@ This repository owns every decision about presentation:
 - accessibility
 - SEO presentation: titles, canonicals, `robots.txt`, indexability
 - loading, empty and failure states
-- visitor analytics
+- operational request logging
 - the API client and how it handles failure
 
 **The frontend renders backend decisions rather than recreating them.** That is
@@ -274,21 +274,12 @@ field was rejected for.
 
 ## Analytics
 
-This repository owns visitor analytics. The backend owns operational telemetry.
+No visitor analytics run in the MVP.
+The web Worker emits operational request logs only.
+It does not create or dispatch page-view events.
 
-Before the split both lived in one Worker, and a page view could plausibly have
-been counted twice. After it there is exactly one page-view event per page,
-emitted here. The backend sees API reads and has no way to know a page was
-rendered.
-
-The event carries a route **template** and nothing else. No referrer, no visitor
-agent, no viewport, no session identifier, no visitor identifier. A route that
-was sanitised rather than matched produces no event at all. Losing a count is
-recoverable. Collecting a path a visitor typed is not.
-
-No third-party analytics, no fingerprinting, no session replay, no cross-site
-identifiers. Splitting the repositories must not become the moment any of those
-arrive by accident.
+Issue #13 owns any later analytics implementation.
+That work must define a new event contract and a reviewed transport before collection starts.
 
 ## Caching
 

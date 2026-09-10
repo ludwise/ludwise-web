@@ -20,8 +20,6 @@
 import { env } from 'cloudflare:workers';
 import { defineMiddleware, sequence } from 'astro:middleware';
 
-import { pageViewEvent } from './lib/analytics/events.js';
-import { createAnalytics } from './lib/analytics/index.js';
 import { createApiClient } from './lib/api/client.js';
 import { ConfigError, type AppConfig, type Environment } from './lib/config/index.js';
 import { getConfig } from './lib/config/read.js';
@@ -31,7 +29,6 @@ import {
   REQUEST_ID_HEADER,
   TRACEPARENT_HEADER,
 } from './lib/http/correlation.js';
-import { isDocumentResponse } from './lib/http/response.js';
 import { routeTemplate } from './lib/http/route.js';
 import { withSecurityHeaders } from './lib/http/security-headers.js';
 import { EVENTS } from './lib/logging/events.js';
@@ -169,7 +166,6 @@ const testClock = defineMiddleware((context, next) => {
  * `/games/[slug]` rather than the game somebody looked at.
  */
 const logging = defineMiddleware(async (context, next) => {
-  const config = context.locals.config;
   const logger = operationalLogger().child({
     request_id: context.locals.requestId,
     trace_id: context.locals.traceId,
@@ -177,7 +173,6 @@ const logging = defineMiddleware(async (context, next) => {
   });
 
   context.locals.logger = logger;
-  context.locals.analytics = createAnalytics(config, logger);
 
   const { route, source } = routeTemplate({
     routePattern: (context as { routePattern?: string }).routePattern,
@@ -304,42 +299,4 @@ function resolveTransport(environment: Environment): { fetch: typeof fetch; base
   throw new Error('No backend transport is available');
 }
 
-/**
- * Records that a page was rendered.
- *
- * Separate from the logging middleware rather than folded into it. The reason is that product
- * analytics and operational telemetry are distinct concerns. They answer different questions, they
- * have different retention, and one of them is allowed to fail silently. Both derive the route
- * through the same `routeTemplate` function, so the two cannot disagree about what a route is.
- *
- * This is the layer that owns visitor analytics after the repository split. The backend no longer
- * sees a page view at all, because it sees API reads. So there is exactly one page-view event per
- * page rather than two counting the same visit.
- */
-const analytics = defineMiddleware(async (context, next) => {
-  const response = await next();
-
-  if (isDocumentResponse(response)) {
-    // The whole RouteInfo: `pageViewEvent` refuses a page whose route was
-    // sanitised rather than matched, because a sanitised path is whatever the
-    // visitor asked for. Losing a count is recoverable. Collecting a path is not.
-    const event = pageViewEvent(
-      routeTemplate({
-        routePattern: (context as { routePattern?: string }).routePattern,
-        url: context.url,
-      }),
-    );
-    if (event !== null) context.locals.analytics.track(event);
-  }
-
-  return response;
-});
-
-export const onRequest = sequence(
-  correlation,
-  configuration,
-  testClock,
-  logging,
-  backend,
-  analytics,
-);
+export const onRequest = sequence(correlation, configuration, testClock, logging, backend);

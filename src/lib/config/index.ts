@@ -39,7 +39,6 @@ export interface AppConfig {
   readonly environment: Environment;
   readonly siteUrl: string;
   readonly logLevel: 'debug' | 'info' | 'warn' | 'error';
-  readonly analyticsEnabled: boolean;
   /**
    * How long the backend has to answer, in milliseconds.
    *
@@ -93,9 +92,6 @@ export function loadConfig(source: Readonly<Record<string, string | undefined>>)
     environment: environmentRaw as Environment,
     siteUrl,
     logLevel: logLevelRaw as AppConfig['logLevel'],
-    // Anything other than the literal 'true' is off. An analytics switch that
-    // defaults on when misspelled is a privacy decision made by a typo.
-    analyticsEnabled: source['ANALYTICS_ENABLED'] === 'true',
     backendTimeoutMs,
   };
 }

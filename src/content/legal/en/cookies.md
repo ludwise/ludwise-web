@@ -6,36 +6,48 @@ title: Cookie Policy
 navLabel: Cookies
 footer: true
 order: 30
-description: How LUDWISE will explain cookies and similar storage.
-version: 0.1-draft
-status: draft
-lastUpdated: 2026-08-28
+description: Cookies and browser storage used by the public LUDWISE service.
+version: '1.0'
+status: current
+lastUpdated: 2026-09-10
+effectiveDate: 2026-09-10
 ---
 
 ## About this policy
 
-This page is a draft. It is not the final LUDWISE Cookie Policy.
+This policy describes cookies and browser storage used by the public LUDWISE MVP.
 
-## Necessary storage
+## Theme cookie
 
-This section will describe storage that is necessary for requested site features.
+LUDWISE uses one first-party cookie named `theme` after you use the theme control.
+The value is either `light` or `dark`.
+The cookie lets LUDWISE render your selected theme on later pages.
+It expires after one year and uses `SameSite=Lax`.
+Production also marks it `Secure`.
 
-## Optional storage
+The cookie carries no account identifier, advertising identifier, analytics identifier, or other profile data.
 
-This section will describe optional storage if LUDWISE introduces it.
+## No storage before a visitor choice
 
-## Analytics
+If you do not use the theme control, LUDWISE does not write the theme cookie.
+The site can still follow your browser color-scheme preference for the current page without storing that choice.
 
-This section will describe analytics technology and whether it stores data on a device.
+## Other browser storage
 
-## Advertising
+The MVP does not use `localStorage` or `sessionStorage`.
+It does not set analytics, advertising, affiliate, or personalization cookies.
 
-This section will describe advertising-related storage before advertising is enabled.
+## Analytics and advertising
 
-## Managing choices
+LUDWISE runs no product analytics at launch and uses no analytics cookie or tracking script.
+LUDWISE also has no advertising at launch, so there is no advertising storage or consent control for advertising.
 
-This section will explain how visitors can manage applicable consent choices.
+## Managing the cookie
+
+You can remove the `theme` cookie with your browser controls.
+If you remove it, LUDWISE stops remembering your selected theme across pages and later visits.
 
 ## Changes to this policy
 
-This section will explain how LUDWISE publishes later versions of this policy.
+LUDWISE can update this policy when browser storage behavior changes.
+The page shows its effective date and last update date.
