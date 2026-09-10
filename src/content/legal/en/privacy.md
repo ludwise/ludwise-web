@@ -88,7 +88,7 @@ See [Data sources](/legal/sources) for provider attribution and the source of ea
 
 A store offer or video link can take you to another website.
 LUDWISE opens these links with referrer suppression and does not append tracking or affiliate parameters at launch.
-After you follow a link, the destination receives your request under its own privacy terms.
+After you follow a link, the destination receives your request according to its own privacy terms.
 
 ## Service providers and systems
 
