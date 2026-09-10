@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   INDEXING_HEADERS,
+  MEDIA_HEADERS,
   SECURITY_HEADERS,
   withSecurityHeaders,
 } from '../../../src/lib/http/security-headers.js';
@@ -18,8 +19,15 @@ describe('SECURITY_HEADERS', () => {
   it('pins the complete content security policy, not just selected directives', () => {
     expect(SECURITY_HEADERS['x-frame-options']).toBe('DENY');
     expect(SECURITY_HEADERS['content-security-policy']).toBe(
-      "frame-ancestors 'none'; base-uri 'none'; object-src 'none'; form-action 'self'",
+      "frame-ancestors 'none'; base-uri 'none'; object-src 'none'; form-action 'self'; img-src 'self'",
     );
+  });
+
+  it('permits an image from this origin alone, which the media route is what makes possible', () => {
+    // Stated on its own because it is the directive with a product decision
+    // behind it. Every picture is served from the LUDWISE origin, so a
+    // provider host in rendered markup stops working rather than leaking.
+    expect(SECURITY_HEADERS['content-security-policy']).toContain("img-src 'self'");
   });
 
   it('blocks content sniffing, which is how a non-HTML response gets treated as HTML', () => {
@@ -48,6 +56,30 @@ describe('SECURITY_HEADERS', () => {
 describe('INDEXING_HEADERS', () => {
   it('tells crawlers to stay out', () => {
     expect(INDEXING_HEADERS['x-robots-tag']).toBe('noindex, nofollow');
+  });
+});
+
+describe('MEDIA_HEADERS', () => {
+  it('carries every shared header except the one an image must not send', () => {
+    // Derived from the shared set rather than written out again, so a header
+    // added there reaches the media route too.
+    const { vary, ...shared } = SECURITY_HEADERS;
+    expect(vary).toBe('cookie');
+
+    for (const [name, value] of Object.entries(shared)) {
+      expect(MEDIA_HEADERS[name as keyof typeof MEDIA_HEADERS], name).toBe(value);
+    }
+    expect('vary' in MEDIA_HEADERS).toBe(false);
+  });
+
+  it('tells a crawler to stay out of the image itself', () => {
+    // Rights, not search performance. An indexed image stands alone, without
+    // the provider credit the display terms require.
+    expect(MEDIA_HEADERS['x-robots-tag']).toBe('noindex');
+  });
+
+  it('is frozen, so a caller cannot mutate the shared header set', () => {
+    expect(Object.isFrozen(MEDIA_HEADERS)).toBe(true);
   });
 });
 
@@ -82,6 +114,59 @@ describe('withSecurityHeaders', () => {
     );
     expect(response.status).toBe(404);
     expect(response.statusText).toBe('Not Found');
+  });
+
+  it('withholds vary from the media route, in every environment', () => {
+    // `vary: cookie` splits the browser cache of every visitor who has chosen
+    // a theme. An image does not vary by theme.
+    for (const environment of ['development', 'staging', 'production'] as const) {
+      const response = withSecurityHeaders(new Response('bytes'), environment, { media: true });
+      expect(response.headers.get('vary'), environment).toBeNull();
+    }
+  });
+
+  it('removes a vary header the media response somehow already carried', () => {
+    const response = withSecurityHeaders(
+      new Response('bytes', { headers: { vary: 'accept' } }),
+      'production',
+      { media: true },
+    );
+
+    expect(response.headers.get('vary')).toBeNull();
+  });
+
+  it('tells a crawler to stay out of an image in production too', () => {
+    // The one place `x-robots-tag` reaches production. Every other response
+    // withholds it, because de-indexing the live site is silent and slow to
+    // notice.
+    const response = withSecurityHeaders(new Response('bytes'), 'production', { media: true });
+
+    expect(response.headers.get('x-robots-tag')).toBe('noindex');
+  });
+
+  it('still applies the rest of the shared headers to a media response', () => {
+    const response = withSecurityHeaders(new Response('bytes'), 'production', { media: true });
+
+    expect(response.headers.get('x-content-type-options')).toBe('nosniff');
+    expect(response.headers.get('referrer-policy')).toBe('strict-origin-when-cross-origin');
+  });
+
+  it('rebuilds a media response whose headers are immutable, vary included', async () => {
+    const immutable = new Response('bytes', { status: 200 });
+    Object.defineProperty(immutable, 'headers', {
+      value: new Headers({ 'content-type': 'image/jpeg', vary: 'cookie' }),
+      writable: false,
+    });
+    Object.defineProperty(immutable.headers, 'set', {
+      value: () => {
+        throw new TypeError('immutable headers');
+      },
+    });
+
+    const response = withSecurityHeaders(immutable, 'production', { media: true });
+    expect(response.headers.get('vary')).toBeNull();
+    expect(response.headers.get('x-robots-tag')).toBe('noindex');
+    expect(await response.text()).toBe('bytes');
   });
 
   it('rebuilds the response rather than throwing when its headers are immutable', async () => {

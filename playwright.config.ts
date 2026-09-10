@@ -77,6 +77,9 @@ export default defineConfig({
       timeout: 120_000,
       env: {
         BACKEND_DEV_URL: `http://localhost:${BACKEND_PORT}`,
+        // The fake backend also serves the image fixtures, so the media route
+        // reads real bytes without reaching a provider.
+        MEDIA_DEV_URL: `http://localhost:${BACKEND_PORT}`,
         ASTRO_DEV_BACKGROUND: '0',
         LUDWISE_E2E_NOW_MS: String(E2E_NOW_MS),
       },

@@ -20,6 +20,13 @@
   "assets": {
     "binding": "ASSETS",
     "directory": "./dist",
+
+    // The media route is Worker code, and Workers Assets answers a matching
+    // request without invoking the Worker. Without this line a request under
+    // /media/ would reach the asset server, find nothing, and never run the
+    // route at all. Every other path stays asset-first, which is what keeps a
+    // built file cheap.
+    "run_worker_first": ["/media/*"],
   },
 
   // Without this, Workers Logs retains nothing at all and the structured logger
@@ -51,6 +58,15 @@
     // because of it would learn to distrust the timeout rather than the
     // latency.
     "BACKEND_TIMEOUT_MS": "15000",
+
+    // The upstream hosts the media route may fetch an image from, as a
+    // comma-separated list. `src/lib/config/index.ts` validates it, and the
+    // route admits a host on an exact match against it alone.
+    //
+    // Here rather than in a constant for two reasons. A provider host is a
+    // deployment fact, and tests/architecture/boundaries.test.ts forbids every
+    // file in src/ from naming one.
+    "MEDIA_UPSTREAM_HOSTS": "images.igdb.com",
   },
 
   // The whole architecture, in five lines (ADR 0028, superseding ADR 0024's
@@ -110,6 +126,10 @@
         "LOG_LEVEL": "info",
         "SITE_URL": "https://staging.ludwise.com",
         "BACKEND_TIMEOUT_MS": "5000",
+        // Repeated rather than inherited. `vars` is not inherited by a named
+        // environment, so an omission here is an empty list and a 404 for
+        // every picture.
+        "MEDIA_UPSTREAM_HOSTS": "images.igdb.com",
       },
       // Staging reads the staging backend. Named explicitly rather than
       // inherited, because inheritance would make the most dangerous possible
@@ -150,6 +170,8 @@
         "LOG_LEVEL": "info",
         "SITE_URL": "https://ludwise.com",
         "BACKEND_TIMEOUT_MS": "5000",
+        // Repeated for the reason the staging block states.
+        "MEDIA_UPSTREAM_HOSTS": "images.igdb.com",
       },
       "services": [
         {

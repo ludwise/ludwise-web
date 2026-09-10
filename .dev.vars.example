@@ -13,7 +13,7 @@
 #
 # Deployed, the site reaches the backend over a Cloudflare service binding and
 # this variable is ignored entirely - `resolveTransport` in src/middleware.ts
-# honours it only when ENVIRONMENT is `development`, so a staging or production
+# honors it only when ENVIRONMENT is `development`, so a staging or production
 # deployment that somehow acquired it would still use its binding. Without that
 # guard this would be a way to point the live site at any origin.
 #
@@ -29,3 +29,17 @@
 # Leave it unset to develop against a backend that is not there, which renders
 # the failure states. Those are worth looking at more often than they are.
 BACKEND_DEV_URL=http://localhost:8788
+
+# Where the media route reads image bytes, for local development only.
+#
+# The media route proxies provider images so the browser never contacts a
+# provider network. `resolveMediaOrigin` in src/middleware.ts honors this only
+# when ENVIRONMENT is `development`, for the reason stated above BACKEND_DEV_URL:
+# without that guard this would point the live site's media route at any origin.
+#
+# scripts/fake-backend.ts serves real image bytes from tests/fixtures/media/ for
+# every image address the recorded corpus carries. So this is the same process
+# BACKEND_DEV_URL names, on the same port.
+#
+# Leave it unset to fetch from the real provider host instead.
+MEDIA_DEV_URL=http://localhost:8788

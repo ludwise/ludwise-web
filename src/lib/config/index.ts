@@ -48,9 +48,27 @@ export interface AppConfig {
    * to see timeout pages because of it.
    */
   readonly backendTimeoutMs: number;
+  /**
+   * The upstream hosts the media route may fetch an image from.
+   *
+   * Configuration rather than a constant, for two reasons. A provider host is
+   * a deployment fact, and `tests/architecture/boundaries.test.ts` forbids
+   * every file in `src/` from naming one. Each entry is a bare hostname, and
+   * the media route admits a host only on an exact match against this list.
+   */
+  readonly mediaUpstreamHosts: readonly string[];
 }
 
 const LOG_LEVELS = ['debug', 'info', 'warn', 'error'] as const;
+
+/**
+ * A bare hostname: labels, dots, and nothing else.
+ *
+ * A scheme, a port, a path or a wildcard is refused rather than trimmed. Each
+ * of those would make the allow-list say something other than what an exact
+ * host comparison reads.
+ */
+const HOSTNAME = /^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)+$/u;
 
 function isEnvironment(value: string): value is Environment {
   return (ENVIRONMENTS as readonly string[]).includes(value);
@@ -86,6 +104,9 @@ export function loadConfig(source: Readonly<Record<string, string | undefined>>)
     fields.push('BACKEND_TIMEOUT_MS');
   }
 
+  const mediaUpstreamHosts = parseUpstreamHosts(source['MEDIA_UPSTREAM_HOSTS'] ?? '');
+  if (mediaUpstreamHosts === null) fields.push('MEDIA_UPSTREAM_HOSTS');
+
   if (fields.length > 0) throw new ConfigError(fields);
 
   return {
@@ -93,7 +114,28 @@ export function loadConfig(source: Readonly<Record<string, string | undefined>>)
     siteUrl,
     logLevel: logLevelRaw as AppConfig['logLevel'],
     backendTimeoutMs,
+    mediaUpstreamHosts: mediaUpstreamHosts as readonly string[],
   };
+}
+
+/**
+ * The media allow-list, or `null` when the value cannot be read as one.
+ *
+ * An empty list is refused rather than defaulted. A deployment with no host
+ * allowed answers 404 for every picture. That reads as an upstream outage
+ * instead of as a setting nobody wrote.
+ *
+ * Each entry is lowercased, because a hostname comparison is case-insensitive
+ * and the route compares lowercased text.
+ */
+function parseUpstreamHosts(raw: string): readonly string[] | null {
+  const hosts = raw
+    .split(',')
+    .map((entry) => entry.trim().toLowerCase())
+    .filter((entry) => entry !== '');
+
+  if (hosts.length === 0) return null;
+  return hosts.every((host) => HOSTNAME.test(host)) ? hosts : null;
 }
 
 function isAbsoluteHttpUrl(value: string): boolean {

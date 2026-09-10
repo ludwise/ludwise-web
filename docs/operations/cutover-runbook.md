@@ -73,13 +73,19 @@ Run these steps days before the swap. None of them change the live site.
    `wrangler versions list --name ludwise-web-production`. Write it into the
    launch record. It is the break-glass rollback target.
 6. Confirm that the operator holds the Cloudflare API token locally.
+7. Create a Cloudflare rate-limiting rule on `/media/*` for `ludwise.com`. The
+   media route proxies provider images, and the address is not signed. The
+   allow-list bounds what a stranger can serve, and this rule bounds what it
+   costs. This repository holds no infrastructure as code, so an operator
+   creates the rule by hand. Record the rule name and its threshold in the
+   launch record.
 
 **Rollback.** None. Nothing has changed yet.
 
 ## Phase 1. Backend release <!-- ste-prose: procedural -->
 
-7. Release `ludwise-production` with `VisitorRead` published.
-8. Probe `ludwise-production`, and then let it run. Publish the web release on a
+8. Release `ludwise-production` with `VisitorRead` published.
+9. Probe `ludwise-production`, and then let it run. Publish the web release on a
    later day.
 
 A backend fault found on the day of the swap is found with the public looking at
@@ -90,13 +96,15 @@ instead.
 
 ## Phase 2. Prepare the web release <!-- ste-prose: procedural -->
 
-9. Land two edits on `main`.
-   - Remove the `push` trigger from `deploy-prelaunch.yml`, and keep
-     `workflow_dispatch`.
-   - Add the two smoke-test assertions that the section below names.
-10. Create the `production` branch at the reviewed `main` commit. Protect it, and
+10. Land two edits on `main`.
+
+- Remove the `push` trigger from `deploy-prelaunch.yml`, and keep
+  `workflow_dispatch`.
+- Add the two smoke-test assertions that the section below names.
+
+11. Create the `production` branch at the reviewed `main` commit. Protect it, and
     permit a fast-forward only.
-11. Publish a GitHub Release from `production`.
+12. Publish a GitHub Release from `production`.
 
 `deploy-prelaunch.yml` fires on a push to `main` that touches `prelaunch/**` or
 `wrangler.prelaunch.jsonc`, and it deploys to `ludwise-web-production`. After the
@@ -106,13 +114,13 @@ Remove the trigger in the commit the release is cut from. The shared
 racing.
 
 **Rollback.** Delete the branch or the draft release. The live site is still the
-prelaunch site until step 12 finishes.
+prelaunch site until step 13 finishes.
 
 ## Phase 3. The swap <!-- ste-prose: procedural -->
 
-12. `deploy-production.yml` runs `verify.yml`, and then `wrangler deploy`. It
+13. `deploy-production.yml` runs `verify.yml`, and then `wrangler deploy`. It
     replaces the script `ludwise-web-production`.
-13. The workflow verifies its own deploy. The section below lists what it
+14. The workflow verifies its own deploy. The section below lists what it
     asserts.
 
 **Rollback.** Run `workflow_dispatch` on `deploy-prelaunch.yml`. It takes two to
@@ -121,8 +129,8 @@ identifier from step 5.
 
 ## Phase 4. After the swap <!-- ste-prose: procedural -->
 
-14. Purge the Cloudflare cache once.
-15. Read `/`, `/games`, `/sales` and one game-detail page as an anonymous
+15. Purge the Cloudflare cache once.
+16. Read `/`, `/games`, `/sales` and one game-detail page as an anonymous
     visitor.
 
 Nothing survives the swap except by revalidation, and the new ETag settles that.
@@ -142,7 +150,7 @@ sitemap yet. The sitemap submission belongs to
 - `/ops`, `/ops/logs`, `/v1/games` and `/v1/sales` answer 404.
 - `/`, `/games` and `/sales` answer 200.
 
-Two route classes are missing, and step 9 adds them.
+Two route classes are missing, and step 10 adds them.
 
 - A canonical game-detail URL answers 200. Game detail has the deepest backend
   dependency, and it is the only route that proves the catalog renders.

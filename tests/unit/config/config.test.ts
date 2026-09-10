@@ -25,6 +25,7 @@ const VALID = {
   SITE_URL: 'https://ludwise.test',
   LOG_LEVEL: 'info',
   BACKEND_TIMEOUT_MS: '5000',
+  MEDIA_UPSTREAM_HOSTS: 'images.example.test',
 };
 
 describe('loadConfig', () => {
@@ -34,6 +35,7 @@ describe('loadConfig', () => {
       siteUrl: 'https://ludwise.test',
       logLevel: 'info',
       backendTimeoutMs: 5000,
+      mediaUpstreamHosts: ['images.example.test'],
     });
   });
 
@@ -50,7 +52,12 @@ describe('loadConfig', () => {
     })();
 
     expect(error).toBeInstanceOf(ConfigError);
-    expect((error as ConfigError).fields).toEqual(['ENVIRONMENT', 'SITE_URL', 'LOG_LEVEL']);
+    expect((error as ConfigError).fields).toEqual([
+      'ENVIRONMENT',
+      'SITE_URL',
+      'LOG_LEVEL',
+      'MEDIA_UPSTREAM_HOSTS',
+    ]);
   });
 
   it('refuses to guess an absent environment', () => {
@@ -77,6 +84,45 @@ describe('loadConfig', () => {
     // exists to prevent.
     for (const value of ['0', '-1', 'soon', '1.5', 'Infinity']) {
       expect(() => loadConfig({ ...VALID, BACKEND_TIMEOUT_MS: value }), value).toThrow(ConfigError);
+    }
+  });
+
+  it('reads the media allow-list as a list, and lowercases each host', () => {
+    // A hostname comparison is case-insensitive, and the media route compares
+    // lowercased text. Lowercasing here is what makes that comparison exact.
+    const config = loadConfig({
+      ...VALID,
+      MEDIA_UPSTREAM_HOSTS: ' Images.Example.Test , cdn.example.test ',
+    });
+
+    expect(config.mediaUpstreamHosts).toEqual(['images.example.test', 'cdn.example.test']);
+  });
+
+  it('refuses a media allow-list that is empty', () => {
+    // An empty list answers 404 for every picture, which reads as an upstream
+    // outage rather than as a setting nobody wrote.
+    for (const value of [undefined, '', '  ', ',', ' , ']) {
+      expect(() => loadConfig({ ...VALID, MEDIA_UPSTREAM_HOSTS: value }), String(value)).toThrow(
+        ConfigError,
+      );
+    }
+  });
+
+  it('refuses a media allow-list entry that is not a bare hostname', () => {
+    // Each of these would make the allow-list say something other than what an
+    // exact host comparison reads. A wildcard is the worst of them: it looks
+    // like it restricts something and does not.
+    for (const value of [
+      'https://images.example.test',
+      'images.example.test/upload',
+      'images.example.test:443',
+      '*.example.test',
+      'localhost',
+      'images.example.test, not a host',
+    ]) {
+      expect(() => loadConfig({ ...VALID, MEDIA_UPSTREAM_HOSTS: value }), value).toThrow(
+        ConfigError,
+      );
     }
   });
 

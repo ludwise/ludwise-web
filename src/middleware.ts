@@ -4,14 +4,14 @@
  * This file and `src/pages/**` are the only places permitted to import
  * `cloudflare:*`. Everything below receives what it needs as an argument.
  *
- * Four middlewares run in an order that is not arbitrary.
+ * The middlewares run in an order that is not arbitrary.
  *
- *     `correlation -> configuration -> logging -> backend`
+ *     `correlation -> configuration -> clock -> logging -> ports`
  *
  * Correlation runs first and cannot fail, so a configuration failure still
  * produces a response carrying a request id. Configuration precedes logging
- * because the logger's level comes from it. The backend client is last
- * because it needs both the timeout and the correlation identifiers.
+ * because the logger's level comes from it. The two ports, `backend` and
+ * `media`, come last because each reads configuration resolved above.
  */
 
 // The supported way to reach a binding in this adapter. `Astro.locals.runtime`
@@ -31,6 +31,8 @@ import {
 } from './lib/http/correlation.js';
 import { routeTemplate } from './lib/http/route.js';
 import { withSecurityHeaders } from './lib/http/security-headers.js';
+import { createMediaProxy } from './lib/media/proxy.js';
+import { isMediaPath } from './lib/media/target.js';
 import { EVENTS } from './lib/logging/events.js';
 import { operationalLogger } from './lib/logging/index.js';
 
@@ -97,11 +99,16 @@ const correlation = defineMiddleware(async (context, next) => {
   context.locals.traceparent = formatTraceparent(derived);
   context.locals.startedAt = Date.now();
 
-  const response = withCorrelationHeaders(await next(), derived);
+  // A media response is publicly cacheable, so it carries no correlation
+  // identifiers. A shared cache holding one visitor's request id would send an
+  // operator reading it to a third party's record.
+  const media = isMediaPath(context.url.pathname);
+  const answered = await next();
+  const response = media ? answered : withCorrelationHeaders(answered, derived);
 
   // Applied in the outermost step so they land on every response, including the
   // configuration-failure 503 that returns before any later middleware runs.
-  return withSecurityHeaders(response, configuredEnvironment(context));
+  return withSecurityHeaders(response, configuredEnvironment(context), { media });
 });
 
 /**
@@ -261,6 +268,57 @@ const backend = defineMiddleware((context, next) => {
 });
 
 /**
+ * Installs the media proxy for this request.
+ *
+ * A thunk and memoised, for the reason `backend` above is one. Almost no
+ * response is a picture, and the two ports are resolved by whichever request
+ * turns out to need them.
+ *
+ * The proxy receives a host, a path and the allow-list. It never receives the
+ * visitor's request, which is what makes "the outbound request forwards
+ * nothing from the visitor" structural rather than a filter to maintain.
+ */
+const media = defineMiddleware((context, next) => {
+  let proxy: ReturnType<typeof createMediaProxy> | undefined;
+
+  context.locals.media = () => {
+    proxy ??= createMediaProxy({
+      fetch: globalThis.fetch.bind(globalThis),
+      siteUrl: context.locals.config.siteUrl,
+      upstream: {
+        allowedHosts: context.locals.config.mediaUpstreamHosts,
+        // `scripts/fake-backend.ts` serves fixture bytes for every image
+        // address the recorded corpus carries, so a development run measures
+        // real bytes without reaching a provider.
+        originOverride: developmentOrigin(context.locals.config.environment, 'MEDIA_DEV_URL'),
+      },
+    });
+    return proxy;
+  };
+
+  return next();
+});
+
+/**
+ * A development-only origin override, or `undefined` everywhere else.
+ *
+ * The one place this Worker reads an origin from a variable, and the guard is
+ * the whole reason it is safe. The environment is checked before the setting
+ * is read. Honored outside development, one variable would point the live site
+ * at an arbitrary origin, which is the hole having no configurable origin
+ * avoids.
+ *
+ * Both overrides go through here so the guard exists once rather than twice.
+ * `tests/architecture/boundaries.test.ts` pins that.
+ */
+function developmentOrigin(environment: Environment, variable: string): string | undefined {
+  if (environment !== 'development') return undefined;
+
+  const value = process.env[variable];
+  return value !== undefined && value !== '' ? value : undefined;
+}
+
+/**
  * How this request reaches the backend, which differs in development alone.
  *
  * Deployed it is always the service binding: `BACKEND` names a Worker script, not a URL, so nothing
@@ -269,18 +327,12 @@ const backend = defineMiddleware((context, next) => {
  * Locally, `wrangler dev` provides that binding whether or not anything runs behind it. So a request
  * over it fails with a 503 from Wrangler that looks exactly like a backend outage.
  * `BACKEND_DEV_URL` thus wins in development, pointing at a local backend or
- * `scripts/fake-backend.ts`.
- *
- * The environment check is load-bearing and comes first. Honoured outside development, this would
- * point the live site at an arbitrary origin on one variable. That is the SSRF-shaped hole which
- * having no configurable URL avoids.
+ * `scripts/fake-backend.ts`. `developmentOrigin` above holds the guard that makes reading it safe.
  */
 function resolveTransport(environment: Environment): { fetch: typeof fetch; baseUrl: string } {
-  if (environment === 'development') {
-    const devUrl = process.env['BACKEND_DEV_URL'];
-    if (devUrl !== undefined && devUrl !== '') {
-      return { fetch: globalThis.fetch.bind(globalThis), baseUrl: devUrl };
-    }
+  const devUrl = developmentOrigin(environment, 'BACKEND_DEV_URL');
+  if (devUrl !== undefined) {
+    return { fetch: globalThis.fetch.bind(globalThis), baseUrl: devUrl };
   }
 
   const binding = (env as { BACKEND?: { fetch: typeof fetch } }).BACKEND;
@@ -299,4 +351,4 @@ function resolveTransport(environment: Environment): { fetch: typeof fetch; base
   throw new Error('No backend transport is available');
 }
 
-export const onRequest = sequence(correlation, configuration, testClock, logging, backend);
+export const onRequest = sequence(correlation, configuration, testClock, logging, backend, media);

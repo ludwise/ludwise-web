@@ -2,6 +2,7 @@
 
 import type { LudwiseApi } from './lib/api/client.js';
 import type { AppConfig } from './lib/config/index.js';
+import type { MediaProxy } from './lib/media/proxy.js';
 import type { Logger } from './lib/logging/types.js';
 
 declare global {
@@ -41,6 +42,14 @@ declare global {
        * `tests/architecture/boundaries.test.ts` enforces it.
        */
       backend: () => LudwiseApi;
+      /**
+       * The media proxy for this request.
+       *
+       * A thunk beside `backend` and for the same reason. It is the only way a route may
+       * reach an upstream image host, and it admits a host on an exact allow-list match
+       * alone. `tests/architecture/boundaries.test.ts` enforces both.
+       */
+      media: () => MediaProxy;
     }
   }
 

@@ -28,10 +28,12 @@ describe('channel loggers', () => {
     mutableEnv['ENVIRONMENT'] = 'production';
     mutableEnv['SITE_URL'] = 'https://ludwise.test';
     mutableEnv['LOG_LEVEL'] = 'debug';
+    mutableEnv['MEDIA_UPSTREAM_HOSTS'] = 'images.example.test';
   });
 
   afterEach(() => {
     delete mutableEnv['LOG_LEVEL'];
+    delete mutableEnv['MEDIA_UPSTREAM_HOSTS'];
   });
 
   // PRODUCT.md section 103 requires operational telemetry, security logs and
