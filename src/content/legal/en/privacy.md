@@ -39,7 +39,7 @@ Cloudflare account settings control the exact platform-log retention period.
 
 LUDWISE uses one first-party cookie named `theme` after you use the theme control.
 The cookie stores only `light` or `dark`.
-It lets the server render your selected theme on the next page.
+It lets LUDWISE render your selected theme on the next page.
 The cookie expires after one year.
 
 LUDWISE does not use `localStorage` or `sessionStorage` for the MVP.
