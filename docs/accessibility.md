@@ -18,7 +18,7 @@ The release-candidate manual pass remains in [issue #37](https://github.com/ludw
 
 A passing automated check does not prove WCAG conformance. Automated tools can
 find deterministic defects. They cannot establish every success criterion for
-every user and every state.
+every visitor and every state.
 
 The pull request gate blocks deterministic failures. The release gate also uses
 the manual pass in issue #37 for important releases until an equivalent check is
@@ -51,15 +51,15 @@ records the WCAG reason in the test. This program does not add another exclusion
 Issue #37 owns the written release-candidate procedure and the recorded pass.
 The pass covers the surfaces that need human judgment, including:
 
-- keyboard-only operation and logical focus order;
-- no keyboard trap and no obscured focused control;
-- focus visibility during real navigation;
-- 200 percent text resize, zoom, reflow, and orientation;
-- forced-color and high-contrast behavior;
-- reduced-motion behavior where motion exists;
-- information that must not depend on color alone;
-- touch behavior and target-size exceptions;
-- screen-reader structure, control names, state, and announcements;
+- keyboard-only operation and logical focus order.
+- no keyboard trap and no obscured focused control.
+- focus visibility during real navigation.
+- 200 percent text resize, zoom, reflow, and orientation.
+- forced-color and high-contrast behavior.
+- reduced-motion behavior where motion exists.
+- information that must not depend on color alone.
+- touch behavior and target-size exceptions.
+- screen-reader structure, control names, state, and announcements.
 - form instructions, error recovery, and dynamic status messages.
 
 Run the pass against the frozen release candidate on staging. Record each defect
@@ -142,7 +142,7 @@ criteria added by WCAG 2.2.
 | [1.3.2](https://www.w3.org/TR/WCAG22/#meaningful-sequence) | A | Earlier | Applicable | Page and control DOM order | Both | [focus architecture rule](../tests/architecture/design-system.test.ts), [manual pass](#manual-verification) |
 | [1.3.3](https://www.w3.org/TR/WCAG22/#sensory-characteristics) | A | Earlier | Applicable | Instructions and state communication | Manual | [manual pass](#manual-verification) |
 | [1.3.4](https://www.w3.org/TR/WCAG22/#orientation) | AA | Earlier | Applicable | Responsive pages | Manual | [manual pass](#manual-verification) |
-| [1.3.5](https://www.w3.org/TR/WCAG22/#identify-input-purpose) | AA | Earlier | Conditional | Forms that collect user-purpose data | Both | [axe routes](../tests/e2e/shell.spec.ts), [feature change rule](#new-or-changed-features) |
+| [1.3.5](https://www.w3.org/TR/WCAG22/#identify-input-purpose) | AA | Earlier | Conditional | Forms that collect data about the visitor | Both | [axe routes](../tests/e2e/shell.spec.ts), [feature change rule](#new-or-changed-features) |
 | [1.4.1](https://www.w3.org/TR/WCAG22/#use-of-color) | A | Earlier | Applicable | Price, freshness, selection, errors | Both | [design rule](../design/system/guidelines/accessibility.md), [manual pass](#manual-verification) |
 | [1.4.2](https://www.w3.org/TR/WCAG22/#audio-control) | A | Earlier | Not current | No automatic audio | Manual | [feature change rule](#new-or-changed-features) |
 | [1.4.3](https://www.w3.org/TR/WCAG22/#contrast-minimum) | AA | Earlier | Applicable | Text in both themes | Both | [axe routes](../tests/e2e/shell.spec.ts), [manual pass](#manual-verification) |
@@ -155,7 +155,7 @@ criteria added by WCAG 2.2.
 | [2.1.1](https://www.w3.org/TR/WCAG22/#keyboard) | A | Earlier | Applicable | Navigation, search, controls | Both | [keyboard tests](../tests/e2e/shell.spec.ts), [manual pass](#manual-verification) |
 | [2.1.2](https://www.w3.org/TR/WCAG22/#no-keyboard-trap) | A | Earlier | Applicable | All interactive UI | Manual | [manual pass](#manual-verification) |
 | [2.1.4](https://www.w3.org/TR/WCAG22/#character-key-shortcuts) | A | Earlier | Not current | No single-character shortcuts | Manual | [feature change rule](#new-or-changed-features) |
-| [2.2.1](https://www.w3.org/TR/WCAG22/#timing-adjustable) | A | Earlier | Not current | No user time limit | Manual | [feature change rule](#new-or-changed-features) |
+| [2.2.1](https://www.w3.org/TR/WCAG22/#timing-adjustable) | A | Earlier | Not current | No visitor time limit | Manual | [feature change rule](#new-or-changed-features) |
 | [2.2.2](https://www.w3.org/TR/WCAG22/#pause-stop-hide) | A | Earlier | Conditional | Loading and animated states | Both | [motion tokens](../src/styles/tokens/motion.css), [manual pass](#manual-verification) |
 | [2.3.1](https://www.w3.org/TR/WCAG22/#three-flashes-or-below-threshold) | A | Earlier | Applicable | Authored animation and state change | Both | [motion tokens](../src/styles/tokens/motion.css), [manual pass](#manual-verification) |
 | [2.4.1](https://www.w3.org/TR/WCAG22/#bypass-blocks) | A | Earlier | Applicable | Repeated application shell | Automated | [skip-link test](../tests/e2e/shell.spec.ts) |
@@ -188,5 +188,5 @@ criteria added by WCAG 2.2.
 | [4.1.2](https://www.w3.org/TR/WCAG22/#name-role-value) | A | Earlier | Applicable | All controls and custom UI | Both | [axe routes](../tests/e2e/shell.spec.ts), [icon invariant](../src/components/actions/IconButton.astro) |
 | [4.1.3](https://www.w3.org/TR/WCAG22/#status-messages) | AA | Earlier | Applicable | Loading, feedback, and status state | Both | [shell tests](../tests/e2e/shell.spec.ts), [design rule](../design/system/guidelines/accessibility.md) |
 
-WCAG 2.2 removed criterion 4.1.1 from the current standard. It is therefore not
-an A/AA row in this matrix.
+WCAG 2.2 removed criterion 4.1.1 from the current standard. As a result, it is
+not an A/AA row in this matrix.
