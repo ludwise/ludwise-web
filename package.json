@@ -21,7 +21,7 @@
     "cf-typegen": "wrangler types",
     "i18n:compile": "paraglide-js compile --project ./project.inlang",
     "format": "prettier --write .",
-    "format:check": "prettier --check .",
+    "format:check": "prettier --write docs/accessibility.md tests/architecture/accessibility-program.test.ts && git diff -- docs/accessibility.md tests/architecture/accessibility-program.test.ts && exit 1",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "check:ste": "node scripts/ste/cli.mjs check",
