@@ -5,6 +5,7 @@ import {
   assertLegalPolicies,
   canServeLegalPolicy,
   legalPolicyLocale,
+  selectLegalFooterColumns,
   selectLegalFooterPolicies,
   selectLegalPolicy,
   type LegalPolicyEntry,
@@ -181,6 +182,37 @@ describe('localized legal policy selection', () => {
     });
 
     expect(selectLegalFooterPolicies([source, translation], 'cs', true)).toEqual([translation]);
+  });
+
+  it('gives the contact policy its own footer column', () => {
+    const terms = policy({ policyId: 'terms', order: 10 });
+    const contact = policy({ policyId: 'contact', order: 5 });
+    const privacy = policy({ policyId: 'privacy', order: 20 });
+
+    expect(selectLegalFooterColumns([privacy, contact, terms], baseLocale, true)).toEqual({
+      legal: [terms, privacy],
+      contact,
+    });
+  });
+
+  it('leaves the contact column empty when the contact policy cannot be served', () => {
+    const terms = policy({ policyId: 'terms' });
+    const contact = policy({ policyId: 'contact', status: 'draft' });
+
+    expect(selectLegalFooterColumns([terms, contact], baseLocale, true)).toEqual({
+      legal: [terms],
+      contact: undefined,
+    });
+  });
+
+  it('keeps a policy out of every footer column when its footer flag is false', () => {
+    const affiliate = policy({ policyId: 'affiliate-disclosure', footer: false });
+    const contact = policy({ policyId: 'contact', footer: false });
+
+    expect(selectLegalFooterColumns([affiliate, contact], baseLocale, true)).toEqual({
+      legal: [],
+      contact: undefined,
+    });
   });
 
   it('rejects a legal locale that the application has not enabled', () => {

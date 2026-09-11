@@ -6,14 +6,28 @@ import { messages as m, type Locale } from '../../i18n/index.js';
 import {
   assertLegalPolicies,
   legalPolicyLocale,
-  selectLegalFooterPolicies,
+  selectLegalFooterColumns,
 } from '../../lib/legal/policies.js';
 import { PROVIDER_SITES } from '../../lib/attribution/providers.js';
+import Wordmark from '../foundation/Wordmark.astro';
 import PageContainer from '../layout/PageContainer.astro';
 
 interface Props {
   locale: Locale;
 }
+
+interface FooterLink {
+  label: string;
+  href: string;
+}
+
+interface FooterColumn {
+  id: string;
+  heading: string;
+  links: FooterLink[];
+}
+
+const REPOSITORY_URL = 'https://github.com/ludwise/ludwise-web';
 
 const { locale } = Astro.props;
 const messageOptions = { locale } as const;
@@ -21,10 +35,43 @@ const legalPolicies = await getCollection('legal');
 const isProduction = Astro.locals.config.environment === 'production';
 assertLegalPolicies(legalPolicies);
 
-const legalLinks = selectLegalFooterPolicies(legalPolicies, locale, isProduction).map((policy) => ({
+const policyLink = (policy: (typeof legalPolicies)[number]): FooterLink => ({
   label: policy.data.navLabel,
   href: getRelativeLocaleUrl(legalPolicyLocale(policy), `legal/${policy.data.policyId}`),
-}));
+});
+
+const footerPolicies = selectLegalFooterColumns(legalPolicies, locale, isProduction);
+
+const columns: FooterColumn[] = [
+  {
+    id: 'lw-site-footer-project',
+    heading: m.shell_footer_project_heading({}, messageOptions),
+    links: [
+      {
+        label: m.shell_footer_about({}, messageOptions),
+        href: getRelativeLocaleUrl(locale, 'about'),
+      },
+      { label: m.shell_footer_source_code({}, messageOptions), href: REPOSITORY_URL },
+    ],
+  },
+  {
+    id: 'lw-site-footer-legal',
+    heading: m.shell_footer_legal_heading({}, messageOptions),
+    links: footerPolicies.legal.map(policyLink),
+  },
+  {
+    id: 'lw-site-footer-contact',
+    heading: m.shell_footer_contact_heading({}, messageOptions),
+    links: [
+      ...(footerPolicies.contact === undefined ? [] : [policyLink(footerPolicies.contact)]),
+      {
+        label: m.shell_footer_security_reports({}, messageOptions),
+        href: `${REPOSITORY_URL}/blob/main/SECURITY.md`,
+      },
+      { label: m.shell_footer_issue_tracker({}, messageOptions), href: `${REPOSITORY_URL}/issues` },
+    ],
+  },
+];
 
 const homeHref = getRelativeLocaleUrl(locale);
 const year = new Date().getFullYear();
@@ -32,41 +79,48 @@ const year = new Date().getFullYear();
 
 <footer class="lw-site-footer">
   <PageContainer width="wide">
-    <div class="lw-site-footer__inner">
-      <a
-        class="lw-site-footer__brand"
-        href={homeHref}
-        aria-label={m.shell_brand_home_label({}, messageOptions)}
-      >
-        LUDWISE
-      </a>
+    <div class="lw-site-footer__grid">
+      <div class="lw-site-footer__brand">
+        <Wordmark size="lg" href={homeHref} />
 
-      <nav class="lw-site-footer__navigation" aria-label={m.shell_footer_label({}, messageOptions)}>
-        <ul>
-          {
-            legalLinks.map((link) => (
-              <li>
-                <a href={link.href}>{link.label}</a>
-              </li>
-            ))
-          }
-        </ul>
-      </nav>
+        {
+          /* The credit that the IGDB terms and the Valve brand and links clause
+             both ask for. It is static because it credits the integration and not
+             the page. The duty attaches to LUDWISE calling each API, rather than
+             to whether one response carried that provider. Issue #71 fixed the
+             credit wording, and no provider link may carry `nofollow`. Issue
+             #124 adds the affiliation sentence from the data sources page. */
+        }
+        <div class="lw-site-footer__credit">
+          <p>
+            Game information comes from <a href={PROVIDER_SITES.igdb}>IGDB.com</a>. Store
+            information comes from <a href={PROVIDER_SITES.steam}>Steam</a>, a Valve service.
+          </p>
+          <p>LUDWISE is not affiliated with IGDB, Twitch or Valve.</p>
+        </div>
+      </div>
 
-      <p class="lw-site-footer__copyright">© {year} LUDWISE</p>
+      {
+        columns.map((column) => (
+          <nav class="lw-site-footer__column" aria-labelledby={column.id}>
+            <h2 class="lw-site-footer__heading" id={column.id}>
+              {column.heading}
+            </h2>
+            <ul class="lw-site-footer__links">
+              {column.links.map((link) => (
+                <li>
+                  <a href={link.href}>{link.label}</a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        ))
+      }
     </div>
 
-    {
-      /* The credit that the IGDB terms and the Valve brand and links clause
-         both ask for. It is static because it credits the integration and not
-         the page. The duty attaches to LUDWISE calling each API, rather than
-         to whether one response carried that provider. Issue #71 fixed this
-         wording, and no provider link may carry `nofollow`. */
-    }
-    <p class="lw-site-footer__credit">
-      Game information comes from <a href={PROVIDER_SITES.igdb}>IGDB.com</a>. Store information
-      comes from <a href={PROVIDER_SITES.steam}>Steam</a>, a Valve service.
-    </p>
+    <div class="lw-site-footer__closing">
+      <p>© {year} LUDWISE</p>
+    </div>
   </PageContainer>
 </footer>
 
@@ -76,59 +130,87 @@ const year = new Date().getFullYear();
     background: var(--color-background-secondary);
   }
 
-  .lw-site-footer__inner {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--space-4) var(--space-8);
-    padding-block: var(--space-6);
+  .lw-site-footer__grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-8);
+    padding-block: var(--space-12) var(--space-10);
   }
 
   .lw-site-footer__brand {
-    color: var(--color-text-primary);
-    font: var(--text-heading-sm);
-    letter-spacing: var(--letter-spacing-heading);
-    text-decoration: none;
-  }
-
-  .lw-site-footer__navigation ul {
     display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-3) var(--space-5);
-    list-style: none;
+    max-width: 460px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-5);
+    grid-column: 1 / -1;
   }
 
-  .lw-site-footer__navigation a,
-  .lw-site-footer__copyright {
+  .lw-site-footer__credit,
+  .lw-site-footer__links a,
+  .lw-site-footer__closing {
     color: var(--color-text-secondary);
     font: var(--text-body-sm);
   }
 
-  .lw-site-footer__navigation a {
+  .lw-site-footer__credit {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    text-wrap: pretty;
+  }
+
+  .lw-site-footer__heading {
+    margin-block-end: var(--space-4);
+    color: var(--color-text-secondary);
+    font: var(--text-label-sm);
+    letter-spacing: var(--letter-spacing-caps);
+    text-transform: uppercase;
+  }
+
+  .lw-site-footer__links {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-3);
+    list-style: none;
+  }
+
+  .lw-site-footer__links a {
     text-decoration-color: transparent;
   }
 
-  .lw-site-footer__navigation a:hover {
+  .lw-site-footer__links a:hover {
     color: var(--color-text-link-hover);
     text-decoration-color: currentColor;
   }
 
-  .lw-site-footer__copyright {
-    white-space: nowrap;
-  }
-
-  .lw-site-footer__credit {
-    padding-bottom: var(--space-6);
-    color: var(--color-text-secondary);
-    font: var(--text-body-sm);
-    text-wrap: pretty;
+  .lw-site-footer__closing {
+    border-top: 1px solid var(--color-border-component);
+    padding-block: var(--space-5) var(--space-6);
   }
 
   @media (max-width: 767px) {
-    .lw-site-footer__inner {
-      align-items: flex-start;
-      flex-direction: column;
+    .lw-site-footer__links a {
+      display: inline-flex;
+      min-height: var(--target-min-inline);
+      align-items: center;
+    }
+  }
+
+  @media (min-width: 768px) {
+    .lw-site-footer__grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .lw-site-footer__grid {
+      grid-template-columns: minmax(0, 1fr) repeat(3, minmax(0, 180px));
+    }
+
+    .lw-site-footer__brand {
+      grid-column: auto;
     }
   }
 </style>

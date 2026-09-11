@@ -36,6 +36,14 @@ describe('the footer credit', () => {
     expect(source).toContain('a Valve service');
   });
 
+  it('denies any affiliation beside the credit', () => {
+    expect(flat(FOOTER)).toContain('LUDWISE is not affiliated with IGDB, Twitch or Valve.');
+  });
+
+  it('sits outside every disclosure element', () => {
+    expect(read(FOOTER)).not.toContain('<details');
+  });
+
   it('renders on every page through the one layout', () => {
     // The footer credits the integration rather than the page, so it must not
     // depend on what a response carried.
