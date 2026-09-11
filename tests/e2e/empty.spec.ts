@@ -2,6 +2,7 @@ import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
 
 import { PROVENANCE_EXPLANATIONS } from '../helpers/data-notes.js';
+import { LOGOTYPES } from '../helpers/logotypes.js';
 
 /**
  * What the site says when LUDWISE has ingested nothing at all.
@@ -16,13 +17,16 @@ import { PROVENANCE_EXPLANATIONS } from '../helpers/data-notes.js';
  * This suite is what proves the interface acts on it.
  */
 
-const LOGOTYPE = '.lw-header__wordmark-accent';
-
 async function auditFor(page: Page): Promise<void> {
-  const results = await new AxeBuilder({ page })
-    .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'])
-    .exclude(LOGOTYPE)
-    .analyze();
+  const builder = new AxeBuilder({ page }).withTags([
+    'wcag2a',
+    'wcag2aa',
+    'wcag21a',
+    'wcag21aa',
+    'wcag22aa',
+  ]);
+  for (const logotype of LOGOTYPES) builder.exclude(logotype);
+  const results = await builder.analyze();
   expect(results.violations).toEqual([]);
 }
 

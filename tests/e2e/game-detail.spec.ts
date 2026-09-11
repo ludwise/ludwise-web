@@ -4,19 +4,24 @@ import { expect, test, type Page } from '@playwright/test';
 import { THEME_COOKIE_NAME } from '../../src/lib/http/theme.js';
 import { DATA_NOTES, DATA_NOTES_SUMMARY, DATA_SOURCES_LEAD } from '../helpers/data-notes.js';
 import { E2E_NOW_MS } from '../helpers/e2e-time.js';
+import { LOGOTYPES } from '../helpers/logotypes.js';
 
 const BASE_URL = 'http://localhost:4321';
 const DETAIL_ROUTE = '/games/canonical-demo';
 const STATES_ROUTE = '/games/states-demo';
 const VIEWPORT_HEIGHT = 900;
 const THEMES = ['light', 'dark'] as const;
-const LOGOTYPE = '.lw-header__wordmark-accent';
 
 async function auditFor(page: Page): Promise<void> {
-  const results = await new AxeBuilder({ page })
-    .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'])
-    .exclude(LOGOTYPE)
-    .analyze();
+  const builder = new AxeBuilder({ page }).withTags([
+    'wcag2a',
+    'wcag2aa',
+    'wcag21a',
+    'wcag21aa',
+    'wcag22aa',
+  ]);
+  for (const logotype of LOGOTYPES) builder.exclude(logotype);
+  const results = await builder.analyze();
   expect(results.violations).toEqual([]);
 }
 

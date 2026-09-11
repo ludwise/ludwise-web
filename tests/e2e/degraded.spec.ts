@@ -2,6 +2,7 @@ import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
 
 import { PROVENANCE_EXPLANATIONS } from '../helpers/data-notes.js';
+import { LOGOTYPES } from '../helpers/logotypes.js';
 
 /**
  * What a visitor sees when the backend does not answer.
@@ -15,8 +16,6 @@ import { PROVENANCE_EXPLANATIONS } from '../helpers/data-notes.js';
  * destroyed rather than answered with a 503. A 503 is the backend telling us something, and
  * this is the backend not being there, a different path through the client.
  */
-
-const LOGOTYPE = '.lw-header__wordmark-accent';
 
 /** Sentences that would be lies when the backend did not answer. */
 const FALSE_CLAIMS = [
@@ -41,10 +40,15 @@ const LEAKS = [
 ];
 
 async function auditFor(page: Page): Promise<void> {
-  const results = await new AxeBuilder({ page })
-    .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'])
-    .exclude(LOGOTYPE)
-    .analyze();
+  const builder = new AxeBuilder({ page }).withTags([
+    'wcag2a',
+    'wcag2aa',
+    'wcag21a',
+    'wcag21aa',
+    'wcag22aa',
+  ]);
+  for (const logotype of LOGOTYPES) builder.exclude(logotype);
+  const results = await builder.analyze();
   expect(results.violations).toEqual([]);
 }
 

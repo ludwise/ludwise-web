@@ -155,3 +155,29 @@ export function selectLegalFooterPolicies<T extends LegalPolicyEntry>(
     .filter((policy): policy is T => policy !== undefined)
     .sort((left, right) => left.data.order - right.data.order);
 }
+
+const CONTACT_POLICY_ID = 'contact';
+
+export interface LegalFooterColumns<T extends LegalPolicyEntry> {
+  legal: T[];
+  contact: T | undefined;
+}
+
+/**
+ * The footer policies, split between the Legal column and the Contact column.
+ *
+ * The contact policy goes to the Contact column. Every other footer policy goes
+ * to the Legal column, in footer order.
+ */
+export function selectLegalFooterColumns<T extends LegalPolicyEntry>(
+  policies: readonly T[],
+  locale: string,
+  production: boolean,
+): LegalFooterColumns<T> {
+  const footerPolicies = selectLegalFooterPolicies(policies, locale, production);
+
+  return {
+    legal: footerPolicies.filter((policy) => policy.data.policyId !== CONTACT_POLICY_ID),
+    contact: footerPolicies.find((policy) => policy.data.policyId === CONTACT_POLICY_ID),
+  };
+}

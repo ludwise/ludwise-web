@@ -1,7 +1,8 @@
 import AxeBuilder from '@axe-core/playwright';
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test, type Locator, type Page } from '@playwright/test';
 
 import { THEME_COOKIE_NAME } from '../../src/lib/http/theme.js';
+import { LOGOTYPES } from '../helpers/logotypes.js';
 
 /**
  * The one end-to-end specification.
@@ -24,22 +25,12 @@ const THEMES = ['light', 'dark'] as const;
 const THEME_COOKIE = THEME_COOKIE_NAME;
 const BASE_URL = 'http://localhost:4321';
 
-/**
- * The LUDWISE wordmark, which axe reports as a contrast failure in the light
- * theme: `--color-accent-primary` on the page background measures 2.06:1.
- *
- * Excluded because WCAG 1.4.3 exempts it — "text that is part of a logo or
- * brand name has no contrast requirement" — and the color is the design
- * system's own, specified in design/system/components/foundation.md. Changing
- * it here would be redesigning the brand to satisfy a rule that does not apply
- * to it.
- *
- * It is a narrow exclusion of one element rather than of the rule, so any other
- * contrast failure anywhere still fails. The underlying legibility question is
- * raised with the designer separately. Delete this the moment the wordmark's
- * color changes.
- */
-const LOGOTYPE = '.lw-header__wordmark-accent';
+/** The footer link columns in order. The Legal column omits Affiliate Disclosure because no affiliate link is active. */
+const FOOTER_COLUMNS = {
+  Project: ['About LUDWISE', 'Source code'],
+  Legal: ['Terms', 'Privacy', 'Cookies', 'Data sources'],
+  Contact: ['Contact', 'Security reports', 'Issue tracker'],
+} as const;
 
 /** Astro removes the `ssr` attribute from an island once it has filled. */
 async function waitForHydration(page: Page): Promise<void> {
@@ -47,10 +38,15 @@ async function waitForHydration(page: Page): Promise<void> {
 }
 
 async function auditFor(page: Page): Promise<void> {
-  const results = await new AxeBuilder({ page })
-    .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'])
-    .exclude(LOGOTYPE)
-    .analyze();
+  const builder = new AxeBuilder({ page }).withTags([
+    'wcag2a',
+    'wcag2aa',
+    'wcag21a',
+    'wcag21aa',
+    'wcag22aa',
+  ]);
+  for (const logotype of LOGOTYPES) builder.exclude(logotype);
+  const results = await builder.analyze();
 
   // Reported as the full violation list rather than a count, so a failure names
   // the rule and the node instead of only the number.
@@ -177,6 +173,7 @@ test.describe('the application shell', () => {
       await expect(footer).toContainText(
         'Game information comes from IGDB.com. Store information comes from Steam, a Valve service.',
       );
+      await expect(footer).toContainText('LUDWISE is not affiliated with IGDB, Twitch or Valve.');
       await expect(footer.getByRole('link', { name: 'IGDB.com' })).toHaveAttribute(
         'href',
         'https://www.igdb.com/',
@@ -194,6 +191,17 @@ test.describe('the application shell', () => {
     }
   });
 
+  test('groups the footer links into three labelled columns', async ({ page }) => {
+    await page.goto('/');
+    const footer = page.getByRole('contentinfo');
+
+    await expect(footer.getByRole('link', { name: 'LUDWISE home' })).toBeVisible();
+    for (const [name, links] of Object.entries(FOOTER_COLUMNS)) {
+      await expect(footer.getByRole('navigation', { name }).getByRole('link')).toHaveText(links);
+    }
+    await expect(footer).toContainText(/© \d{4} LUDWISE/u);
+  });
+
   test('serves the data sources page that the footer credit links to', async ({ page }) => {
     await page.goto('/');
     await page.getByRole('contentinfo').getByRole('link', { name: 'Data sources' }).click();
@@ -203,7 +211,7 @@ test.describe('the application shell', () => {
     // The statement the IGDB and Valve terms both need, on the page that
     // holds the full credit.
     await expect(
-      page.getByText('LUDWISE is not affiliated with IGDB, Twitch or Valve.'),
+      page.getByRole('main').getByText('LUDWISE is not affiliated with IGDB, Twitch or Valve.'),
     ).toBeVisible();
   });
 
@@ -395,4 +403,77 @@ test.describe('responsive', () => {
       });
     }
   }
+});
+
+type Box = NonNullable<Awaited<ReturnType<Locator['boundingBox']>>>;
+
+async function footerBoxes(page: Page): Promise<{ brand: Box; columns: Box[] }> {
+  const footer = page.getByRole('contentinfo');
+  const box = async (locator: Locator): Promise<Box> => {
+    const found = await locator.boundingBox();
+    if (found === null) throw new Error('A footer element has no layout box.');
+    return found;
+  };
+
+  return {
+    brand: await box(footer.locator('.lw-site-footer__brand')),
+    columns: await Promise.all(
+      Object.keys(FOOTER_COLUMNS).map((name) => box(footer.getByRole('navigation', { name }))),
+    ),
+  };
+}
+
+test.describe('footer layout', () => {
+  for (const width of [320, 768, 1024, 1600]) {
+    test(`does not scroll horizontally at ${String(width)}px`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 900 });
+      await page.goto('/');
+
+      const overflows = await page.evaluate(
+        () => document.documentElement.scrollWidth > document.documentElement.clientWidth,
+      );
+      expect(overflows).toBe(false);
+    });
+  }
+
+  for (const width of [1024, 1600]) {
+    test(`sets the brand beside the three link columns at ${String(width)}px`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 900 });
+      await page.goto('/');
+
+      const { brand, columns } = await footerBoxes(page);
+      for (const column of columns) {
+        expect(column.y).toBe(brand.y);
+        expect(column.x).toBeGreaterThan(brand.x + brand.width);
+      }
+    });
+  }
+
+  test('puts the three link columns in one row beneath the brand at 768px', async ({ page }) => {
+    await page.setViewportSize({ width: 768, height: 900 });
+    await page.goto('/');
+
+    const { brand, columns } = await footerBoxes(page);
+    for (const column of columns) {
+      expect(column.y).toBe(columns[0]!.y);
+      expect(column.y).toBeGreaterThan(brand.y + brand.height);
+    }
+  });
+
+  test('puts the link columns in two tracks beneath the brand at 375px', async ({ page }) => {
+    await page.setViewportSize({ width: 375, height: 900 });
+    await page.goto('/');
+
+    const { brand, columns } = await footerBoxes(page);
+    const [project, legal, contact] = columns;
+    expect(project!.y).toBeGreaterThan(brand.y + brand.height);
+    expect(legal!.y).toBe(project!.y);
+    expect(contact!.x).toBe(project!.x);
+    expect(contact!.y).toBeGreaterThan(project!.y + project!.height);
+
+    const links = page.getByRole('contentinfo').getByRole('navigation').getByRole('link');
+    for (const link of await links.all()) {
+      expect((await link.boundingBox())!.height).toBeGreaterThanOrEqual(24);
+    }
+  });
 });
