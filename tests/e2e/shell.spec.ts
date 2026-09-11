@@ -2,6 +2,7 @@ import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Locator, type Page } from '@playwright/test';
 
 import { THEME_COOKIE_NAME } from '../../src/lib/http/theme.js';
+import { LOGOTYPES } from '../helpers/logotypes.js';
 
 /**
  * The one end-to-end specification.
@@ -23,22 +24,6 @@ const THEMES = ['light', 'dark'] as const;
 // it to drift.
 const THEME_COOKIE = THEME_COOKIE_NAME;
 const BASE_URL = 'http://localhost:4321';
-
-/**
- * The LUDWISE wordmark accent in the header and in the footer lockup. Axe
- * reports it as a contrast failure in the light theme: `--color-accent-primary`
- * on the page background measures 2.06:1.
- *
- * Excluded because WCAG 1.4.3 exempts it — "text that is part of a logo or
- * brand name has no contrast requirement" — and the color is the design
- * system's own, specified in design/system/components/foundation.md.
- *
- * It is a narrow exclusion of the accent elements rather than of the rule, so
- * any other contrast failure anywhere still fails. The underlying legibility
- * question is raised with the designer separately. Delete this the moment the
- * wordmark's color changes.
- */
-const LOGOTYPES = ['.lw-header__wordmark-accent', '.lw-wordmark__accent'] as const;
 
 /** The footer link columns in order. The Legal column omits Affiliate Disclosure because no affiliate link is active. */
 const FOOTER_COLUMNS = {

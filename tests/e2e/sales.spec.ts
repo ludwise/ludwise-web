@@ -2,6 +2,7 @@ import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
 
 import { DATA_NOTES, DATA_NOTES_SUMMARY } from '../helpers/data-notes.js';
+import { LOGOTYPES } from '../helpers/logotypes.js';
 
 /**
  * The sales page against a populated database.
@@ -18,16 +19,16 @@ import { DATA_NOTES, DATA_NOTES_SUMMARY } from '../helpers/data-notes.js';
 const THEME_COOKIE = 'theme';
 const THEMES = ['light', 'dark'] as const;
 
-// The one accepted exception, excluded here for the same reason
-// tests/e2e/shell.spec.ts excludes it. The logotype's accent is brand, it is
-// decorative, and the wordmark reads without it.
-const LOGOTYPE = '.lw-header__wordmark-accent';
-
 async function auditFor(page: Page): Promise<void> {
-  const results = await new AxeBuilder({ page })
-    .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'])
-    .exclude(LOGOTYPE)
-    .analyze();
+  const builder = new AxeBuilder({ page }).withTags([
+    'wcag2a',
+    'wcag2aa',
+    'wcag21a',
+    'wcag21aa',
+    'wcag22aa',
+  ]);
+  for (const logotype of LOGOTYPES) builder.exclude(logotype);
+  const results = await builder.analyze();
   expect(results.violations).toEqual([]);
 }
 
