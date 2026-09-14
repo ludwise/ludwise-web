@@ -1,67 +1,48 @@
 ---
 /**
- * How old one observation is, in words.
+ * How current one price is, in the backend's word and the phrase for its age.
  *
- * `src/lib/state/freshness.ts` owns the age boundaries. A page reads the same
- * ones to decide whether it may present itself as current. A second copy here
- * would let a row and its page disagree.
+ * `src/lib/state/freshness.ts` turns the word into what renders here. This
+ * component draws it and decides nothing, so a row and its page cannot disagree.
  */
 import Icon from '../foundation/Icon.astro';
+import type { IconName } from '../foundation/icons.js';
 import { formatObservationTimestamp } from '../../lib/formatting/freshness.js';
-import {
-  FRESHNESS_DAY_MS,
-  FRESHNESS_HOUR_MS,
-  FRESHNESS_MINUTE_MS,
-  FRESHNESS_WEEK_MS,
-  type FreshnessLevel,
-  freshnessLevel,
-  observationAgeMs,
-} from '../../lib/state/freshness.js';
+import { offerFreshnessView, type OfferFreshnessState } from '../../lib/state/freshness.js';
+import type { FreshnessView } from './view-models.js';
 
-interface Props {
-  availability: 'available' | 'unavailable' | 'unknown' | null;
-  observedAtMs: number | null;
-  storeName: string;
-  /** SSR test time. Production callers omit it. */
-  nowMs?: number | undefined;
-}
+type Props = FreshnessView;
 
-const { availability, observedAtMs, storeName, nowMs } = Astro.props;
-const now = nowMs ?? Date.now();
-const level = freshnessLevel({ availability, observedAtMs, nowMs: now });
-const ageMs = observationAgeMs(observedAtMs, now);
+const { nowMs, ...offer } = Astro.props;
+const view = offerFreshnessView(offer, nowMs ?? Date.now());
 
-function labelFor(state: FreshnessLevel, age: number | null, store: string): string {
-  if (state === 'unavailable') return `${store} temporarily unavailable`;
-  if (age === null) return 'Freshness not provided';
-  if (state === 'fresh') {
-    return age < FRESHNESS_MINUTE_MS
-      ? 'Updated just now'
-      : `Updated ${Math.floor(age / FRESHNESS_MINUTE_MS)} min ago`;
-  }
-  if (state === 'aging') return `Checked ${Math.floor(age / FRESHNESS_HOUR_MS)} hours ago`;
-  return age < FRESHNESS_WEEK_MS
-    ? `Last checked ${Math.floor(age / FRESHNESS_DAY_MS)} days ago`
-    : 'Price may be out of date';
-}
+const absolute = view.observedAtMs === null ? null : formatObservationTimestamp(view.observedAtMs);
+const iso = view.observedAtMs === null ? null : new Date(view.observedAtMs).toISOString();
 
-const label = labelFor(level, ageMs, storeName);
-
-const absolute = observedAtMs === null ? null : formatObservationTimestamp(observedAtMs);
-const iso = observedAtMs === null ? null : new Date(observedAtMs).toISOString();
-const icon =
-  level === 'unavailable'
-    ? 'circle-alert'
-    : level === 'stale'
-      ? 'clock-fading'
-      : level === 'unknown'
-        ? 'circle-question-mark'
-        : null;
+/** `recently_verified` draws the solid dot instead of a glyph. */
+const ICONS: Record<OfferFreshnessState, IconName | null> = {
+  recently_verified: null,
+  stale: 'clock-fading',
+  never_verified: 'circle-question-mark',
+  not_provided: 'circle-question-mark',
+  unavailable: 'circle-alert',
+};
+const icon = ICONS[view.state];
 ---
 
-<span class="lw-freshness" data-level={level} title={absolute ?? undefined}>
+<span class="lw-freshness" data-state={view.state} title={absolute ?? undefined}>
   {icon ? <Icon name={icon} size="sm" /> : <span class="lw-freshness__dot" aria-hidden="true" />}
-  {iso ? <time datetime={iso}>{label}</time> : <span>{label}</span>}
+  <span class="lw-freshness__text">
+    {
+      view.warning && (
+        <span class="lw-freshness__warning">
+          {view.warning}
+          <span class="lw-visually-hidden">.</span>
+        </span>
+      )
+    }
+    {iso ? <time datetime={iso}>{view.phrase}</time> : <span>{view.phrase}</span>}
+  </span>
   {absolute && <span class="lw-visually-hidden">Exact time: {absolute}</span>}
 </span>
 
@@ -76,15 +57,15 @@ const icon =
     font: var(--text-caption);
     line-height: 1.35;
   }
-  .lw-freshness > time,
-  .lw-freshness > span:not(.lw-visually-hidden) {
+  .lw-freshness__text {
+    display: inline-flex;
+    flex-wrap: wrap;
+    column-gap: var(--space-2);
+    min-width: 0;
     overflow-wrap: anywhere;
   }
-  .lw-freshness[data-level='stale'] {
-    color: var(--color-text-secondary);
-  }
-  .lw-freshness[data-level='unavailable'] {
-    color: var(--color-text-secondary);
+  .lw-freshness__warning {
+    color: var(--color-text-primary);
   }
   .lw-freshness__dot {
     width: 8px;
@@ -92,9 +73,5 @@ const icon =
     flex: none;
     border-radius: var(--radius-full);
     background: var(--color-freshness-fresh);
-  }
-  .lw-freshness[data-level='aging'] .lw-freshness__dot {
-    background: transparent;
-    border: 1.5px solid var(--color-freshness-aging);
   }
 </style>

@@ -7,14 +7,14 @@
  * same words there describe data that does not exist, which `PRODUCT.md` §120
  * forbids as firmly as a fabricated value.
  *
- * `freshness.ts` owns the age boundaries and this module reads them. A note
- * about old prices must fire on the boundary the indicator beside it uses.
+ * A note about stale prices reads the backend word, as the indicator beside
+ * it does. Neither reads an age threshold.
  */
 
-import { ageLevel, observationAgeMs, type PricedObservation } from './freshness.js';
+import type { PricedFreshness } from './freshness.js';
 
-/** An offer, in the three fields an explanation can depend on. */
-export interface ExplainableOffer extends PricedObservation {
+/** An offer, in the fields an explanation can depend on. */
+export interface ExplainableOffer extends PricedFreshness {
   /**
    * Worked out by the backend from the two prices a store supplied.
    *
@@ -28,10 +28,8 @@ export interface ExplainableOffer extends PricedObservation {
 export interface SurfaceProvenance {
   /** A priced offer carries the time LUDWISE read it. */
   readonly hasCheckTimes: boolean;
-  /** A priced offer carries no such time, so the surface renders an absence. */
-  readonly hasUntimedPrices: boolean;
-  /** A check time is old enough that the price may have changed since. */
-  readonly hasOldCheckTimes: boolean;
+  /** The backend calls a priced offer stale. */
+  readonly hasStalePrices: boolean;
   /** A discount LUDWISE worked out from two store prices is on screen. */
   readonly hasDerivedDiscounts: boolean;
 }
@@ -42,17 +40,12 @@ export interface SurfaceProvenance {
  * Every note explains something a visitor can read beside a price. An offer
  * the store quoted none for puts nothing on screen for them to ask about.
  */
-export function surfaceProvenance(
-  offers: readonly ExplainableOffer[],
-  nowMs: number,
-): SurfaceProvenance {
+export function surfaceProvenance(offers: readonly ExplainableOffer[]): SurfaceProvenance {
   const priced = offers.filter((offer) => offer.price !== null);
-  const ages = priced.map((offer) => observationAgeMs(offer.observedAtMs, nowMs));
 
   return {
-    hasCheckTimes: ages.some((age) => age !== null),
-    hasUntimedPrices: ages.some((age) => age === null),
-    hasOldCheckTimes: ages.some((age) => age !== null && ageLevel(age) === 'stale'),
+    hasCheckTimes: priced.some((offer) => offer.observedAtMs !== null),
+    hasStalePrices: priced.some((offer) => offer.freshness === 'stale'),
     hasDerivedDiscounts: priced.some((offer) => offer.discountPercentage !== null),
   };
 }
@@ -60,9 +53,9 @@ export function surfaceProvenance(
 /**
  * Whether the surface holds anything an explanation could be about.
  *
- * An old check time is one a surface already has, so it is not a separate
- * answer here. A surface with no priced offer explains nothing at all.
+ * A stale price is one a surface already has a check time for, so it is not a
+ * separate answer here. A surface with no priced offer explains nothing at all.
  */
 export function explainsProvenance(provenance: SurfaceProvenance): boolean {
-  return provenance.hasCheckTimes || provenance.hasUntimedPrices || provenance.hasDerivedDiscounts;
+  return provenance.hasCheckTimes || provenance.hasDerivedDiscounts;
 }

@@ -70,7 +70,8 @@
             "minorUnit": 2
           },
           "discountPercentage": 80,
-          "observedAtMs": 1750000000000
+          "observedAtMs": 1750000000000,
+          "freshness": "recently_verified"
         },
         "storeCount": 1
       },
@@ -94,7 +95,8 @@
             "minorUnit": 2
           },
           "discountPercentage": 66,
-          "observedAtMs": 1750000000000
+          "observedAtMs": 1750000000000,
+          "freshness": "recently_verified"
         },
         "storeCount": 2
       },
@@ -118,7 +120,8 @@
             "minorUnit": 2
           },
           "discountPercentage": 50,
-          "observedAtMs": 1750000000000
+          "observedAtMs": 1750000000000,
+          "freshness": "recently_verified"
         },
         "storeCount": 1
       }

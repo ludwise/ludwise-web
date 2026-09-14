@@ -70,7 +70,8 @@
             "minorUnit": 2
           },
           "discountPercentage": 80,
-          "observedAtMs": 1750000000000
+          "observedAtMs": 1750000000000,
+          "freshness": "recently_verified"
         },
         "storeCount": 1
       }

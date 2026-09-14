@@ -120,14 +120,14 @@ const pageOutOfRange = view !== null && view.games.length === 0 && view.resultCo
 /**
  * How current this page of results is, as one statement.
  *
- * Each card already carries its own age. A visitor must not have to read every
- * card to learn that none of them is recent. A page with the heading "Current
- * sales" claims the opposite until it says so.
+ * Each card already carries its own freshness word. A visitor must not have to
+ * read every card to learn that one of them may be out of date. A page with the
+ * heading "Current sales" claims the opposite until it says so.
  */
 const nowMs = Astro.locals.nowMs ?? Date.now();
 const saleOffers = view?.games.map((game) => game.offer) ?? [];
-const salesFreshness = surfaceFreshness(saleOffers, nowMs);
-const salesProvenance = surfaceProvenance(saleOffers, nowMs);
+const salesFreshness = surfaceFreshness(saleOffers);
+const salesProvenance = surfaceProvenance(saleOffers);
 const retryHref = `${Astro.url.pathname}${Astro.url.search}`;
 const clearedFiltersPath = pathWithFiltersCleared(params);
 ---
@@ -505,6 +505,7 @@ const clearedFiltersPath = pathWithFiltersCleared(params);
                           editionLabel={game.offer.editionLabel}
                           releaseDate={game.releaseDate}
                           observedAtMs={game.offer.observedAtMs}
+                          freshness={game.offer.freshness}
                           storeName={game.offer.storeName}
                         />
                       </li>

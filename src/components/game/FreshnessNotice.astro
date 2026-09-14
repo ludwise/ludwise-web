@@ -1,12 +1,13 @@
 ---
 /**
- * What a page of offers says about its own currency, above the results.
+ * What a page of offers says about its own prices, above the results.
  *
  * One statement for the surface, beside the per-row `FreshnessIndicator`.
  * `design/system/guidelines/content-style.md` § Errors carries the form:
  * what happened, then what you are seeing instead.
  *
- * Renders nothing when the surface is current, which is the usual case.
+ * Renders only when the page word is `stale`. `surfaceFreshness` composes that
+ * word from the backend's offer words.
  */
 import InlineMessage from '../feedback/InlineMessage.astro';
 import { formatObservationTime } from '../../lib/formatting/freshness.js';
@@ -19,26 +20,18 @@ interface Props {
 
 const { freshness, nowMs } = Astro.props;
 
-const checkedAt =
-  freshness.newestObservedAtMs === null
+const oldestCheckedAt =
+  freshness.oldestStaleObservedAtMs === null
     ? null
-    : formatObservationTime(freshness.newestObservedAtMs, nowMs);
-const untimed = freshness.total > 0 && freshness.observedCount === 0;
+    : formatObservationTime(freshness.oldestStaleObservedAtMs, nowMs);
 ---
 
 {
-  freshness.level === 'stale' && checkedAt !== null && (
+  freshness.word === 'stale' && (
     <InlineMessage tone="warning" title="These prices may be out of date">
-      The newest price on this page was checked {checkedAt}. A store may have changed it since.
-    </InlineMessage>
-  )
-}
-
-{
-  untimed && (
-    <InlineMessage tone="warning" title="No store reported a check time">
-      No store reported when its price was last read, so LUDWISE cannot say how current these prices
-      are.
+      {oldestCheckedAt === null
+        ? 'A store may have changed a price since LUDWISE last checked it.'
+        : `The oldest price on this page was checked ${oldestCheckedAt}. A store may have changed it since.`}
     </InlineMessage>
   )
 }

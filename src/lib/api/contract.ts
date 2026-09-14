@@ -9,8 +9,9 @@
  * This file may know these shapes, the query parameter names, the error codes a
  * failure may carry, and the page sizes echoed back - nothing else. Evolution is
  * additive, so either side may deploy first. `T | null` is "looked, no value".
- * `?:` is "this deployment predates the field". Neither is ever a fabricated
- * default (`PRODUCT.md` §120).
+ * `?:` is "this deployment predates the field". `MediaImageView.variants` is
+ * the one exception: its absence can also mean "looked, no usable size".
+ * Neither is ever a fabricated default (`PRODUCT.md` §120).
  */
 
 /** Every money value carries its own exponent. See `MoneyView`. */
@@ -136,10 +137,20 @@ export interface OfferView {
   /**
    * When this price was last observed, in epoch milliseconds.
    *
-   * The interface renders freshness from this rather than implying a price is
-   * current. It is what makes a cached response honest about its own age.
+   * This gives the age phrase ("Updated 8 minutes ago"). It does not give the
+   * freshness word: that is `freshness`, computed by the backend against its
+   * own horizon (record 0042) rather than derived here.
    */
   readonly observedAtMs: number | null;
+  /**
+   * How old this offer's price is, in LUDWISE's own words (record 0042).
+   *
+   * Added additively. Older backends may omit this property during rollout.
+   * The backend computes the word against its own horizon, and a client
+   * renders it rather than computing a threshold of its own. `never_verified`
+   * is the word for `observedAtMs: null`.
+   */
+  readonly freshness?: DataFreshness;
 }
 
 /**
@@ -205,12 +216,37 @@ export interface MediaProvenanceView {
   readonly observedAtMs: number;
 }
 
+/**
+ * The same picture, as one provider size.
+ *
+ * `width` is the size the provider actually publishes, and never a size this
+ * backend promises and approximates. A client writes it into a `srcset`
+ * width descriptor unchanged.
+ */
+export interface MediaImageVariantView {
+  /** A public https address. Never a template and never an identifier. */
+  readonly url: string;
+  /** The true pixel width of this address, as the provider publishes it. */
+  readonly width: number;
+}
+
 export interface MediaImageView {
   /** A public https address. Never a template and never an identifier. */
   readonly url: string;
   readonly profile: MediaImageProfile;
   readonly sourceKind: MediaImageKind;
   readonly provenance: MediaProvenanceView;
+  /**
+   * One member for each distinct width the provider publishes, ascending by
+   * `width`. One member carries the address `url`, and no provider size
+   * name appears.
+   *
+   * Absent for two reasons: an older deployment predates `variants`, or the
+   * source stated no usable size for the original. In the second case this
+   * backend cannot state one either. A client that reads none renders `url`,
+   * as it does today.
+   */
+  readonly variants?: readonly MediaImageVariantView[];
 }
 
 export interface MediaVideoView {
@@ -281,6 +317,14 @@ export interface SaleOfferView {
   readonly referencePrice: MoneyView;
   readonly discountPercentage: number;
   readonly observedAtMs: number;
+  /**
+   * How old this offer's price is, in LUDWISE's own words (record 0042).
+   *
+   * Added additively. Older backends may omit this property during rollout.
+   * The backend computes the word against its own horizon, and a client
+   * renders it rather than computing a threshold of its own.
+   */
+  readonly freshness?: DataFreshness;
 }
 
 export interface SaleGameView {
@@ -334,6 +378,77 @@ export interface BrowseSalesView {
    * fabricated claim about the market.
    */
   readonly hasAnyOfferData: boolean;
+}
+
+// ---------------------------------------------------------------------------
+// GET /v1/home/*
+// ---------------------------------------------------------------------------
+
+/**
+ * Two rows of the four-column grid the home page renders
+ * (specification 007). Both `/v1/home/current-discounts` and
+ * `/v1/home/recently-added` cap their list at this size.
+ */
+export const HOME_LIST_SIZE = 8;
+
+/**
+ * How old one stored value is. Record 0042: the backend owns this word, and a
+ * client renders it rather than computing its own threshold.
+ */
+export const DATA_FRESHNESS_STATES = ['recently_verified', 'stale', 'never_verified'] as const;
+
+export type DataFreshness = (typeof DATA_FRESHNESS_STATES)[number];
+
+/** The market and currency pair both home lists quote every price in (ADR 0021). */
+export interface HomeContextView {
+  readonly marketCode: string;
+  readonly marketName: string;
+  readonly currencyCode: string;
+  readonly currencyMinorUnit: number;
+}
+
+export interface HomeOfferView {
+  readonly storeSlug: string;
+  readonly storeName: string;
+  readonly editionLabel: string | null;
+  readonly price: MoneyView;
+  /**
+   * What the store states as the regular price. `null` when the store stated
+   * none. It can be present on an offer that is not a sale.
+   */
+  readonly referencePrice: MoneyView | null;
+  /** Computed by the backend. `null` when this offer is not a sale. */
+  readonly discountPercentage: number | null;
+  readonly observedAtMs: number;
+  readonly freshness: DataFreshness;
+}
+
+export interface HomeGameView {
+  readonly id: string;
+  readonly slug: string;
+  readonly title: string;
+  /** The hero projection of game detail media. `null` when no source can supply one. */
+  readonly artwork: MediaImageView | null;
+  /** `null` when this game holds no qualifying offer in `context`. */
+  readonly offer: HomeOfferView | null;
+}
+
+export interface CurrentDiscountsView {
+  /** `null` when no pair holds a sale. */
+  readonly context: HomeContextView | null;
+  readonly games: readonly HomeGameView[];
+  readonly limit: number;
+  /** `null` when the list shows no offer. */
+  readonly freshness: DataFreshness | null;
+  /** Meaningful only when `context` is `null`. Same meaning as on `/v1/sales`. */
+  readonly hasAnyOfferData: boolean;
+}
+
+export interface RecentlyAddedView {
+  readonly context: HomeContextView | null;
+  readonly games: readonly HomeGameView[];
+  readonly limit: number;
+  readonly freshness: DataFreshness | null;
 }
 
 // ---------------------------------------------------------------------------

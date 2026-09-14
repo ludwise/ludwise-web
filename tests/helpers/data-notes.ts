@@ -17,10 +17,8 @@ export const DATA_NOTES_SUMMARY = 'How to read these prices';
 export const DATA_NOTES = {
   checkTimes:
     'A price here carries the time LUDWISE last read it at the store. That is not the time the store last changed it.',
-  untimedPrices:
-    'Not provided means the source did not say when it read the price. LUDWISE does not guess one.',
-  oldCheckTimes:
-    'A price LUDWISE read more than a day ago may be out of date. Open the store page to see what it costs now.',
+  stalePrices:
+    'LUDWISE marks a price as possibly out of date when it has not checked that price recently. Open the store page to see what it costs now.',
   derivedDiscounts:
     'The store gives both the current price and the regular price. LUDWISE works out the discount from the two.',
   noHistory:

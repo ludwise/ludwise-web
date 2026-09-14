@@ -115,7 +115,7 @@ test.describe('an empty catalogue', () => {
       await page.goto(path);
 
       await expect(page.getByText('These prices may be out of date')).toHaveCount(0);
-      await expect(page.getByText('No store reported a check time')).toHaveCount(0);
+      await expect(page.locator('.lw-freshness')).toHaveCount(0);
     });
 
     test(`${path} explains nothing about data it never observed`, async ({ page }) => {

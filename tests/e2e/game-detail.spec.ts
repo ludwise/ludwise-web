@@ -144,7 +144,9 @@ test.describe('game detail', () => {
     await auditFor(page);
   });
 
-  test('renders a missing price and freshness value explicitly', async ({ page }) => {
+  test('renders a missing price and an offer LUDWISE never verified explicitly', async ({
+    page,
+  }) => {
     await gotoStatesDetail(page);
 
     const missingPrice = offerRow(page, 'Fallow Store');
@@ -154,51 +156,68 @@ test.describe('game detail', () => {
     );
     await expect(missingPrice.locator('.lw-price')).toContainText('Not provided');
 
-    const missingFreshness = offerRow(page, 'Gable Store').locator('.lw-freshness');
-    await expect(missingFreshness).toHaveAttribute('data-level', 'unknown');
-    await expect(missingFreshness).toContainText('Freshness not provided');
-    await expect(missingFreshness.locator('time')).toHaveCount(0);
+    const neverVerified = offerRow(page, 'Gable Store').locator('.lw-freshness');
+    await expect(neverVerified).toHaveAttribute('data-state', 'never_verified');
+    await expect(neverVerified).toContainText('Not checked yet');
+    await expect(neverVerified).not.toContainText('out of date');
+    await expect(neverVerified.locator('time')).toHaveCount(0);
   });
 
-  test('renders distinct freshness ages and availability states', async ({ page }) => {
+  /**
+   * The fixture's words are the backend's. Echo Store is stale and Delta Store
+   * is recently verified. Each row renders its own word, and its age decides
+   * only the phrase.
+   */
+  test('renders the backend freshness word and the age phrase for each offer', async ({ page }) => {
     await gotoStatesDetail(page);
 
     const expected = [
-      { ageMs: 5 * 60 * 1000, level: 'fresh', label: 'Updated 5 min ago', store: 'Copper Shop' },
+      {
+        ageMs: 5 * 60 * 1000,
+        state: 'recently_verified',
+        label: 'Updated 5 min ago',
+        store: 'Copper Shop',
+      },
       {
         ageMs: 2 * 60 * 60 * 1000,
-        level: 'aging',
+        state: 'recently_verified',
         label: 'Checked 2 hours ago',
         store: 'Delta Store',
       },
       {
-        ageMs: 2 * 24 * 60 * 60 * 1000,
-        level: 'stale',
-        label: 'Last checked 2 days ago',
+        ageMs: 10 * 24 * 60 * 60 * 1000,
+        state: 'stale',
+        label: 'Last checked Aug 20, 2026',
         store: 'Echo Store',
       },
       {
         ageMs: 30 * 60 * 1000,
-        level: 'unavailable',
+        state: 'unavailable',
         label: 'Harbor Store temporarily unavailable',
         store: 'Harbor Store',
       },
     ] as const;
 
-    for (const state of expected) {
-      const freshness = offerRow(page, state.store).locator('.lw-freshness');
-      await expect(freshness).toHaveAttribute('data-level', state.level);
-      await expect(freshness).toContainText(state.label);
+    for (const offer of expected) {
+      const freshness = offerRow(page, offer.store).locator('.lw-freshness');
+      await expect(freshness).toHaveAttribute('data-state', offer.state);
+      await expect(freshness.locator('time')).toHaveText(offer.label);
       await expect(freshness.locator('time')).toHaveAttribute(
         'datetime',
-        new Date(E2E_NOW_MS - state.ageMs).toISOString(),
+        new Date(E2E_NOW_MS - offer.ageMs).toISOString(),
       );
     }
 
-    await expect(offerRow(page, 'Gable Store').locator('.lw-freshness')).toHaveAttribute(
-      'data-level',
-      'unknown',
+    // A stale offer says so in words, not by its glyph alone, and a recently
+    // verified one never does.
+    await expect(offerRow(page, 'Echo Store').locator('.lw-freshness')).toContainText(
+      'Price may be out of date',
     );
+    await expect(offerRow(page, 'Copper Shop').locator('.lw-freshness')).not.toContainText(
+      'out of date',
+    );
+
+    await auditFor(page);
   });
 
   test('renders a truthful no-offer state without treating it as an error', async ({ page }) => {
@@ -230,27 +249,38 @@ test.describe('game detail', () => {
     await expect(page.locator('[role="alert"]')).toHaveCount(0);
   });
 
-  test('says once that every price on the page is old', async ({ page }) => {
-    // The canonical fixture was observed on 15 June 2025 and the suite's clock
-    // is 30 August 2026. A page of offers that says nothing about that presents
-    // a year-old price as the price.
+  test('says once that the prices on a stale page may be out of date', async ({ page }) => {
+    // The backend calls every offer on the canonical fixture stale. A page of
+    // offers that says nothing about that presents an old price as the price.
     await page.goto(DETAIL_ROUTE);
 
-    await expect(page.getByText('These prices may be out of date')).toBeVisible();
+    await expect(page.getByText('These prices may be out of date')).toHaveCount(1);
     await expect(
-      page.getByText('The newest price on this page was checked Jun 15, 2025.'),
+      page.getByText('The oldest price on this page was checked Jun 15, 2025.'),
     ).toBeVisible();
   });
 
-  test('reads the page age from the newest offer, not the oldest', async ({ page }) => {
-    // The states fixture holds an offer checked two days ago beside one checked
-    // five minutes ago. One old row does not make the page out of date, and a
-    // warning that fires on it is one a visitor learns to ignore.
+  test('warns when any priced offer is stale, even beside one checked minutes ago', async ({
+    page,
+  }) => {
+    // One offer was checked five minutes ago, and Echo Store is stale. The
+    // newest offer does not speak for the page (ludwise-backend record 0042).
     await gotoStatesDetail(page);
 
-    await expect(offerRow(page, 'Echo Store').locator('.lw-freshness')).toHaveAttribute(
-      'data-level',
-      'stale',
+    await expect(page.getByText('These prices may be out of date')).toBeVisible();
+    await expect(
+      page.getByText('The oldest price on this page was checked Aug 20, 2026.'),
+    ).toBeVisible();
+  });
+
+  test('does not warn on a page whose every price is recently verified', async ({ page }) => {
+    // Its instant is a year before the suite's clock. The word is the
+    // backend's, and this client holds no horizon to overrule it.
+    await page.goto('/games/half-off-demo');
+
+    await expect(page.locator('.lw-freshness').first()).toHaveAttribute(
+      'data-state',
+      'recently_verified',
     );
     await expect(page.getByText('These prices may be out of date')).toHaveCount(0);
   });
@@ -271,28 +301,19 @@ test.describe('game detail', () => {
     await summary.click();
 
     await expect(page.getByText(DATA_NOTES.checkTimes)).toBeVisible();
-    // Every price here was read in June 2025 against a clock of August 2026.
-    await expect(page.getByText(DATA_NOTES.oldCheckTimes)).toBeVisible();
+    // The backend calls these prices stale.
+    await expect(page.getByText(DATA_NOTES.stalePrices)).toBeVisible();
     // One offer is discounted, and the backend worked that percentage out.
     await expect(page.getByText(DATA_NOTES.derivedDiscounts)).toBeVisible();
     await expect(page.getByText(DATA_NOTES.noHistory)).toBeVisible();
-    // Every store here reported when it was read, so there is no absence to
-    // explain. A note that fires anyway describes a state nobody can see.
-    await expect(page.getByText(DATA_NOTES.untimedPrices)).toHaveCount(0);
   });
 
-  test('explains a missing check time only where one is missing', async ({ page }) => {
-    await gotoStatesDetail(page);
+  test('explains a stale price only where the backend called one stale', async ({ page }) => {
+    await page.goto('/games/half-off-demo');
 
     await page.getByText(DATA_NOTES_SUMMARY).click();
-    await expect(page.getByText(DATA_NOTES.untimedPrices)).toBeVisible();
-    // One row was read two days ago, so the note that explains an old price
-    // belongs here even though the page-level warning stays silent. That
-    // warning reads the newest observation. A visitor reads one row.
-    await expect(page.getByText(DATA_NOTES.oldCheckTimes)).toBeVisible();
-    await expect(page.getByText('These prices may be out of date')).toHaveCount(0);
-    // No offer in this fixture is discounted.
-    await expect(page.getByText(DATA_NOTES.derivedDiscounts)).toHaveCount(0);
+    await expect(page.getByText(DATA_NOTES.checkTimes)).toBeVisible();
+    await expect(page.getByText(DATA_NOTES.stalePrices)).toHaveCount(0);
   });
 
   test('names the source of each price and the moment it was read', async ({ page }) => {

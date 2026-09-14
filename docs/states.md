@@ -32,32 +32,37 @@ the way in, and this table keeps them apart on the way out.
 | No prices collected    | `hasAnyOfferData` is false                                   | `EmptyState` that names the collection state, never the market                       |
 | No catalog details     | `metadata` is null, or holds nothing                         | `InlineMessage`, tone `info`, in place of the sections that would have rendered      |
 | A field LUDWISE lacks  | One field inside `metadata` is null                          | Nothing. The row is absent rather than filled with a placeholder                     |
-| Stale data             | The newest priced observation is a day old or more           | `FreshnessNotice`, once for the page, beside the per-row `FreshnessIndicator`        |
-| No observation time    | No priced offer on the page carries `observedAtMs`           | `FreshnessNotice`. Never rendered as an age                                          |
+| Stale data             | The backend calls a priced offer on the page `stale`         | `FreshnessNotice`, once for the page, beside the per-row `FreshnessIndicator`        |
+| Never verified         | The backend calls an offer `never_verified`                  | `FreshnessIndicator` says the offer was not checked yet. Never rendered as an age    |
 | Provider failure       | A read threw `LudwiseApiError`                               | `InlineMessage`, tone `danger`, with the code, the request id, and a retry           |
 | Words a price carries  | The surface holds at least one priced offer                  | `DataNotes`, one disclosure below the freshness notice. Nothing when it holds none   |
 | One offer's provenance | The offer carries `sourceName`, `observedAtMs`, or both      | `ProvenanceNote` inside the row's own disclosure. No summary when it carries neither |
 | A credited provider    | Provenance reached the page for metadata, media, or an offer | `DataSources`, in the open, with the sentence that says what a credit means          |
 
-## Why freshness is decided in one place
+## Why freshness has one producer
 
-`src/lib/state/freshness.ts` owns the age boundaries and answers two questions
-with them. `freshnessLevel` answers for one observation, which is what a row or
-a card shows. `surfaceFreshness` answers for a page.
+The backend owns the freshness word. Each offer on `/v1/games/:slug` and
+`/v1/sales` carries `freshness`: `recently_verified`, `stale` or
+`never_verified`. Record 0042 in `ludwise-backend` makes the backend the only
+producer, and it holds the horizon. This repository holds no threshold.
 
-A page is only as stale as its newest fact. One archived row beside fresh ones
-does not make the page old. A warning that fires on it is a warning a visitor
-learns to ignore. So `surfaceFreshness` reads the newest observation and never
-the oldest.
+`src/lib/state/freshness.ts` is the one presentation path for that word.
+`offerFreshnessView` turns one offer into what `FreshnessIndicator` shows. A
+stale offer always carries the words "Price may be out of date", whatever its
+age. An offer the store does not sell reads its availability instead. A response
+with no word renders "Freshness not provided", so it claims no verification.
 
-It reads only observations of offers that carry a price. "The newest price here
-was checked X" is a claim about prices. A store read minutes ago that quoted no
-price holds none. Counting it would silence the warning over a page whose every
-actual price is a year old.
+`surfaceFreshness` composes the page word from the words on its priced offers.
+`stale` outranks `never_verified`, and `never_verified` outranks
+`recently_verified`. This is the backend rule for a home list word. So one
+stale priced offer makes the page warn, even beside an offer checked minutes
+ago. A page that reported its newest offer would report its best case.
 
-`formatObservationTime` states that moment as a relative age within seven days,
-and as a date after. `design/system/guidelines/content-style.md` § Dates and
-times fixes that rule for the whole product.
+`src/lib/formatting/freshness.ts` owns the phrase. `formatCheckedPhrase` gives
+"Updated 8 min ago", "Checked 3 hours ago" or "Last checked 4 days ago", and a
+date after seven days. `design/system/guidelines/content-style.md` § Dates and
+times fixes that rule for the whole product. The phrase formats an age, and it
+never classifies one.
 
 ## Why an explanation is gated like a value
 
@@ -68,15 +73,8 @@ describes data that does not exist. It reads as though the prices are present
 and the visitor is looking in the wrong place.
 
 So `src/lib/state/provenance.ts` answers which notes a surface has earned, and
-`DataNotes` renders only those. It reads the age boundaries from
-`src/lib/state/freshness.ts` rather than restating one. A note about an old
-price must fire where the indicator beside it says the same thing.
-
-The two modules answer different questions about age, and both answers are
-correct at once. `surfaceFreshness` reads the newest observation, because that
-decides whether the page may present itself as current. `surfaceProvenance`
-reads every observation, because a single old row is a row a visitor can see
-and ask about.
+`DataNotes` renders only those. The note about a stale price reads the backend
+word, as the indicator beside it does. Neither reads an age threshold.
 
 ## Provider-supplied, LUDWISE-observed, and derived
 
@@ -117,7 +115,7 @@ can honestly describe it before issue #7 lands. `content-style.md` prohibits
 | `tests/e2e/sales.spec.ts`             | `pnpm run test:e2e`          | Stale data and filter recovery, against the recorded corpus          |
 | `tests/e2e/game-detail.spec.ts`       | `pnpm run test:e2e`          | Stale data, partial metadata, and the 404 that is not a failure      |
 | `tests/e2e/shell.spec.ts`             | `pnpm run test:e2e`          | The search field's in-flight state, and that the field keeps its box |
-| `tests/unit/state/freshness.test.ts`  | `pnpm test`                  | The age boundaries, and that a surface reads its newest observation  |
+| `tests/unit/state/freshness.test.ts`  | `pnpm test`                  | That each backend word renders, and that any stale price warns       |
 | `tests/unit/state/provenance.test.ts` | `pnpm test`                  | Which notes a surface has earned, and that an empty one earns none   |
 
 The two state suites are the boundary issue #93 inherits. A redesign may change

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  formatCheckedPhrase,
   formatObservationTime,
   formatObservationTimestamp,
 } from '../../../src/lib/formatting/freshness.js';
@@ -38,6 +39,35 @@ describe('when an observation was made, in words', () => {
 
   it('reads a timestamp ahead of the clock as the present, never as the future', () => {
     expect(formatObservationTime(NOW + DAY, NOW)).toBe('just now');
+  });
+});
+
+/**
+ * The phrase beside one price. `design/system/guidelines/content-style.md`
+ * § Freshness gives the three forms. The unit picks the form, and no freshness
+ * word does (architecture decision record 0042 in `ludwise-backend`).
+ */
+describe('when a price was checked, as the phrase beside it', () => {
+  it('uses the content-style form for each unit', () => {
+    expect(formatCheckedPhrase(ago(30_000), NOW)).toBe('Updated just now');
+    expect(formatCheckedPhrase(ago(8 * MINUTE), NOW)).toBe('Updated 8 min ago');
+    expect(formatCheckedPhrase(ago(3 * HOUR), NOW)).toBe('Checked 3 hours ago');
+    expect(formatCheckedPhrase(ago(4 * DAY), NOW)).toBe('Last checked 4 days ago');
+  });
+
+  it('names one hour and one day in the singular', () => {
+    expect(formatCheckedPhrase(ago(HOUR), NOW)).toBe('Checked 1 hour ago');
+    expect(formatCheckedPhrase(ago(DAY), NOW)).toBe('Last checked 1 day ago');
+  });
+
+  it('gives a date once a week has passed', () => {
+    expect(formatCheckedPhrase(Date.parse('2025-06-15T12:00:00.000Z'), NOW)).toBe(
+      'Last checked Jun 15, 2025',
+    );
+  });
+
+  it('reads a timestamp ahead of the clock as the present', () => {
+    expect(formatCheckedPhrase(NOW + DAY, NOW)).toBe('Updated just now');
   });
 });
 

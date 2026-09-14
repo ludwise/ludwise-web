@@ -11,6 +11,7 @@
  * is a plain module and not a re-export.
  */
 import type { MoneyView } from '../../lib/api/contract.js';
+import type { OfferFreshnessInput } from '../../lib/state/freshness.js';
 
 /** Whether a store currently sells the offer. `null` is a third answer. */
 export type AvailabilityView = 'available' | 'unavailable' | 'unknown' | null;
@@ -24,10 +25,7 @@ export interface PriceView {
 }
 
 /** The props of FreshnessIndicator.astro. */
-export interface FreshnessView {
-  availability: AvailabilityView;
-  observedAtMs: number | null;
-  storeName: string;
+export interface FreshnessView extends OfferFreshnessInput {
   /** SSR test time. Production callers omit it. */
   nowMs?: number | undefined;
 }
