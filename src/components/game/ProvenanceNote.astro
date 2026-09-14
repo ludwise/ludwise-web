@@ -29,23 +29,19 @@ const locale = resolveLocale(Astro.currentLocale);
 ---
 
 <div class:list={['lw-provenance', className]} data-compact={compact || undefined}>
-  {
-    derived && (
-      <p class="lw-provenance__derived">
-        <Icon name="info" size="sm" />
-        <span>{m.provenance_derived({}, { locale })}</span>
-      </p>
-    )
-  }
+  {derived && (
+    <p class="lw-provenance__derived">
+      <Icon name="info" size="sm" />
+      <span>{m.provenance_derived({}, { locale })}</span>
+    </p>
+  )}
   <dl class="lw-provenance__list">
-    {
-      items.map((item) => (
-        <Fragment>
-          <dt class="lw-provenance__label">{item.label}</dt>
-          <dd class="lw-provenance__value lw-tabular">{item.value}</dd>
-        </Fragment>
-      ))
-    }
+    {items.map((item) => (
+      <Fragment>
+        <dt class="lw-provenance__label">{item.label}</dt>
+        <dd class="lw-provenance__value lw-tabular">{item.value}</dd>
+      </Fragment>
+    ))}
   </dl>
 </div>
 

@@ -58,13 +58,11 @@ const TONE_WORD: Record<BannerTone, string> = {
     <span class="lw-visually-hidden">{TONE_WORD[tone]}: </span>
     <slot />
   </div>
-  {
-    Astro.slots.has('action') && (
-      <div class="lw-banner__action">
-        <slot name="action" />
-      </div>
-    )
-  }
+  {Astro.slots.has('action') && (
+    <div class="lw-banner__action">
+      <slot name="action" />
+    </div>
+  )}
   {dismissible && <IconButton icon="x" label={m.banner_dismiss({}, messageOptions)} size="sm" />}
 </div>
 

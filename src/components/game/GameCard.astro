@@ -76,15 +76,13 @@ const releaseYear =
     />
   </div>
 
-  {
-    (editionLabel || releaseYear) && (
-      <p class="lw-game-card__meta">
-        {editionLabel && <span>{editionLabel}</span>}
-        {editionLabel && releaseYear && <span aria-hidden="true">·</span>}
-        {releaseYear && <span>Released {releaseYear}</span>}
-      </p>
-    )
-  }
+  {(editionLabel || releaseYear) && (
+    <p class="lw-game-card__meta">
+      {editionLabel && <span>{editionLabel}</span>}
+      {editionLabel && releaseYear && <span aria-hidden="true">·</span>}
+      {releaseYear && <span>Released {releaseYear}</span>}
+    </p>
+  )}
 
   <div class="lw-game-card__freshness">
     <FreshnessIndicator

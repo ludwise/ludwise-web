@@ -55,13 +55,11 @@ const descriptionId = description === undefined ? undefined : `${radioId}-descri
   </span>
   <span class="lw-radio__body">
     <span class="lw-radio__label">{label}</span>
-    {
-      description && (
-        <span class="lw-radio__description" id={descriptionId}>
-          {description}
-        </span>
-      )
-    }
+    {description && (
+      <span class="lw-radio__description" id={descriptionId}>
+        {description}
+      </span>
+    )}
   </span>
 </label>
 

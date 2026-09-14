@@ -44,15 +44,15 @@ const TitleTag = titleAs;
     <Icon name={icon} size="xl" />
   </span>
   <TitleTag class="lw-empty-state__title">{title}</TitleTag>
-  <span class="lw-empty-state__body"><slot /></span>
-  {
-    hasActions && (
-      <div class="lw-empty-state__actions">
-        <slot name="action" />
-        <slot name="secondaryAction" />
-      </div>
-    )
-  }
+  <span class="lw-empty-state__body">
+    <slot />
+  </span>
+  {hasActions && (
+    <div class="lw-empty-state__actions">
+      <slot name="action" />
+      <slot name="secondaryAction" />
+    </div>
+  )}
 </div>
 
 <style>

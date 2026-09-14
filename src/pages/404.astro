@@ -6,29 +6,24 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 export const prerender = false;
 ---
 
-{
-  /* Not in the design handoff, which documents four product screens and no
+{/* Not in the design handoff, which documents four product screens and no
      error pages. Composed from EmptyState with the wording pattern in
      design/system/guidelines/content-style.md - what happened, why you are
      seeing this, what to do next. Recorded as an addition in
      docs/development/design-system.md.
 
      No activeNavId: this page is not a nav destination, and marking one
-     current would tell a screen reader the visitor is somewhere they are not. */
-}
+     current would tell a screen reader the visitor is somewhere they are not. */}
 <BaseLayout title="Page not found — LUDWISE">
   <PageContainer width="reading">
-    {
-      /* titleAs="h1" because this is the whole page, not a surface within one.
+    {/* titleAs="h1" because this is the whole page, not a surface within one.
          Rendered as a span - EmptyState's default, correct where it labels a
          surface - it would leave this page with no heading at all. A
-         screen reader navigating by heading with nothing to find. */
-    }
+         screen reader navigating by heading with nothing to find. */}
     <EmptyState icon="circle-question-mark" title="Page not found" titleAs="h1">
       There is nothing at this address. The page may have moved, or the link you followed may be
       wrong.
-      {
-        /* A link, not a Button. This navigates, and Button renders a
+      {/* A link, not a Button. This navigates, and Button renders a
            <button> - wrapping an anchor in one is invalid markup and gives a
            screen reader two nested controls to announce. Button's prop
            contract declares no href, which is the design system saying the
@@ -37,9 +32,10 @@ export const prerender = false;
            It carries the button's size and treatment because it is the only
            recovery path on the page. As bare body text it was a 20px-tall
            target. That is less than the 40px the design system requires of a
-           pointer surface. */
-      }
-      <a slot="action" class="lw-recovery-link" href="/">Go to the home page</a>
+           pointer surface. */}
+      <a slot="action" class="lw-recovery-link" href="/">
+        Go to the home page
+      </a>
     </EmptyState>
   </PageContainer>
 </BaseLayout>

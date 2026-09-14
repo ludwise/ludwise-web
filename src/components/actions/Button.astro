@@ -66,16 +66,16 @@ const tagProps: Record<string, string | boolean | undefined> =
   aria-busy={loading ? 'true' : undefined}
   {...tagProps}
 >
-  {
-    loading ? (
-      <span class="lw-button__spinner">
-        <Icon name="loader-circle" size={GLYPH_SIZE[size]} />
-      </span>
-    ) : (
-      iconStart && <Icon name={iconStart} size={GLYPH_SIZE[size]} />
-    )
-  }
-  <span><slot /></span>
+  {loading ? (
+    <span class="lw-button__spinner">
+      <Icon name="loader-circle" size={GLYPH_SIZE[size]} />
+    </span>
+  ) : (
+    iconStart && <Icon name={iconStart} size={GLYPH_SIZE[size]} />
+  )}
+  <span>
+    <slot />
+  </span>
   {!loading && iconEnd && <Icon name={iconEnd} size={GLYPH_SIZE[size]} />}
 </Tag>
 

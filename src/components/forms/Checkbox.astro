@@ -74,13 +74,11 @@ const descriptionId = description === undefined ? undefined : `${boxId}-descript
       <span class="lw-checkbox__label">{label}</span>
       {count != null && <span class="lw-checkbox__count lw-tabular">{count}</span>}
     </span>
-    {
-      description && (
-        <span class="lw-checkbox__description" id={descriptionId}>
-          {description}
-        </span>
-      )
-    }
+    {description && (
+      <span class="lw-checkbox__description" id={descriptionId}>
+        {description}
+      </span>
+    )}
   </span>
 </label>
 

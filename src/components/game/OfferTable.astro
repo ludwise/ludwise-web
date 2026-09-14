@@ -54,75 +54,75 @@ function provenanceItems(offer: OfferView): { label: string; value: string }[] {
   <table class="lw-offer-table">
     <caption class="lw-visually-hidden">
       {group.market?.name ?? 'Market not provided'}
-      {group.currency ? `, ${group.currency.code} offers` : ', currency not provided'} for {
-        gameTitle
-      }
+      {group.currency ? `, ${group.currency.code} offers` : ', currency not provided'}for{gameTitle}
     </caption>
     <thead>
       <tr>
         <th scope="col">Store</th>
         <th scope="col">Edition</th>
-        <th scope="col" class="lw-offer-table__price-heading">Price</th>
+        <th scope="col" class="lw-offer-table__price-heading">
+          Price
+        </th>
         <th scope="col">Checked</th>
-        <th scope="col"><span class="lw-visually-hidden">Action</span></th>
+        <th scope="col">
+          <span class="lw-visually-hidden">Action</span>
+        </th>
       </tr>
     </thead>
     <tbody>
-      {
-        offers.map((offer) => {
-          const href = actionUrl(offer);
-          const provenance = provenanceItems(offer);
-          return (
-            <tr data-availability={offer.availability ?? 'unknown'}>
-              <td data-label="Store">
-                <StoreIdentity name={offer.storeName} />
-                {provenance.length > 0 && (
-                  <details class="lw-offer-table__source">
-                    <summary>Source details</summary>
-                    <ProvenanceNote compact items={provenance} class="lw-offer-table__provenance" />
-                  </details>
-                )}
-              </td>
-              <td data-label="Edition">
-                <span>{editionLabel(offer)}</span>
-              </td>
-              <td data-label="Price" class="lw-offer-table__price-cell">
-                <Price
-                  price={offer.price}
-                  referencePrice={offer.referencePrice}
-                  discountPercentage={offer.discountPercentage}
-                  availability={offer.availability}
-                />
-                {offer.discountPercentage !== null && (
-                  <span class="lw-visually-hidden">Discount applies to this current price.</span>
-                )}
-              </td>
-              <td data-label="Checked">
-                <FreshnessIndicator
-                  availability={offer.availability}
-                  observedAtMs={offer.observedAtMs}
-                  storeName={offer.storeName}
-                  nowMs={nowMs}
-                />
-              </td>
-              <td data-label="Action" class="lw-offer-table__action">
-                {href ? (
-                  <a href={href} target="_blank" rel="noopener noreferrer">
-                    View at {offer.storeName}
-                    <span class="lw-visually-hidden">
-                      , {editionLabel(offer)}, {gameTitle}
-                    </span>
-                  </a>
-                ) : (
-                  <span class="lw-offer-table__not-provided">
-                    {offer.availability === 'unavailable' ? 'Unavailable' : 'Not provided'}
+      {offers.map((offer) => {
+        const href = actionUrl(offer);
+        const provenance = provenanceItems(offer);
+        return (
+          <tr data-availability={offer.availability ?? 'unknown'}>
+            <td data-label="Store">
+              <StoreIdentity name={offer.storeName} />
+              {provenance.length > 0 && (
+                <details class="lw-offer-table__source">
+                  <summary>Source details</summary>
+                  <ProvenanceNote compact items={provenance} class="lw-offer-table__provenance" />
+                </details>
+              )}
+            </td>
+            <td data-label="Edition">
+              <span>{editionLabel(offer)}</span>
+            </td>
+            <td data-label="Price" class="lw-offer-table__price-cell">
+              <Price
+                price={offer.price}
+                referencePrice={offer.referencePrice}
+                discountPercentage={offer.discountPercentage}
+                availability={offer.availability}
+              />
+              {offer.discountPercentage !== null && (
+                <span class="lw-visually-hidden">Discount applies to this current price.</span>
+              )}
+            </td>
+            <td data-label="Checked">
+              <FreshnessIndicator
+                availability={offer.availability}
+                observedAtMs={offer.observedAtMs}
+                storeName={offer.storeName}
+                nowMs={nowMs}
+              />
+            </td>
+            <td data-label="Action" class="lw-offer-table__action">
+              {href ? (
+                <a href={href} target="_blank" rel="noopener noreferrer">
+                  View at {offer.storeName}
+                  <span class="lw-visually-hidden">
+                    , {editionLabel(offer)}, {gameTitle}
                   </span>
-                )}
-              </td>
-            </tr>
-          );
-        })
-      }
+                </a>
+              ) : (
+                <span class="lw-offer-table__not-provided">
+                  {offer.availability === 'unavailable' ? 'Unavailable' : 'Not provided'}
+                </span>
+              )}
+            </td>
+          </tr>
+        );
+      })}
     </tbody>
   </table>
 </div>

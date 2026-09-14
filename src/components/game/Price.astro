@@ -33,34 +33,30 @@ const accessibleText =
 ---
 
 <div class="lw-price" aria-label={accessibleText}>
-  {
-    hasDiscount && referenceText !== null && (
-      <span class="lw-price__reference">
-        <span class="lw-visually-hidden">{m.price_regular_price_label({}, messageOptions)} </span>
-        <del>{referenceText}</del>
-      </span>
-    )
-  }
-  {
-    currentText !== null ? (
-      <strong
-        class:list={['lw-price__current', price?.amountMinor === 0 && 'lw-price__current--free']}
-      >
-        {currentText}
-      </strong>
-    ) : (
-      <span
-        class:list={[
-          'lw-price__missing',
-          availability === 'unavailable' && 'lw-price__missing--unavailable',
-        ]}
-      >
-        {availability === 'unavailable'
-          ? m.price_unavailable({}, messageOptions)
-          : m.price_not_provided({}, messageOptions)}
-      </span>
-    )
-  }
+  {hasDiscount && referenceText !== null && (
+    <span class="lw-price__reference">
+      <span class="lw-visually-hidden">{m.price_regular_price_label({}, messageOptions)} </span>
+      <del>{referenceText}</del>
+    </span>
+  )}
+  {currentText !== null ? (
+    <strong
+      class:list={['lw-price__current', price?.amountMinor === 0 && 'lw-price__current--free']}
+    >
+      {currentText}
+    </strong>
+  ) : (
+    <span
+      class:list={[
+        'lw-price__missing',
+        availability === 'unavailable' && 'lw-price__missing--unavailable',
+      ]}
+    >
+      {availability === 'unavailable'
+        ? m.price_unavailable({}, messageOptions)
+        : m.price_not_provided({}, messageOptions)}
+    </span>
+  )}
   {hasDiscount && <DiscountBadge percentage={discountPercentage} size="sm" />}
 </div>
 

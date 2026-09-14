@@ -27,35 +27,33 @@ const GROUP_LABELS: Record<DataSourceGroupId, string> = {
 };
 ---
 
-{
-  groups.length > 0 && (
-    <section class="lw-data-sources" aria-labelledby="data-sources-title">
-      <h2 id="data-sources-title" class="lw-text-heading-md">
-        Data sources
-      </h2>
-      <p class="lw-data-sources__lead">
-        LUDWISE read this page's data from these providers. A provider is where the data came from,
-        not the store that sells the game.
-      </p>
-      <dl class="lw-data-sources__groups">
-        {groups.map((group) => (
-          <div class="lw-data-sources__group">
-            <dt>{GROUP_LABELS[group.id]}</dt>
-            <dd>
-              <ul class="lw-data-sources__credits">
-                {group.credits.map((credit) => (
-                  <li>
-                    {credit.url === null ? credit.name : <a href={credit.url}>{credit.name}</a>}
-                  </li>
-                ))}
-              </ul>
-            </dd>
-          </div>
-        ))}
-      </dl>
-    </section>
-  )
-}
+{groups.length > 0 && (
+  <section class="lw-data-sources" aria-labelledby="data-sources-title">
+    <h2 id="data-sources-title" class="lw-text-heading-md">
+      Data sources
+    </h2>
+    <p class="lw-data-sources__lead">
+      LUDWISE read this page's data from these providers. A provider is where the data came from,
+      not the store that sells the game.
+    </p>
+    <dl class="lw-data-sources__groups">
+      {groups.map((group) => (
+        <div class="lw-data-sources__group">
+          <dt>{GROUP_LABELS[group.id]}</dt>
+          <dd>
+            <ul class="lw-data-sources__credits">
+              {group.credits.map((credit) => (
+                <li>
+                  {credit.url === null ? credit.name : <a href={credit.url}>{credit.name}</a>}
+                </li>
+              ))}
+            </ul>
+          </dd>
+        </div>
+      ))}
+    </dl>
+  </section>
+)}
 
 <style>
   .lw-data-sources {

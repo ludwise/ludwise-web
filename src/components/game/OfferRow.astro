@@ -86,7 +86,9 @@ const actionLabel = unavailable
     {freshness && <FreshnessIndicator {...freshness} />}
   </div>
 
-  <div class="lw-offer-row__signal"><slot name="signal" /></div>
+  <div class="lw-offer-row__signal">
+    <slot name="signal" />
+  </div>
 
   <Button
     variant={best ? 'primary' : 'secondary'}

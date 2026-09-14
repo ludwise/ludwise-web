@@ -152,277 +152,266 @@ const retryHref = `${Astro.url.pathname}${Astro.url.search}`;
         <h1 class="lw-text-heading-xl">Games</h1>
         <p class="lw-text-body-md lw-games__intro">Search the canonical LUDWISE game catalogue.</p>
       </div>
-      {
-        view && !filtersRejected && (
-          <p class="lw-text-body-sm lw-games__count">{view.resultCount} games</p>
-        )
-      }
+      {view && !filtersRejected && (
+        <p class="lw-text-body-sm lw-games__count">{view.resultCount} games</p>
+      )}
     </div>
 
-    {
-      failureCode !== null && (
-        <InlineMessage tone="danger" title="The game catalogue could not be loaded">
-          Something failed on our side, so no games are shown. Quote code{' '}
-          <code class="lw-text-code">{failureCode}</code> and request id{' '}
-          <code class="lw-text-code">{locals.requestId}</code> if you report this.
-          <a slot="action" href={retryHref}>
-            Try again
-          </a>
-        </InlineMessage>
-      )
-    }
+    {failureCode !== null && (
+      <InlineMessage tone="danger" title="The game catalogue could not be loaded">
+        Something failed on our side, so no games are shown. Quote code{' '}
+        <code class="lw-text-code">{failureCode}</code> and request id{' '}
+        <code class="lw-text-code">{locals.requestId}</code> if you report this.
+        <a slot="action" href={retryHref}>
+          Try again
+        </a>
+      </InlineMessage>
+    )}
 
-    {
-      filtersRejected && (
-        <InlineMessage tone="warning" title="Those filters do not go together">
-          <ul class="lw-games__advice">
-            {rejectedFilters.map((advice) => (
-              <li>{advice}</li>
-            ))}
-          </ul>
-        </InlineMessage>
-      )
-    }
+    {filtersRejected && (
+      <InlineMessage tone="warning" title="Those filters do not go together">
+        <ul class="lw-games__advice">
+          {rejectedFilters.map((advice) => (
+            <li>{advice}</li>
+          ))}
+        </ul>
+      </InlineMessage>
+    )}
 
-    {
-      view && (
-        <>
-          <details class="lw-game-filters" open>
-            <summary>Filters</summary>
-            <form method="get" action="/games" class="lw-game-filters__form">
-              {input.query && <input type="hidden" name="q" value={input.query} />}
+    {view && (
+      <>
+        <details class="lw-game-filters" open>
+          <summary>Filters</summary>
+          <form method="get" action="/games" class="lw-game-filters__form">
+            {input.query && <input type="hidden" name="q" value={input.query} />}
 
-              <fieldset>
-                <legend>Store</legend>
-                <div class="lw-game-filters__options">
-                  {view.facets.stores.length === 0 ? (
-                    <span class="lw-text-caption">No store data yet</span>
-                  ) : (
-                    view.facets.stores.map((store) => (
-                      <label>
-                        <input
-                          type="checkbox"
-                          name="store"
-                          value={store.slug}
-                          checked={selectedStores.has(store.slug)}
-                        />
-                        <span>{store.name}</span>
-                      </label>
-                    ))
-                  )}
-                </div>
-              </fieldset>
-
-              <fieldset>
-                <legend>Market and currency</legend>
-                <div class="lw-game-filters__pair">
-                  <label>
-                    <span>Market</span>
-                    <select name="market">
-                      <option value="">Any market</option>
-                      {view.facets.markets.map((market) => (
-                        <option value={market.code} selected={market.code === input.marketCode}>
-                          {market.name} ({market.code})
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  <label>
-                    <span>Currency</span>
-                    <select name="currency">
-                      <option value="">Any currency</option>
-                      {currencyOptions.map((currency) => (
-                        <option
-                          value={currency.code}
-                          selected={currency.code === input.currencyCode}
-                        >
-                          {currency.code}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                </div>
-              </fieldset>
-
-              <fieldset>
-                <legend>Price in the selected market and currency</legend>
-                <div class="lw-game-filters__pair">
-                  <label>
-                    <span>Minimum price (minor units)</span>
-                    <input
-                      type="number"
-                      name="min"
-                      min="0"
-                      step="1"
-                      value={inputValue(input.minPriceMinor)}
-                    />
-                  </label>
-                  <label>
-                    <span>Maximum price (minor units)</span>
-                    <input
-                      type="number"
-                      name="max"
-                      min="0"
-                      step="1"
-                      value={inputValue(input.maxPriceMinor)}
-                    />
-                  </label>
-                </div>
-              </fieldset>
-
-              <fieldset>
-                <legend>Sale and release</legend>
-                <label class="lw-game-filters__checkbox">
-                  <input
-                    type="checkbox"
-                    name="discounted"
-                    value="true"
-                    checked={input.discounted === true}
-                  />
-                  <span>Currently discounted</span>
-                </label>
-                <div class="lw-game-filters__pair">
-                  <label>
-                    <span>Released from year</span>
-                    <input
-                      type="number"
-                      name="fromYear"
-                      min="1"
-                      max="9999"
-                      step="1"
-                      value={inputValue(input.releaseYearFrom)}
-                    />
-                  </label>
-                  <label>
-                    <span>Released through year</span>
-                    <input
-                      type="number"
-                      name="toYear"
-                      min="1"
-                      max="9999"
-                      step="1"
-                      value={inputValue(input.releaseYearTo)}
-                    />
-                  </label>
-                </div>
-              </fieldset>
-
-              <div class="lw-game-filters__actions">
-                <button type="submit">Apply filters</button>
-                <a href="/games">Reset</a>
+            <fieldset>
+              <legend>Store</legend>
+              <div class="lw-game-filters__options">
+                {view.facets.stores.length === 0 ? (
+                  <span class="lw-text-caption">No store data yet</span>
+                ) : (
+                  view.facets.stores.map((store) => (
+                    <label>
+                      <input
+                        type="checkbox"
+                        name="store"
+                        value={store.slug}
+                        checked={selectedStores.has(store.slug)}
+                      />
+                      <span>{store.name}</span>
+                    </label>
+                  ))
+                )}
               </div>
-            </form>
-          </details>
+            </fieldset>
 
-          {hasFilters && !filtersRejected && (
-            <div class="lw-games__active" aria-label="Active filters">
-              <span class="lw-text-label-md">Active filters</span>
-              <ul>
-                {input.stores?.map((storeSlug) => {
-                  const store = view?.facets.stores.find((item) => item.slug === storeSlug);
-                  return (
-                    <li>
-                      <a
-                        href={without('store', storeSlug)}
-                        aria-label={`Remove store filter: ${store?.name ?? storeSlug}`}
-                      >
-                        {store?.name ?? storeSlug} ×
-                      </a>
-                    </li>
-                  );
-                })}
-                {input.marketCode && input.currencyCode && (
-                  <li>
-                    <a href={without('market')} aria-label="Remove market and currency filter">
-                      {input.marketCode} · {input.currencyCode} ×
-                    </a>
-                  </li>
-                )}
-                {(input.minPriceMinor !== undefined || input.maxPriceMinor !== undefined) && (
-                  <li>
-                    <a href={without('min')} aria-label="Remove minimum price filter">
-                      Price bounds ×
-                    </a>
-                  </li>
-                )}
-                {input.discounted === true && (
-                  <li>
-                    <a href={without('discounted')} aria-label="Remove discount filter">
-                      Discounted ×
-                    </a>
-                  </li>
-                )}
-                {(input.releaseYearFrom !== undefined || input.releaseYearTo !== undefined) && (
-                  <li>
-                    <a href={without('fromYear')} aria-label="Remove release year filter">
-                      Release year ×
-                    </a>
-                  </li>
-                )}
-                <li>
-                  <a href="/games">Reset all</a>
-                </li>
-              </ul>
+            <fieldset>
+              <legend>Market and currency</legend>
+              <div class="lw-game-filters__pair">
+                <label>
+                  <span>Market</span>
+                  <select name="market">
+                    <option value="">Any market</option>
+                    {view.facets.markets.map((market) => (
+                      <option value={market.code} selected={market.code === input.marketCode}>
+                        {market.name} ({market.code})
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label>
+                  <span>Currency</span>
+                  <select name="currency">
+                    <option value="">Any currency</option>
+                    {currencyOptions.map((currency) => (
+                      <option value={currency.code} selected={currency.code === input.currencyCode}>
+                        {currency.code}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+            </fieldset>
+
+            <fieldset>
+              <legend>Price in the selected market and currency</legend>
+              <div class="lw-game-filters__pair">
+                <label>
+                  <span>Minimum price (minor units)</span>
+                  <input
+                    type="number"
+                    name="min"
+                    min="0"
+                    step="1"
+                    value={inputValue(input.minPriceMinor)}
+                  />
+                </label>
+                <label>
+                  <span>Maximum price (minor units)</span>
+                  <input
+                    type="number"
+                    name="max"
+                    min="0"
+                    step="1"
+                    value={inputValue(input.maxPriceMinor)}
+                  />
+                </label>
+              </div>
+            </fieldset>
+
+            <fieldset>
+              <legend>Sale and release</legend>
+              <label class="lw-game-filters__checkbox">
+                <input
+                  type="checkbox"
+                  name="discounted"
+                  value="true"
+                  checked={input.discounted === true}
+                />
+                <span>Currently discounted</span>
+              </label>
+              <div class="lw-game-filters__pair">
+                <label>
+                  <span>Released from year</span>
+                  <input
+                    type="number"
+                    name="fromYear"
+                    min="1"
+                    max="9999"
+                    step="1"
+                    value={inputValue(input.releaseYearFrom)}
+                  />
+                </label>
+                <label>
+                  <span>Released through year</span>
+                  <input
+                    type="number"
+                    name="toYear"
+                    min="1"
+                    max="9999"
+                    step="1"
+                    value={inputValue(input.releaseYearTo)}
+                  />
+                </label>
+              </div>
+            </fieldset>
+
+            <div class="lw-game-filters__actions">
+              <button type="submit">Apply filters</button>
+              <a href="/games">Reset</a>
             </div>
-          )}
+          </form>
+        </details>
 
-          {filtersRejected ? null : view.resultCount === 0 ? (
-            <EmptyState
-              icon="search"
-              title={
-                hasQueryOrFilters ? 'No games match your search' : 'No games in the catalogue yet'
-              }
-            >
-              {hasQueryOrFilters
-                ? 'Try a different title or remove a filter.'
-                : 'Games appear here when LUDWISE has canonical catalogue data.'}
-              {hasQueryOrFilters && (
-                <a slot="action" href="/games">
-                  Browse the whole catalogue
-                </a>
-              )}
-              {searchOnlyPath !== null && (
-                <a slot="secondaryAction" href={searchOnlyPath}>
-                  Keep the search, remove the filters
-                </a>
-              )}
-            </EmptyState>
-          ) : (
-            <>
-              <ul class="lw-game-list" aria-label="Game results">
-                {view.games.map((game) => (
-                  <li class="lw-game-list__item">
-                    <a href={`/games/${game.slug}`} class="lw-game-list__link">
-                      {game.title}
+        {hasFilters && !filtersRejected && (
+          <div class="lw-games__active" aria-label="Active filters">
+            <span class="lw-text-label-md">Active filters</span>
+            <ul>
+              {input.stores?.map((storeSlug) => {
+                const store = view?.facets.stores.find((item) => item.slug === storeSlug);
+                return (
+                  <li>
+                    <a
+                      href={without('store', storeSlug)}
+                      aria-label={`Remove store filter: ${store?.name ?? storeSlug}`}
+                    >
+                      {store?.name ?? storeSlug} ×
                     </a>
-                    {game.releaseDate && (
-                      <span class="lw-text-caption">Release date: {game.releaseDate}</span>
-                    )}
                   </li>
-                ))}
-              </ul>
-              {view.pageCount > 1 && (
-                <nav class="lw-games__pagination" aria-label="Game results pages">
-                  {view.page > 1 ? (
-                    <a href={pagePath(view.page - 1)}>Previous</a>
-                  ) : (
-                    <span>Previous</span>
-                  )}
-                  <span>
-                    Page {view.page} of {view.pageCount}
-                  </span>
-                  {view.page < view.pageCount ? (
-                    <a href={pagePath(view.page + 1)}>Next</a>
-                  ) : (
-                    <span>Next</span>
-                  )}
-                </nav>
+                );
+              })}
+              {input.marketCode && input.currencyCode && (
+                <li>
+                  <a href={without('market')} aria-label="Remove market and currency filter">
+                    {input.marketCode} · {input.currencyCode} ×
+                  </a>
+                </li>
               )}
-            </>
-          )}
-        </>
-      )
-    }
+              {(input.minPriceMinor !== undefined || input.maxPriceMinor !== undefined) && (
+                <li>
+                  <a href={without('min')} aria-label="Remove minimum price filter">
+                    Price bounds ×
+                  </a>
+                </li>
+              )}
+              {input.discounted === true && (
+                <li>
+                  <a href={without('discounted')} aria-label="Remove discount filter">
+                    Discounted ×
+                  </a>
+                </li>
+              )}
+              {(input.releaseYearFrom !== undefined || input.releaseYearTo !== undefined) && (
+                <li>
+                  <a href={without('fromYear')} aria-label="Remove release year filter">
+                    Release year ×
+                  </a>
+                </li>
+              )}
+              <li>
+                <a href="/games">Reset all</a>
+              </li>
+            </ul>
+          </div>
+        )}
+
+        {filtersRejected ? null : view.resultCount === 0 ? (
+          <EmptyState
+            icon="search"
+            title={
+              hasQueryOrFilters ? 'No games match your search' : 'No games in the catalogue yet'
+            }
+          >
+            {hasQueryOrFilters
+              ? 'Try a different title or remove a filter.'
+              : 'Games appear here when LUDWISE has canonical catalogue data.'}
+            {hasQueryOrFilters && (
+              <a slot="action" href="/games">
+                Browse the whole catalogue
+              </a>
+            )}
+            {searchOnlyPath !== null && (
+              <a slot="secondaryAction" href={searchOnlyPath}>
+                Keep the search, remove the filters
+              </a>
+            )}
+          </EmptyState>
+        ) : (
+          <>
+            <ul class="lw-game-list" aria-label="Game results">
+              {view.games.map((game) => (
+                <li class="lw-game-list__item">
+                  <a href={`/games/${game.slug}`} class="lw-game-list__link">
+                    {game.title}
+                  </a>
+                  {game.releaseDate && (
+                    <span class="lw-text-caption">Release date: {game.releaseDate}</span>
+                  )}
+                </li>
+              ))}
+            </ul>
+            {view.pageCount > 1 && (
+              <nav class="lw-games__pagination" aria-label="Game results pages">
+                {view.page > 1 ? (
+                  <a href={pagePath(view.page - 1)}>Previous</a>
+                ) : (
+                  <span>Previous</span>
+                )}
+                <span>
+                  Page {view.page} of {view.pageCount}
+                </span>
+                {view.page < view.pageCount ? (
+                  <a href={pagePath(view.page + 1)}>Next</a>
+                ) : (
+                  <span>Next</span>
+                )}
+              </nav>
+            )}
+          </>
+        )}
+      </>
+    )}
   </PageContainer>
 </BaseLayout>
 

@@ -14,13 +14,11 @@ export const prerender = false;
     <h1 class="lw-text-heading-xl">LUDWISE</h1>
     <p class="lw-text-body-lg">Transparent PC game store comparison and discovery platform.</p>
 
-    {
-      /* Not a placeholder any more, and it must not read like one. One store
+    {/* Not a placeholder any more, and it must not read like one. One store
          is connected, a schedule keeps its catalog filled, and /games can be
          searched. What this page must not do is imply the comparison the
          product describes is finished. One store cannot compare anything, and
-         how much of it is here depends on how far the schedule has walked. */
-    }
+         how much of it is here depends on how far the schedule has walked. */}
     <p class="lw-text-body-md">
       One store is connected so far, and its catalogue fills over days rather than at once. You can
       search what is here; comparing prices across stores needs a second store, which is not
@@ -29,8 +27,7 @@ export const prerender = false;
     <p class="lw-text-body-md">
       <a href="/games">Browse games</a>
     </p>
-    {
-      /* The spaces after each link are explicit. Prettier wraps a long anchor
+    {/* The spaces after each link are explicit. Prettier wraps a long anchor
          as `</a\n>`, which collapses the whitespace that followed it entirely -
          rendering "READMEfor" and giving a screen reader an unpronounceable
          token. A literal expression survives reformatting. A space in the
@@ -40,11 +37,10 @@ export const prerender = false;
          documents. The interface is public and its README describes what a
          reader is looking at. The catalog logic is not public. Linking to a
          private repository from a public page produces a 404 for everyone
-         except the handful of people who can already read it. */
-    }
+         except the handful of people who can already read it. */}
     <p class="lw-text-body-md">
-      See <a href="https://github.com/ludwise/ludwise-web">the source</a>{' '}
-      for how this interface is built, and{' '}
+      See <a href="https://github.com/ludwise/ludwise-web">the source</a> for how this interface is
+      built, and{' '}
       <a href="https://github.com/ludwise/ludwise-web/blob/main/docs/architecture.md">
         the architecture notes
       </a>{' '}

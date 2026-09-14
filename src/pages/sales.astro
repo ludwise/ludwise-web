@@ -141,23 +141,103 @@ const clearedFiltersPath = pathWithFiltersCleared(params);
     <div class="lw-sales__heading-row">
       <div>
         <h1 class="lw-text-heading-xl">Current sales</h1>
-        {
-          view && context && view.contextCount > 0 && !filtersRejected && (
-            <p class="lw-text-body-md lw-sales__intro">
-              {counted(view.contextCount, 'game is', 'games are')} on sale at{' '}
-              {counted(storeCount, 'store', 'stores')}. Showing {context.marketName} prices, in{' '}
-              {context.currencyCode}.
-            </p>
-          )
-        }
+        {view && context && view.contextCount > 0 && !filtersRejected && (
+          <p class="lw-text-body-md lw-sales__intro">
+            {counted(view.contextCount, 'game is', 'games are')} on sale at{' '}
+            {counted(storeCount, 'store', 'stores')}. Showing {context.marketName} prices, in{' '}
+            {context.currencyCode}.
+          </p>
+        )}
       </div>
 
-      {
-        view && context && view.contextCount > 0 && !filtersRejected && (
-          <form method="get" action="/sales" class="lw-sales__sort">
-            {/* Carried so changing the order keeps the filters the visitor set. */}
-            <input type="hidden" name="market" value={context.marketCode} />
-            <input type="hidden" name="currency" value={context.currencyCode} />
+      {view && context && view.contextCount > 0 && !filtersRejected && (
+        <form method="get" action="/sales" class="lw-sales__sort">
+          {/* Carried so changing the order keeps the filters the visitor set. */}
+          <input type="hidden" name="market" value={context.marketCode} />
+          <input type="hidden" name="currency" value={context.currencyCode} />
+          {input.stores?.map((store) => (
+            <input type="hidden" name="store" value={store} />
+          ))}
+          {input.minDiscountPercentage !== undefined && (
+            <input
+              type="hidden"
+              name="minDiscount"
+              value={inputValue(input.minDiscountPercentage)}
+            />
+          )}
+          {input.minPriceMajor !== undefined && (
+            <input type="hidden" name="min" value={inputValue(input.minPriceMajor)} />
+          )}
+          {input.maxPriceMajor !== undefined && (
+            <input type="hidden" name="max" value={inputValue(input.maxPriceMajor)} />
+          )}
+          {input.releaseYearFrom !== undefined && (
+            <input type="hidden" name="fromYear" value={inputValue(input.releaseYearFrom)} />
+          )}
+          {input.releaseYearTo !== undefined && (
+            <input type="hidden" name="toYear" value={inputValue(input.releaseYearTo)} />
+          )}
+          <label>
+            <span>Sort</span>
+            <select name="sort">
+              {SORT_LABELS.map((option) => (
+                <option value={option.value} selected={option.value === view?.sort}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          {/* Submitted by a button rather than on change. A select that
+                navigates as the value changes fires on every option a keyboard
+                a visitor arrows past. It would be the only client script on a
+                page that otherwise needs none. */}
+          <button type="submit">Apply</button>
+        </form>
+      )}
+    </div>
+
+    {failureCode !== null && (
+      <InlineMessage tone="danger" title="Sales could not be loaded">
+        Something failed on our side, so no sales are shown. If you report this, the code is{' '}
+        <code class="lw-text-code">{failureCode}</code> and the request id is{' '}
+        <code class="lw-text-code">{locals.requestId}</code>.
+        <a slot="action" href={retryHref}>
+          Try again
+        </a>
+      </InlineMessage>
+    )}
+
+    {filtersRejected && (
+      <InlineMessage tone="warning" title="Some of those filters could not be used">
+        <ul class="lw-sales__advice">
+          {rejectedFilters.map((advice) => (
+            <li>{advice}</li>
+          ))}
+        </ul>
+      </InlineMessage>
+    )}
+
+    {view && context === null ? (
+      view.hasAnyOfferData ? (
+        <EmptyState icon="tag" title="No games are on sale right now">
+          LUDWISE lists a game here only when a store supplies both a current price and a regular
+          price to compare it against. No game meets that today.
+        </EmptyState>
+      ) : (
+        <EmptyState icon="tag" title="LUDWISE has not collected any prices yet">
+          LUDWISE hasn't observed anything from any store yet, so there's nothing to compare. That
+          isn't a claim that no game is discounted.
+        </EmptyState>
+      )
+    ) : view && context ? (
+      <>
+        <details class="lw-sale-filters">
+          <summary>Filters</summary>
+
+          <form method="get" action="/sales" class="lw-sale-filters__pair-form">
+            {/* Every other filter is carried forward except the price bounds.
+                  Those are amounts in the currency being left. Keeping them
+                  would silently reinterpret them in another one. */}
             {input.stores?.map((store) => (
               <input type="hidden" name="store" value={store} />
             ))}
@@ -168,385 +248,295 @@ const clearedFiltersPath = pathWithFiltersCleared(params);
                 value={inputValue(input.minDiscountPercentage)}
               />
             )}
-            {input.minPriceMajor !== undefined && (
-              <input type="hidden" name="min" value={inputValue(input.minPriceMajor)} />
-            )}
-            {input.maxPriceMajor !== undefined && (
-              <input type="hidden" name="max" value={inputValue(input.maxPriceMajor)} />
-            )}
             {input.releaseYearFrom !== undefined && (
               <input type="hidden" name="fromYear" value={inputValue(input.releaseYearFrom)} />
             )}
             {input.releaseYearTo !== undefined && (
               <input type="hidden" name="toYear" value={inputValue(input.releaseYearTo)} />
             )}
+            {input.sort && <input type="hidden" name="sort" value={input.sort} />}
+
             <label>
-              <span>Sort</span>
-              <select name="sort">
-                {SORT_LABELS.map((option) => (
-                  <option value={option.value} selected={option.value === view?.sort}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-            {/* Submitted by a button rather than on change. A select that
-                navigates as the value changes fires on every option a keyboard
-                a visitor arrows past. It would be the only client script on a
-                page that otherwise needs none. */}
-            <button type="submit">Apply</button>
-          </form>
-        )
-      }
-    </div>
-
-    {
-      failureCode !== null && (
-        <InlineMessage tone="danger" title="Sales could not be loaded">
-          Something failed on our side, so no sales are shown. If you report this, the code is{' '}
-          <code class="lw-text-code">{failureCode}</code> and the request id is{' '}
-          <code class="lw-text-code">{locals.requestId}</code>.
-          <a slot="action" href={retryHref}>
-            Try again
-          </a>
-        </InlineMessage>
-      )
-    }
-
-    {
-      filtersRejected && (
-        <InlineMessage tone="warning" title="Some of those filters could not be used">
-          <ul class="lw-sales__advice">
-            {rejectedFilters.map((advice) => (
-              <li>{advice}</li>
-            ))}
-          </ul>
-        </InlineMessage>
-      )
-    }
-
-    {
-      view && context === null ? (
-        view.hasAnyOfferData ? (
-          <EmptyState icon="tag" title="No games are on sale right now">
-            LUDWISE lists a game here only when a store supplies both a current price and a regular
-            price to compare it against. No game meets that today.
-          </EmptyState>
-        ) : (
-          <EmptyState icon="tag" title="LUDWISE has not collected any prices yet">
-            LUDWISE hasn't observed anything from any store yet, so there's nothing to compare. That
-            isn't a claim that no game is discounted.
-          </EmptyState>
-        )
-      ) : view && context ? (
-        <>
-          <details class="lw-sale-filters">
-            <summary>Filters</summary>
-
-            <form method="get" action="/sales" class="lw-sale-filters__pair-form">
-              {/* Every other filter is carried forward except the price bounds.
-                  Those are amounts in the currency being left. Keeping them
-                  would silently reinterpret them in another one. */}
-              {input.stores?.map((store) => (
-                <input type="hidden" name="store" value={store} />
-              ))}
-              {input.minDiscountPercentage !== undefined && (
-                <input
-                  type="hidden"
-                  name="minDiscount"
-                  value={inputValue(input.minDiscountPercentage)}
-                />
-              )}
-              {input.releaseYearFrom !== undefined && (
-                <input type="hidden" name="fromYear" value={inputValue(input.releaseYearFrom)} />
-              )}
-              {input.releaseYearTo !== undefined && (
-                <input type="hidden" name="toYear" value={inputValue(input.releaseYearTo)} />
-              )}
-              {input.sort && <input type="hidden" name="sort" value={input.sort} />}
-
-              <label>
-                <span>Market and currency</span>
-                {/* One control offering only the pairs that hold a sale. So a
+              <span>Market and currency</span>
+              {/* One control offering only the pairs that hold a sale. So a
                     visitor cannot submit a market and a currency that were
                     never paired. Two independent selects allow it: changing
                     one can leave the other pointed at a currency the
                     new market never quoted in. */}
-                <select name="pair">
-                  {offeredContexts.map((option) => (
-                    <option
-                      value={`${option.marketCode}${PAIR_SEPARATOR}${option.currencyCode}`}
-                      selected={
-                        option.marketCode === context.marketCode &&
-                        option.currencyCode === context.currencyCode
-                      }
-                    >
-                      {option.marketName}, {option.currencyCode}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <button type="submit">Apply market</button>
-            </form>
+              <select name="pair">
+                {offeredContexts.map((option) => (
+                  <option
+                    value={`${option.marketCode}${PAIR_SEPARATOR}${option.currencyCode}`}
+                    selected={
+                      option.marketCode === context.marketCode &&
+                      option.currencyCode === context.currencyCode
+                    }
+                  >
+                    {option.marketName}, {option.currencyCode}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <button type="submit">Apply market</button>
+          </form>
 
-            <form method="get" action="/sales" class="lw-sale-filters__form">
-              {/* The pair is not a control in this form, so it is carried
+          <form method="get" action="/sales" class="lw-sale-filters__form">
+            {/* The pair is not a control in this form, so it is carried
                   forward rather than left to default. */}
-              <input type="hidden" name="market" value={context.marketCode} />
-              <input type="hidden" name="currency" value={context.currencyCode} />
-              {input.sort && <input type="hidden" name="sort" value={input.sort} />}
+            <input type="hidden" name="market" value={context.marketCode} />
+            <input type="hidden" name="currency" value={context.currencyCode} />
+            {input.sort && <input type="hidden" name="sort" value={input.sort} />}
 
-              <fieldset>
-                <legend>Store</legend>
-                <div class="lw-sale-filters__options">
-                  {view.facets.stores.length === 0 ? (
-                    <span class="lw-text-caption">No stores hold a sale here yet</span>
-                  ) : (
-                    view.facets.stores.map((store) => (
-                      <label>
-                        <input
-                          type="checkbox"
-                          name="store"
-                          value={store.slug}
-                          checked={selectedStores.has(store.slug)}
-                        />
-                        <span>{store.name}</span>
-                      </label>
-                    ))
-                  )}
-                </div>
-              </fieldset>
-
-              <fieldset>
-                <legend>Discount and price</legend>
-                <div class="lw-sale-filters__pair">
-                  <label>
-                    <span>Smallest discount (%)</span>
-                    <input
-                      type="number"
-                      name="minDiscount"
-                      min="1"
-                      max="100"
-                      step="1"
-                      value={inputValue(input.minDiscountPercentage)}
-                    />
-                  </label>
-                </div>
-                <div class="lw-sale-filters__pair">
-                  <label>
-                    <span>Lowest price ({context.currencyCode})</span>
-                    <input
-                      type="number"
-                      name="min"
-                      min="0"
-                      step="1"
-                      value={inputValue(input.minPriceMajor)}
-                      aria-describedby="lw-price-format-hint"
-                    />
-                  </label>
-                  <label>
-                    <span>Highest price ({context.currencyCode})</span>
-                    <input
-                      type="number"
-                      name="max"
-                      min="0"
-                      step="1"
-                      value={inputValue(input.maxPriceMajor)}
-                      aria-describedby="lw-price-format-hint"
-                    />
-                  </label>
-                </div>
-                <p class="lw-text-caption" id="lw-price-format-hint">
-                  Whole numbers only.
-                </p>
-              </fieldset>
-
-              <fieldset>
-                <legend>Release year</legend>
-                <div class="lw-sale-filters__pair">
-                  <label>
-                    <span>Earliest release year</span>
-                    <input
-                      type="number"
-                      name="fromYear"
-                      min="1"
-                      max="9999"
-                      step="1"
-                      value={inputValue(input.releaseYearFrom)}
-                    />
-                  </label>
-                  <label>
-                    <span>Latest release year</span>
-                    <input
-                      type="number"
-                      name="toYear"
-                      min="1"
-                      max="9999"
-                      step="1"
-                      value={inputValue(input.releaseYearTo)}
-                    />
-                  </label>
-                </div>
-              </fieldset>
-
-              <div class="lw-sale-filters__actions">
-                <button type="submit">Apply filters</button>
-                <a href="/sales">Reset filters</a>
+            <fieldset>
+              <legend>Store</legend>
+              <div class="lw-sale-filters__options">
+                {view.facets.stores.length === 0 ? (
+                  <span class="lw-text-caption">No stores hold a sale here yet</span>
+                ) : (
+                  view.facets.stores.map((store) => (
+                    <label>
+                      <input
+                        type="checkbox"
+                        name="store"
+                        value={store.slug}
+                        checked={selectedStores.has(store.slug)}
+                      />
+                      <span>{store.name}</span>
+                    </label>
+                  ))
+                )}
               </div>
-            </form>
-          </details>
+            </fieldset>
 
-          {hasFilters && (
-            <section class="lw-sales__active" aria-labelledby="lw-active-filters-heading">
-              <span class="lw-text-label-md" id="lw-active-filters-heading">
-                Active filters
-              </span>
-              <ul>
-                {input.stores?.map((storeSlug) => {
-                  const store = view?.facets.stores.find((item) => item.slug === storeSlug);
-                  const label = store?.name ?? storeSlug;
-                  return (
-                    <li>
-                      <a
-                        href={pathWithoutFilter(params, 'store', storeSlug)}
-                        aria-label={`Remove filter: ${label}`}
-                      >
-                        {label} ×
-                      </a>
-                    </li>
-                  );
-                })}
-                {input.minDiscountPercentage !== undefined && (
-                  <li>
-                    <a
-                      href={pathWithoutFilter(params, 'minDiscount')}
-                      aria-label={`Remove filter: ${inputValue(input.minDiscountPercentage)}% or more`}
-                    >
-                      {inputValue(input.minDiscountPercentage)}% or more ×
-                    </a>
-                  </li>
-                )}
-                {(input.minPriceMajor !== undefined || input.maxPriceMajor !== undefined) && (
-                  <li>
-                    <a
-                      href={pathWithoutFilter(params, 'min')}
-                      aria-label="Remove filter: Price limits"
-                    >
-                      Price limits ×
-                    </a>
-                  </li>
-                )}
-                {(input.releaseYearFrom !== undefined || input.releaseYearTo !== undefined) && (
-                  <li>
-                    <a
-                      href={pathWithoutFilter(params, 'fromYear')}
-                      aria-label="Remove filter: Release year"
-                    >
-                      Release year ×
-                    </a>
-                  </li>
-                )}
-                <li>
-                  <a href="/sales">Reset all</a>
-                </li>
-              </ul>
-            </section>
-          )}
+            <fieldset>
+              <legend>Discount and price</legend>
+              <div class="lw-sale-filters__pair">
+                <label>
+                  <span>Smallest discount (%)</span>
+                  <input
+                    type="number"
+                    name="minDiscount"
+                    min="1"
+                    max="100"
+                    step="1"
+                    value={inputValue(input.minDiscountPercentage)}
+                  />
+                </label>
+              </div>
+              <div class="lw-sale-filters__pair">
+                <label>
+                  <span>Lowest price ({context.currencyCode})</span>
+                  <input
+                    type="number"
+                    name="min"
+                    min="0"
+                    step="1"
+                    value={inputValue(input.minPriceMajor)}
+                    aria-describedby="lw-price-format-hint"
+                  />
+                </label>
+                <label>
+                  <span>Highest price ({context.currencyCode})</span>
+                  <input
+                    type="number"
+                    name="max"
+                    min="0"
+                    step="1"
+                    value={inputValue(input.maxPriceMajor)}
+                    aria-describedby="lw-price-format-hint"
+                  />
+                </label>
+              </div>
+              <p class="lw-text-caption" id="lw-price-format-hint">
+                Whole numbers only.
+              </p>
+            </fieldset>
 
-          <div class="lw-sales__layout">
-            <div>
-              <h2 class="lw-visually-hidden">Games on sale</h2>
-              {filtersRejected ? null : view.contextCount === 0 ? (
-                <EmptyState icon="tag" title={`No ${context.marketName} sales right now`}>
-                  Prices are only compared inside one market and currency, so a sale in another
-                  market does not appear here.
-                  {input.marketCode !== undefined && (
-                    <a slot="action" href="/sales">
-                      See all sales
-                    </a>
-                  )}
-                </EmptyState>
-              ) : view.resultCount === 0 ? (
-                <EmptyState icon="funnel" title="No games match these filters">
-                  {`Remove a filter to see the ${view.contextCount} ${context.marketName} games on sale.`}
-                  <a slot="action" href={clearedFiltersPath}>
-                    Remove the filters
-                  </a>
-                </EmptyState>
-              ) : pageOutOfRange ? (
-                <EmptyState icon="funnel" title={`There is no page ${view.page}`}>
-                  This search has {counted(view.pageCount, 'page', 'pages')}.
-                  <a slot="action" href={pathForPage(params, 1)}>
-                    Go to page 1
-                  </a>
-                </EmptyState>
-              ) : (
-                <>
-                  <div class="lw-sales__notice">
-                    <FreshnessNotice freshness={salesFreshness} nowMs={nowMs} />
-                    <DataNotes provenance={salesProvenance} />
-                  </div>
+            <fieldset>
+              <legend>Release year</legend>
+              <div class="lw-sale-filters__pair">
+                <label>
+                  <span>Earliest release year</span>
+                  <input
+                    type="number"
+                    name="fromYear"
+                    min="1"
+                    max="9999"
+                    step="1"
+                    value={inputValue(input.releaseYearFrom)}
+                  />
+                </label>
+                <label>
+                  <span>Latest release year</span>
+                  <input
+                    type="number"
+                    name="toYear"
+                    min="1"
+                    max="9999"
+                    step="1"
+                    value={inputValue(input.releaseYearTo)}
+                  />
+                </label>
+              </div>
+            </fieldset>
 
-                  <p class="lw-text-body-sm lw-sales__range">
-                    Showing{' '}
-                    {`${view.rangeStart.toLocaleString('en-US')}–${view.rangeEnd.toLocaleString('en-US')}`}{' '}
-                    of {counted(view.resultCount, 'game', 'games')}
-                  </p>
-                  <ul class="lw-sales__grid" aria-label="Games on sale">
-                    {view.games.map((game) => (
-                      <li>
-                        <GameCard
-                          title={game.title}
-                          href={`/games/${game.slug}`}
-                          price={game.offer.price}
-                          referencePrice={game.offer.referencePrice}
-                          discountPercentage={game.offer.discountPercentage}
-                          storeCount={game.storeCount}
-                          editionLabel={game.offer.editionLabel}
-                          releaseDate={game.releaseDate}
-                          observedAtMs={game.offer.observedAtMs}
-                          storeName={game.offer.storeName}
-                        />
-                      </li>
-                    ))}
-                  </ul>
-                  {view.pageCount > 1 && (
-                    <nav class="lw-sales__pagination" aria-label="Sale result pages">
-                      {view.page > 1 ? (
-                        <a href={pathForPage(params, view.page - 1)}>Previous</a>
-                      ) : (
-                        <span>Previous</span>
-                      )}
-                      <span>
-                        Page {view.page} of {view.pageCount}
-                      </span>
-                      {view.page < view.pageCount ? (
-                        <a href={pathForPage(params, view.page + 1)}>Next</a>
-                      ) : (
-                        <span>Next</span>
-                      )}
-                    </nav>
-                  )}
-                </>
-              )}
+            <div class="lw-sale-filters__actions">
+              <button type="submit">Apply filters</button>
+              <a href="/sales">Reset filters</a>
             </div>
+          </form>
+        </details>
 
-            <aside class="lw-sales__aside">
-              <div class="lw-sales__note">
-                <p class="lw-text-label-md lw-sales__note-title">
-                  <Icon name="shield-check" size="sm" />
-                  Legitimate stores only
+        {hasFilters && (
+          <section class="lw-sales__active" aria-labelledby="lw-active-filters-heading">
+            <span class="lw-text-label-md" id="lw-active-filters-heading">
+              Active filters
+            </span>
+            <ul>
+              {input.stores?.map((storeSlug) => {
+                const store = view?.facets.stores.find((item) => item.slug === storeSlug);
+                const label = store?.name ?? storeSlug;
+                return (
+                  <li>
+                    <a
+                      href={pathWithoutFilter(params, 'store', storeSlug)}
+                      aria-label={`Remove filter: ${label}`}
+                    >
+                      {label} ×
+                    </a>
+                  </li>
+                );
+              })}
+              {input.minDiscountPercentage !== undefined && (
+                <li>
+                  <a
+                    href={pathWithoutFilter(params, 'minDiscount')}
+                    aria-label={`Remove filter: ${inputValue(input.minDiscountPercentage)}% or more`}
+                  >
+                    {inputValue(input.minDiscountPercentage)}% or more ×
+                  </a>
+                </li>
+              )}
+              {(input.minPriceMajor !== undefined || input.maxPriceMajor !== undefined) && (
+                <li>
+                  <a
+                    href={pathWithoutFilter(params, 'min')}
+                    aria-label="Remove filter: Price limits"
+                  >
+                    Price limits ×
+                  </a>
+                </li>
+              )}
+              {(input.releaseYearFrom !== undefined || input.releaseYearTo !== undefined) && (
+                <li>
+                  <a
+                    href={pathWithoutFilter(params, 'fromYear')}
+                    aria-label="Remove filter: Release year"
+                  >
+                    Release year ×
+                  </a>
+                </li>
+              )}
+              <li>
+                <a href="/sales">Reset all</a>
+              </li>
+            </ul>
+          </section>
+        )}
+
+        <div class="lw-sales__layout">
+          <div>
+            <h2 class="lw-visually-hidden">Games on sale</h2>
+            {filtersRejected ? null : view.contextCount === 0 ? (
+              <EmptyState icon="tag" title={`No ${context.marketName} sales right now`}>
+                Prices are only compared inside one market and currency, so a sale in another market
+                does not appear here.
+                {input.marketCode !== undefined && (
+                  <a slot="action" href="/sales">
+                    See all sales
+                  </a>
+                )}
+              </EmptyState>
+            ) : view.resultCount === 0 ? (
+              <EmptyState icon="funnel" title="No games match these filters">
+                {`Remove a filter to see the ${view.contextCount} ${context.marketName} games on sale.`}
+                <a slot="action" href={clearedFiltersPath}>
+                  Remove the filters
+                </a>
+              </EmptyState>
+            ) : pageOutOfRange ? (
+              <EmptyState icon="funnel" title={`There is no page ${view.page}`}>
+                This search has {counted(view.pageCount, 'page', 'pages')}.
+                <a slot="action" href={pathForPage(params, 1)}>
+                  Go to page 1
+                </a>
+              </EmptyState>
+            ) : (
+              <>
+                <div class="lw-sales__notice">
+                  <FreshnessNotice freshness={salesFreshness} nowMs={nowMs} />
+                  <DataNotes provenance={salesProvenance} />
+                </div>
+
+                <p class="lw-text-body-sm lw-sales__range">
+                  Showing{' '}
+                  {`${view.rangeStart.toLocaleString('en-US')}–${view.rangeEnd.toLocaleString('en-US')}`}{' '}
+                  of {counted(view.resultCount, 'game', 'games')}
                 </p>
-                <p class="lw-text-body-sm">
-                  LUDWISE compares first-party storefronts and authorised retailers. Key resellers
-                  and account marketplaces are not listed.
-                </p>
-              </div>
-            </aside>
+                <ul class="lw-sales__grid" aria-label="Games on sale">
+                  {view.games.map((game) => (
+                    <li>
+                      <GameCard
+                        title={game.title}
+                        href={`/games/${game.slug}`}
+                        price={game.offer.price}
+                        referencePrice={game.offer.referencePrice}
+                        discountPercentage={game.offer.discountPercentage}
+                        storeCount={game.storeCount}
+                        editionLabel={game.offer.editionLabel}
+                        releaseDate={game.releaseDate}
+                        observedAtMs={game.offer.observedAtMs}
+                        storeName={game.offer.storeName}
+                      />
+                    </li>
+                  ))}
+                </ul>
+                {view.pageCount > 1 && (
+                  <nav class="lw-sales__pagination" aria-label="Sale result pages">
+                    {view.page > 1 ? (
+                      <a href={pathForPage(params, view.page - 1)}>Previous</a>
+                    ) : (
+                      <span>Previous</span>
+                    )}
+                    <span>
+                      Page {view.page} of {view.pageCount}
+                    </span>
+                    {view.page < view.pageCount ? (
+                      <a href={pathForPage(params, view.page + 1)}>Next</a>
+                    ) : (
+                      <span>Next</span>
+                    )}
+                  </nav>
+                )}
+              </>
+            )}
           </div>
-        </>
-      ) : null
-    }
+
+          <aside class="lw-sales__aside">
+            <div class="lw-sales__note">
+              <p class="lw-text-label-md lw-sales__note-title">
+                <Icon name="shield-check" size="sm" />
+                Legitimate stores only
+              </p>
+              <p class="lw-text-body-sm">
+                LUDWISE compares first-party storefronts and authorised retailers. Key resellers and
+                account marketplaces are not listed.
+              </p>
+            </div>
+          </aside>
+        </div>
+      </>
+    ) : null}
   </PageContainer>
 </BaseLayout>
 

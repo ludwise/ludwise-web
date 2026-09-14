@@ -59,14 +59,14 @@ const TONE_WORD: Partial<Record<MessageTone, string>> = {
   <div class="lw-inline-message__body">
     {title && <span class="lw-inline-message__title">{title}</span>}
     {TONE_WORD[tone] && <span class="lw-visually-hidden">{TONE_WORD[tone]}: </span>}
-    <div class="lw-inline-message__content"><slot /></div>
-    {
-      Astro.slots.has('action') && (
-        <div class="lw-inline-message__action">
-          <slot name="action" />
-        </div>
-      )
-    }
+    <div class="lw-inline-message__content">
+      <slot />
+    </div>
+    {Astro.slots.has('action') && (
+      <div class="lw-inline-message__action">
+        <slot name="action" />
+      </div>
+    )}
   </div>
 </div>
 

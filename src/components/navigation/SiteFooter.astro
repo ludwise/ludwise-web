@@ -83,14 +83,12 @@ const year = new Date().getFullYear();
       <div class="lw-site-footer__brand">
         <Wordmark size="lg" href={homeHref} />
 
-        {
-          /* The credit that the IGDB terms and the Valve brand and links clause
+        {/* The credit that the IGDB terms and the Valve brand and links clause
              both ask for. It is static because it credits the integration and not
              the page. The duty attaches to LUDWISE calling each API, rather than
              to whether one response carried that provider. Issue #71 fixed the
              credit wording, and no provider link may carry `nofollow`. Issue
-             #124 adds the affiliation sentence from the data sources page. */
-        }
+             #124 adds the affiliation sentence from the data sources page. */}
         <div class="lw-site-footer__credit">
           <p>
             Game information comes from <a href={PROVIDER_SITES.igdb}>IGDB.com</a>. Store
@@ -100,22 +98,20 @@ const year = new Date().getFullYear();
         </div>
       </div>
 
-      {
-        columns.map((column) => (
-          <nav class="lw-site-footer__column" aria-labelledby={column.id}>
-            <h2 class="lw-site-footer__heading" id={column.id}>
-              {column.heading}
-            </h2>
-            <ul class="lw-site-footer__links">
-              {column.links.map((link) => (
-                <li>
-                  <a href={link.href}>{link.label}</a>
-                </li>
-              ))}
-            </ul>
-          </nav>
-        ))
-      }
+      {columns.map((column) => (
+        <nav class="lw-site-footer__column" aria-labelledby={column.id}>
+          <h2 class="lw-site-footer__heading" id={column.id}>
+            {column.heading}
+          </h2>
+          <ul class="lw-site-footer__links">
+            {column.links.map((link) => (
+              <li>
+                <a href={link.href}>{link.label}</a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      ))}
     </div>
 
     <div class="lw-site-footer__closing">

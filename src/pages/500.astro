@@ -20,8 +20,7 @@ export const prerender = false;
 const requestId: string | undefined = Astro.locals.requestId;
 ---
 
-{
-  /* Not in the design handoff, which documents four product screens and no
+{/* Not in the design handoff, which documents four product screens and no
      error pages. The wording follows the application-failure pattern in
      design/system/guidelines/content-style.md. That pattern is what happened,
      what you are seeing instead, and what you can do. The addition is recorded
@@ -32,21 +31,18 @@ const requestId: string | undefined = Astro.locals.requestId;
      visitor is already reading. It is wrong for a failure that *is* the page,
      because it would announce the entire document as an alert. Its heading
      would be a span, leaving this page with no heading for anyone navigating
-     by one. */
-}
+     by one. */}
 <BaseLayout title="Something failed — LUDWISE">
   <PageContainer width="reading">
     <h1 class="lw-text-heading-lg">Something failed on our side</h1>
     <p class="lw-text-body-md">
       We could not load this page, and nothing you did caused it. Try again in a moment.
     </p>
-    {
-      requestId !== undefined && (
-        <p class="lw-text-body-md">
-          Quote request id <code class="lw-text-code">{requestId}</code> if you report it.
-        </p>
-      )
-    }
+    {requestId !== undefined && (
+      <p class="lw-text-body-md">
+        Quote request id <code class="lw-text-code">{requestId}</code> if you report it.
+      </p>
+    )}
   </PageContainer>
 </BaseLayout>
 

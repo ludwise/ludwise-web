@@ -33,16 +33,14 @@ const notProvided = m.field_not_provided({}, { locale });
 ---
 
 <dl class:list={['lw-kv', className]} data-columns={columns} data-density={density}>
-  {
-    items.map((item) => (
-      <div class="lw-kv__item">
-        <dt class="lw-kv__label">{item.label}</dt>
-        <dd class="lw-kv__value" data-missing={item.value === null || undefined}>
-          {item.value ?? notProvided}
-        </dd>
-      </div>
-    ))
-  }
+  {items.map((item) => (
+    <div class="lw-kv__item">
+      <dt class="lw-kv__label">{item.label}</dt>
+      <dd class="lw-kv__value" data-missing={item.value === null || undefined}>
+        {item.value ?? notProvided}
+      </dd>
+    </div>
+  ))}
 </dl>
 
 <style>
