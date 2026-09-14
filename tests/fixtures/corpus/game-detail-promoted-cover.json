@@ -16,7 +16,25 @@
           "providerSlug": "igdb",
           "providerName": "IGDB",
           "observedAtMs": 1750000000000
-        }
+        },
+        "variants": [
+          {
+            "url": "https://images.igdb.com/igdb/image/upload/t_cover_small/demo-cover-only.jpg",
+            "width": 90
+          },
+          {
+            "url": "https://images.igdb.com/igdb/image/upload/t_cover_big/demo-cover-only.jpg",
+            "width": 264
+          },
+          {
+            "url": "https://images.igdb.com/igdb/image/upload/t_720p/demo-cover-only.jpg",
+            "width": 540
+          },
+          {
+            "url": "https://images.igdb.com/igdb/image/upload/t_1080p/demo-cover-only.jpg",
+            "width": 810
+          }
+        ]
       },
       "hero": {
         "url": "https://images.igdb.com/igdb/image/upload/t_1080p/demo-cover-only.jpg",
@@ -26,7 +44,25 @@
           "providerSlug": "igdb",
           "providerName": "IGDB",
           "observedAtMs": 1750000000000
-        }
+        },
+        "variants": [
+          {
+            "url": "https://images.igdb.com/igdb/image/upload/t_cover_small/demo-cover-only.jpg",
+            "width": 90
+          },
+          {
+            "url": "https://images.igdb.com/igdb/image/upload/t_cover_big/demo-cover-only.jpg",
+            "width": 264
+          },
+          {
+            "url": "https://images.igdb.com/igdb/image/upload/t_720p/demo-cover-only.jpg",
+            "width": 540
+          },
+          {
+            "url": "https://images.igdb.com/igdb/image/upload/t_1080p/demo-cover-only.jpg",
+            "width": 810
+          }
+        ]
       },
       "screenshots": [],
       "videos": []

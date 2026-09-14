@@ -147,6 +147,8 @@ const CASE_URLS: Readonly<Record<string, string>> = {
   'sales-min-price-70': '/v1/sales?market=DE&currency=EUR&min=70',
   'sales-rejected-page': '/v1/sales?minDiscount=0&page=0',
   'sales-rejected': '/v1/sales?market=de',
+  'home-current-discounts': '/v1/home/current-discounts',
+  'home-recently-added': '/v1/home/recently-added',
 };
 
 /** Case names whose recording is a game detail, keyed by the slug it carries. */

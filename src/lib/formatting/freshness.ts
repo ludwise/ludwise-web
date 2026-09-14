@@ -1,10 +1,23 @@
-import {
-  FRESHNESS_DAY_MS,
-  FRESHNESS_HOUR_MS,
-  FRESHNESS_MINUTE_MS,
-  FRESHNESS_WEEK_MS,
-  observationAgeMs,
-} from '../state/freshness.js';
+/**
+ * How an instant turns into words. Nothing here judges whether a price is
+ * current: the backend owns that word (`OfferView.freshness`).
+ */
+
+export const FRESHNESS_MINUTE_MS = 60 * 1000;
+export const FRESHNESS_HOUR_MS = 60 * FRESHNESS_MINUTE_MS;
+export const FRESHNESS_DAY_MS = 24 * FRESHNESS_HOUR_MS;
+/** Where content style turns a relative age into a date. It is not the freshness horizon. */
+export const FRESHNESS_WEEK_MS = 7 * FRESHNESS_DAY_MS;
+
+/**
+ * The age of an observation, or `null` where none was recorded.
+ *
+ * Clamped at zero. A timestamp ahead of the clock is skew between two machines,
+ * and a negative age would render as a price observed in the future.
+ */
+export function observationAgeMs(observedAtMs: number | null, nowMs: number): number | null {
+  return observedAtMs === null ? null : Math.max(0, nowMs - observedAtMs);
+}
 
 /**
  * When an observation was made, for a sentence about a whole surface.
@@ -39,6 +52,32 @@ export function formatObservationTime(
     return relative.format(-Math.floor(ageMs / FRESHNESS_HOUR_MS), 'hour');
   }
   return relative.format(-Math.floor(ageMs / FRESHNESS_DAY_MS), 'day');
+}
+
+function counted(count: number, unit: 'hour' | 'day', locale: string): string {
+  const plural = new Intl.PluralRules(locale).select(count) === 'one' ? '' : 's';
+  return `${String(count)} ${unit}${plural}`;
+}
+
+/**
+ * When one price was checked, in the form
+ * `design/system/guidelines/content-style.md` § Freshness gives for the unit.
+ * A date replaces the age after seven days, as in `formatObservationTime`.
+ */
+export function formatCheckedPhrase(observedAtMs: number, nowMs: number, locale = 'en-US'): string {
+  const ageMs = observationAgeMs(observedAtMs, nowMs) ?? 0;
+
+  if (ageMs < FRESHNESS_MINUTE_MS) return 'Updated just now';
+  if (ageMs < FRESHNESS_HOUR_MS) {
+    return `Updated ${String(Math.floor(ageMs / FRESHNESS_MINUTE_MS))} min ago`;
+  }
+  if (ageMs < FRESHNESS_DAY_MS) {
+    return `Checked ${counted(Math.floor(ageMs / FRESHNESS_HOUR_MS), 'hour', locale)} ago`;
+  }
+  if (ageMs < FRESHNESS_WEEK_MS) {
+    return `Last checked ${counted(Math.floor(ageMs / FRESHNESS_DAY_MS), 'day', locale)} ago`;
+  }
+  return `Last checked ${formatObservationTime(observedAtMs, nowMs, locale)}`;
 }
 
 /**

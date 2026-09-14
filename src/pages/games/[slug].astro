@@ -76,8 +76,8 @@ const media = mediaForRendering(view?.media);
 
 const nowMs = Astro.locals.nowMs ?? Date.now();
 const offers = view?.offerGroups.flatMap((group) => group.offers) ?? [];
-const offerFreshness = surfaceFreshness(offers, nowMs);
-const offerProvenance = surfaceProvenance(offers, nowMs);
+const offerFreshness = surfaceFreshness(offers);
+const offerProvenance = surfaceProvenance(offers);
 const retryHref = `${Astro.url.pathname}${Astro.url.search}`;
 
 /** How a value reached LUDWISE, in words rather than in the contract's terms. */

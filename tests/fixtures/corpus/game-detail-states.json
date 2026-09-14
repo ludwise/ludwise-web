@@ -37,7 +37,8 @@
             "discountPercentage": null,
             "discountEndsAtMs": null,
             "sourceName": "Copper Source",
-            "observedAtMs": 1788090900000
+            "observedAtMs": 1788090900000,
+            "freshness": "recently_verified"
           },
           {
             "id": "00000000-0000-7000-8000-000000000155",
@@ -48,16 +49,13 @@
             "kind": "base_game",
             "editionLabel": "Base game",
             "availability": "available",
-            "price": {
-              "amountMinor": 2299,
-              "currencyCode": "EUR",
-              "minorUnit": 2
-            },
+            "price": null,
             "referencePrice": null,
             "discountPercentage": null,
             "discountEndsAtMs": null,
             "sourceName": "Gable Source",
-            "observedAtMs": null
+            "observedAtMs": null,
+            "freshness": "never_verified"
           },
           {
             "id": "00000000-0000-7000-8000-000000000154",
@@ -73,7 +71,8 @@
             "discountPercentage": null,
             "discountEndsAtMs": null,
             "sourceName": "Fallow Source",
-            "observedAtMs": 1788090600000
+            "observedAtMs": 1788090600000,
+            "freshness": "recently_verified"
           }
         ]
       },
@@ -104,7 +103,8 @@
             "discountPercentage": null,
             "discountEndsAtMs": null,
             "sourceName": "Delta Source",
-            "observedAtMs": 1788084000000
+            "observedAtMs": 1788084000000,
+            "freshness": "recently_verified"
           }
         ]
       },
@@ -138,7 +138,8 @@
             "discountPercentage": null,
             "discountEndsAtMs": null,
             "sourceName": "Echo Source",
-            "observedAtMs": 1787918400000
+            "observedAtMs": 1787227200000,
+            "freshness": "stale"
           },
           {
             "id": "00000000-0000-7000-8000-000000000156",
@@ -154,7 +155,8 @@
             "discountPercentage": null,
             "discountEndsAtMs": null,
             "sourceName": "Harbor Source",
-            "observedAtMs": 1788089400000
+            "observedAtMs": 1788089400000,
+            "freshness": "recently_verified"
           }
         ]
       }

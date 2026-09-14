@@ -81,7 +81,8 @@
             "discountPercentage": null,
             "discountEndsAtMs": null,
             "sourceName": "Orbit Source",
-            "observedAtMs": 1750000000000
+            "observedAtMs": 1750000000000,
+            "freshness": "stale"
           },
           {
             "id": "00000000-0000-7000-8000-000000000012",
@@ -105,7 +106,8 @@
             "discountPercentage": 35,
             "discountEndsAtMs": null,
             "sourceName": "Orbit Source",
-            "observedAtMs": 1750000000000
+            "observedAtMs": 1750000000000,
+            "freshness": "stale"
           },
           {
             "id": "00000000-0000-7000-8000-000000000014",
@@ -125,7 +127,8 @@
             "discountPercentage": null,
             "discountEndsAtMs": null,
             "sourceName": "Copper Source",
-            "observedAtMs": 1750000000000
+            "observedAtMs": 1750000000000,
+            "freshness": "stale"
           }
         ]
       },
@@ -159,7 +162,8 @@
             "discountPercentage": null,
             "discountEndsAtMs": null,
             "sourceName": "Orbit Source",
-            "observedAtMs": 1750000000000
+            "observedAtMs": 1750000000000,
+            "freshness": "stale"
           }
         ]
       },
@@ -186,7 +190,8 @@
             "discountPercentage": null,
             "discountEndsAtMs": null,
             "sourceName": "Orbit Source",
-            "observedAtMs": 1750000000000
+            "observedAtMs": 1750000000000,
+            "freshness": "stale"
           }
         ]
       },
@@ -220,7 +225,8 @@
             "discountPercentage": null,
             "discountEndsAtMs": null,
             "sourceName": "Copper Source",
-            "observedAtMs": 1750000000000
+            "observedAtMs": 1750000000000,
+            "freshness": "stale"
           }
         ]
       }
@@ -244,7 +250,25 @@
           "providerSlug": "igdb",
           "providerName": "IGDB",
           "observedAtMs": 1750000000000
-        }
+        },
+        "variants": [
+          {
+            "url": "https://images.igdb.com/igdb/image/upload/t_cover_small/demo-artwork.jpg",
+            "width": 90
+          },
+          {
+            "url": "https://images.igdb.com/igdb/image/upload/t_cover_big/demo-artwork.jpg",
+            "width": 264
+          },
+          {
+            "url": "https://images.igdb.com/igdb/image/upload/t_720p/demo-artwork.jpg",
+            "width": 1280
+          },
+          {
+            "url": "https://images.igdb.com/igdb/image/upload/t_1080p/demo-artwork.jpg",
+            "width": 1920
+          }
+        ]
       },
       "screenshots": [
         {
@@ -255,7 +279,21 @@
             "providerSlug": "igdb",
             "providerName": "IGDB",
             "observedAtMs": 1750000000000
-          }
+          },
+          "variants": [
+            {
+              "url": "https://images.igdb.com/igdb/image/upload/t_screenshot_med/demo-shot-1.jpg",
+              "width": 555
+            },
+            {
+              "url": "https://images.igdb.com/igdb/image/upload/t_screenshot_big/demo-shot-1.jpg",
+              "width": 940
+            },
+            {
+              "url": "https://images.igdb.com/igdb/image/upload/t_screenshot_huge/demo-shot-1.jpg",
+              "width": 1280
+            }
+          ]
         },
         {
           "url": "https://images.igdb.com/igdb/image/upload/t_screenshot_huge/demo-shot-2.jpg",
@@ -265,7 +303,21 @@
             "providerSlug": "igdb",
             "providerName": "IGDB",
             "observedAtMs": 1750000000000
-          }
+          },
+          "variants": [
+            {
+              "url": "https://images.igdb.com/igdb/image/upload/t_screenshot_med/demo-shot-2.jpg",
+              "width": 555
+            },
+            {
+              "url": "https://images.igdb.com/igdb/image/upload/t_screenshot_big/demo-shot-2.jpg",
+              "width": 940
+            },
+            {
+              "url": "https://images.igdb.com/igdb/image/upload/t_screenshot_huge/demo-shot-2.jpg",
+              "width": 1280
+            }
+          ]
         }
       ],
       "videos": [

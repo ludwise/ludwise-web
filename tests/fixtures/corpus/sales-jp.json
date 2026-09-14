@@ -66,7 +66,8 @@
             "minorUnit": 0
           },
           "discountPercentage": 60,
-          "observedAtMs": 1750000000000
+          "observedAtMs": 1750000000000,
+          "freshness": "stale"
         },
         "storeCount": 1
       }

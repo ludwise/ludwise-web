@@ -100,6 +100,7 @@ function provenanceItems(offer: OfferView): { label: string; value: string }[] {
               <td data-label="Checked">
                 <FreshnessIndicator
                   availability={offer.availability}
+                  freshness={offer.freshness}
                   observedAtMs={offer.observedAtMs}
                   storeName={offer.storeName}
                   nowMs={nowMs}

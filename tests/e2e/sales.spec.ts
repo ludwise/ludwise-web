@@ -112,45 +112,66 @@ test.describe('sales browsing', () => {
     await expect(card.locator('time')).toHaveAttribute('datetime', /^\d{4}-/u);
   });
 
-  /**
-   * The corpus records prices observed on 15 June 2025, and the suite's clock
-   * is 30 August 2026. So a page headed "Current sales" is showing prices more
-   * than a year old. Saying so once, above the results, is the difference
-   * between reporting what LUDWISE observed and claiming it is today's price.
-   */
-  test('says once that the whole page of prices is old', async ({ page }) => {
+  test('renders the backend freshness word on each card', async ({ page }) => {
     await page.goto('/sales');
+
+    const card = page.getByRole('listitem').filter({ hasText: 'Half Off Demo Game' });
+    await expect(card.locator('.lw-freshness')).toHaveAttribute('data-state', 'recently_verified');
+    await expect(card.locator('.lw-freshness')).not.toContainText('out of date');
+
+    await page.goto('/sales?market=JP&currency=JPY');
+
+    const stale = page.getByRole('listitem').filter({ hasText: 'Yen Sale Demo Game' });
+    await expect(stale.locator('.lw-freshness')).toHaveAttribute('data-state', 'stale');
+    await expect(stale.locator('.lw-freshness')).toContainText('Price may be out of date');
+  });
+
+  /**
+   * The backend calls the Japan prices stale. So a page headed "Current sales"
+   * shows prices it no longer stands behind. Saying so once, above the results,
+   * is the difference between reporting what LUDWISE observed and claiming it
+   * is today's price.
+   */
+  test('says once that a page with a stale price may be out of date', async ({ page }) => {
+    await page.goto('/sales?market=JP&currency=JPY');
 
     const notice = page.getByText('These prices may be out of date');
     await expect(notice).toBeVisible();
     // A date rather than "441 days ago". content-style.md fixes relative up to
     // seven days and absolute after.
     await expect(
-      page.getByText('The newest price on this page was checked Jun 15, 2025.'),
+      page.getByText('The oldest price on this page was checked Jun 15, 2025.'),
     ).toBeVisible();
     // One statement for the page, not one per card. A warning repeated on
     // every result is a warning a visitor stops reading.
     await expect(notice).toHaveCount(1);
+
+    await auditFor(page);
+  });
+
+  test('does not warn on a page whose every price is recently verified', async ({ page }) => {
+    // The recorded instant is a year before the suite's clock. The word is the
+    // backend's, and this client holds no horizon to overrule it.
+    await page.goto('/sales');
+
+    await expect(page.getByText('These prices may be out of date')).toHaveCount(0);
   });
 
   test('explains the words on a card in the same wording the game page uses', async ({ page }) => {
     // A visitor who learned what a check time means on one surface must not
     // have to learn it again on the next. The shared list in
     // tests/helpers/data-notes.ts is what makes that assertable.
-    await page.goto('/sales');
+    await page.goto('/sales?market=JP&currency=JPY');
 
     const summary = page.getByText(DATA_NOTES_SUMMARY);
     await expect(summary).toHaveCount(1);
     await summary.click();
 
     await expect(page.getByText(DATA_NOTES.checkTimes)).toBeVisible();
-    await expect(page.getByText(DATA_NOTES.oldCheckTimes)).toBeVisible();
+    await expect(page.getByText(DATA_NOTES.stalePrices)).toBeVisible();
     // Every card here is a sale, and the backend worked out each percentage.
     await expect(page.getByText(DATA_NOTES.derivedDiscounts)).toBeVisible();
     await expect(page.getByText(DATA_NOTES.noHistory)).toBeVisible();
-    // A sale offer always carries the moment it was read, so nothing on this
-    // page is a missing check time.
-    await expect(page.getByText(DATA_NOTES.untimedPrices)).toHaveCount(0);
   });
 
   test('explains nothing beside a market that holds no sale', async ({ page }) => {

@@ -17,6 +17,7 @@
 import Price from './Price.astro';
 import FreshnessIndicator from './FreshnessIndicator.astro';
 import StoreIdentity from './StoreIdentity.astro';
+import type { DataFreshness } from '../../lib/api/contract.js';
 
 /** Structural, so both the sales and game-detail money views satisfy it. */
 interface CardMoney {
@@ -39,6 +40,8 @@ interface Props {
   /** Reduced-precision RFC 3339, so the year is the leading four characters. */
   releaseDate?: string | null | undefined;
   observedAtMs: number;
+  /** The backend's word for this offer. `undefined` when the response carried none. */
+  freshness: DataFreshness | undefined;
   storeName: string;
 }
 
@@ -52,6 +55,7 @@ const {
   editionLabel,
   releaseDate,
   observedAtMs,
+  freshness,
   storeName,
 } = Astro.props;
 
@@ -89,6 +93,7 @@ const releaseYear =
   <div class="lw-game-card__freshness">
     <FreshnessIndicator
       availability="available"
+      freshness={freshness}
       observedAtMs={observedAtMs}
       storeName={storeName}
     />

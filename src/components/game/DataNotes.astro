@@ -31,16 +31,10 @@ const { provenance, class: className } = Astro.props;
             the store last changed it.
           </p>
         )}
-        {provenance.hasUntimedPrices && (
+        {provenance.hasStalePrices && (
           <p>
-            Not provided means the source did not say when it read the price. LUDWISE does not guess
-            one.
-          </p>
-        )}
-        {provenance.hasOldCheckTimes && (
-          <p>
-            A price LUDWISE read more than a day ago may be out of date. Open the store page to see
-            what it costs now.
+            LUDWISE marks a price as possibly out of date when it has not checked that price
+            recently. Open the store page to see what it costs now.
           </p>
         )}
         {provenance.hasDerivedDiscounts && (

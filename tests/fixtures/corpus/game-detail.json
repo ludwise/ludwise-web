@@ -55,7 +55,8 @@
             "discountPercentage": 50,
             "discountEndsAtMs": null,
             "sourceName": "Orbit Source",
-            "observedAtMs": 1750000000000
+            "observedAtMs": 1750000000000,
+            "freshness": "recently_verified"
           }
         ]
       }
