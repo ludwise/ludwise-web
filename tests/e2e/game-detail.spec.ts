@@ -387,6 +387,37 @@ test.describe('game detail', () => {
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('Game not found');
     await expect(page.getByRole('link', { name: 'Browse games' })).toBeVisible();
   });
+
+  test('shares the cover through the media route, on the canonical slug', async ({ page }) => {
+    await page.goto(`${DETAIL_ROUTE}?utm_source=share`);
+
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
+      'href',
+      `${BASE_URL}${DETAIL_ROUTE}`,
+    );
+    await expect(page.locator('meta[property="og:type"]')).toHaveAttribute('content', 'website');
+    await expect(page.locator('meta[property="og:image"]')).toHaveAttribute(
+      'content',
+      `${BASE_URL}/media/images.igdb.com/igdb/image/upload/t_cover_big/demo-cover.jpg`,
+    );
+    await expect(page.locator('meta[name="twitter:card"]')).toHaveAttribute(
+      'content',
+      'summary_large_image',
+    );
+    await expect(page.locator('meta[property^="og:image:"]')).toHaveCount(0);
+    await expect(page.locator('meta[name^="twitter:image"]')).toHaveCount(0);
+  });
+
+  test('sends a text card and no description for a game with no cover and no summary', async ({
+    page,
+  }) => {
+    await page.goto('/games/half-off-demo');
+
+    await expect(page.locator('meta[name="description"]')).toHaveCount(0);
+    await expect(page.locator('meta[property="og:description"]')).toHaveCount(0);
+    await expect(page.locator('meta[property="og:image"]')).toHaveCount(0);
+    await expect(page.locator('meta[name="twitter:card"]')).toHaveAttribute('content', 'summary');
+  });
 });
 
 /**

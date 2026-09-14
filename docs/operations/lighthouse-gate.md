@@ -107,9 +107,10 @@ pnpm install
 pnpm exec playwright install chromium
 cp .dev.vars.example .dev.vars
 
-SITE_URL=http://127.0.0.1:4321 pnpm run build
+pnpm run build
 node --experimental-strip-types scripts/fake-backend.ts &
-BACKEND_DEV_URL=http://127.0.0.1:8788 pnpm exec wrangler dev --port 4321 --ip 127.0.0.1 &
+BACKEND_DEV_URL=http://127.0.0.1:8788 pnpm exec wrangler dev --port 4321 --ip 127.0.0.1 \
+  --var SITE_URL:http://127.0.0.1:4321 &
 
 pnpm run lighthouse -- --target http://127.0.0.1:4321
 ```

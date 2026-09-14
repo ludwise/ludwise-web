@@ -20,10 +20,14 @@ const policies = await getCollection('legal');
 assertLegalPolicies(policies);
 const policy = slug ? selectLegalPolicy(policies, slug, locale, isProduction) : undefined;
 
+// A response with no body makes Astro render the not-found page with this status.
+// A redirect to `/404` would show a crawler a page that answers 200.
 if (!policy) {
-  return Astro.redirect(getRelativeLocaleUrl(locale, '404'));
+  return new Response(null, { status: 404 });
 }
 
+// A redirect is correct here. The policy exists, and the address in the locale
+// that holds its content is the one real page for it.
 const contentLocale = legalPolicyLocale(policy);
 if (contentLocale !== locale) {
   return Astro.redirect(getRelativeLocaleUrl(contentLocale, `legal/${policy.data.policyId}`));

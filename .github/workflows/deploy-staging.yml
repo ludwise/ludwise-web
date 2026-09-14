@@ -78,7 +78,6 @@ jobs:
         run: pnpm run build
         env:
           CLOUDFLARE_ENV: staging
-          SITE_URL: ${{ vars.SITE_URL }}
 
       - name: Deploy
         run: pnpm exec wrangler deploy

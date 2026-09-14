@@ -20,6 +20,7 @@ import { surfaceProvenance } from '../lib/state/provenance.js';
 import { PAIR_SEPARATOR, toBrowseSalesInput } from '../lib/http/sales-query.js';
 import { compareText } from '../lib/text/order.js';
 import { EVENTS } from '../lib/logging/events.js';
+import { listingIndexing } from '../lib/seo/page-head.js';
 
 export const prerender = false;
 
@@ -136,6 +137,7 @@ const clearedFiltersPath = pathWithFiltersCleared(params);
   title="Sales — LUDWISE"
   description="Games discounted right now at legitimate stores."
   activeNavId="sales"
+  indexing={listingIndexing(Astro.url)}
 >
   <PageContainer width="wide">
     <div class="lw-sales__heading-row">

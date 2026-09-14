@@ -79,7 +79,6 @@ jobs:
         run: pnpm run build
         env:
           CLOUDFLARE_ENV: production
-          SITE_URL: ${{ vars.SITE_URL }}
 
       - name: Deploy
         run: pnpm exec wrangler deploy
@@ -139,6 +138,34 @@ jobs:
           echo "${robots}"
           echo "${robots}" | grep -q 'Allow: /' || {
             echo "::error::Production robots.txt does not allow crawling."
+            exit 1
+          }
+
+      # The sitemap is a server route, so only the live Worker can prove it.
+      # Only the production robots.txt body offers it to a crawler.
+      - name: Confirm the sitemap is served
+        env:
+          SITE_URL: ${{ vars.SITE_URL }}
+        run: |
+          status="$(curl -s -o /dev/null -w '%{http_code}' "${SITE_URL}/sitemap.xml")"
+          echo "GET /sitemap.xml responded ${status}"
+          [ "${status}" = "200" ] || {
+            echo "::error::/sitemap.xml answered ${status} rather than 200."
+            exit 1
+          }
+
+          content_type="$(curl -s -o /dev/null -w '%{content_type}' "${SITE_URL}/sitemap.xml")"
+          echo "GET /sitemap.xml sent content-type ${content_type}"
+          case "${content_type}" in
+            application/xml*) ;;
+            *)
+              echo "::error::/sitemap.xml sent ${content_type} rather than application/xml."
+              exit 1
+              ;;
+          esac
+
+          curl -sf "${SITE_URL}/robots.txt" | grep -q '^Sitemap: ' || {
+            echo "::error::Production robots.txt has no Sitemap line."
             exit 1
           }
 

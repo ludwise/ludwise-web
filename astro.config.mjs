@@ -16,9 +16,9 @@ import { CLOUDFLARE_SSR_VITE_CONFIG } from './scripts/vite/cloudflare-ssr.mjs';
 // available here. That is NOT true of anything in src/, which runs in
 // workerd. Do not carry this assumption across that boundary.
 
-// `environment` is deliberately NOT injected here. Baking it into the artifact
-// would make a build un-promotable between staging and production, which the
-// main -> production branch model depends on. It is runtime configuration instead.
+// `environment` and the site URL are runtime configuration, never build input.
+// Baking either into the artifact would make a build un-promotable between
+// staging and production, which the main -> production branch model needs.
 export default defineConfig({
   output: 'server',
   trailingSlash: 'never',
@@ -26,7 +26,6 @@ export default defineConfig({
   integrations: [react()],
   // This anonymous site has no session state. Keep Astro from adding a KV binding.
   session: false,
-  ...(process.env.SITE_URL ? { site: process.env.SITE_URL } : {}),
   i18n: {
     defaultLocale: DEFAULT_LOCALE,
     locales: [...SUPPORTED_LOCALES],

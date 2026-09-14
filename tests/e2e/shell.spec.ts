@@ -275,6 +275,81 @@ test.describe('indexing', () => {
     // A disallow list naming real routes is a public index of the routes
     // somebody thought were worth hiding.
     expect(body).not.toContain('/api');
+    // A body that refuses a crawler must not offer it a sitemap.
+    expect(body).not.toContain('Sitemap:');
+    expect(response.headers()['cache-control']).toBe('public, max-age=3600');
+  });
+
+  test('serves a sitemap of the stable pages and the legal policies, and no game page', async ({
+    request,
+  }) => {
+    const response = await request.get('/sitemap.xml');
+
+    expect(response.status()).toBe(200);
+    expect(response.headers()['content-type']).toMatch(/^application\/xml\b/u);
+    expect(response.headers()['cache-control']).toBe('public, max-age=3600');
+
+    const body = await response.text();
+    for (const path of ['/', '/games', '/sales', '/legal/terms', '/legal/sources']) {
+      expect(body).toContain(`<loc>${BASE_URL}${path}</loc>`);
+    }
+    expect(body).toMatch(/<loc>[^<]+\/legal\/terms<\/loc><lastmod>\d{4}-\d{2}-\d{2}<\/lastmod>/u);
+    expect(body).not.toContain('/games/');
+    expect(body).not.toMatch(/changefreq|priority/u);
+  });
+
+  test('answers an unknown legal policy with a 404 and no redirect', async ({ page, request }) => {
+    const direct = await request.get('/legal/not-a-policy', { maxRedirects: 0 });
+    expect(direct.status()).toBe(404);
+    expect(direct.headers()['location']).toBeUndefined();
+
+    const response = await page.goto('/legal/not-a-policy');
+    expect(response?.status()).toBe(404);
+    expect(new URL(page.url()).pathname).toBe('/legal/not-a-policy');
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Page not found');
+  });
+
+  test('sends a not-found page with noindex and no canonical link', async ({ page }) => {
+    await page.goto('/this-route-does-not-exist');
+
+    await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', /noindex/u);
+    await expect(page.locator('link[rel="canonical"]')).toHaveCount(0);
+    await expect(page.locator('meta[property="og:url"]')).toHaveCount(0);
+  });
+
+  test('builds the canonical link from the configured origin', async ({ page }) => {
+    await page.goto('/about?utm_source=share');
+
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
+      'href',
+      `${BASE_URL}/about`,
+    );
+  });
+
+  test('keeps the query string in the canonical link of a filtered listing', async ({ page }) => {
+    await page.goto('/games?q=Canonical');
+
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
+      'href',
+      `${BASE_URL}/games?q=Canonical`,
+    );
+  });
+
+  test('sends the Open Graph tags and a text card, and no structured data', async ({ page }) => {
+    await page.goto('/sales');
+
+    const meta = (key: string) => page.locator(`head meta[property="${key}"]`);
+    await expect(meta('og:title')).toHaveAttribute('content', 'Sales — LUDWISE');
+    await expect(meta('og:description')).toHaveAttribute(
+      'content',
+      'Games discounted right now at legitimate stores.',
+    );
+    await expect(meta('og:url')).toHaveAttribute('content', `${BASE_URL}/sales`);
+    await expect(meta('og:type')).toHaveAttribute('content', 'website');
+    await expect(meta('og:site_name')).toHaveAttribute('content', 'LUDWISE');
+    await expect(meta('og:image')).toHaveCount(0);
+    await expect(page.locator('meta[name="twitter:card"]')).toHaveAttribute('content', 'summary');
+    await expect(page.locator('script[type="application/ld+json"]')).toHaveCount(0);
   });
 });
 

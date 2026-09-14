@@ -1,4 +1,5 @@
 import { baseLocale, isLocale, type Locale } from '../../i18n/index.js';
+import { compareText } from '../text/order.js';
 
 export type LegalPolicyStatus = 'draft' | 'current' | 'superseded';
 export type LegalTranslationStatus = 'source' | 'draft' | 'approved';
@@ -137,23 +138,31 @@ export function selectLegalPolicy<T extends LegalPolicyEntry>(
   );
 }
 
+/** Each policy that the legal route serves, one entry for each policy ID, in order. */
+export function selectServedLegalPolicies<T extends LegalPolicyEntry>(
+  policies: readonly T[],
+  locale: string,
+  production: boolean,
+): T[] {
+  const ids = [...new Set(policies.map((policy) => legalPolicyPath(policy).policyId))];
+
+  return ids
+    .map((policyId) => selectLegalPolicy(policies, policyId, locale, production))
+    .filter((policy): policy is T => policy !== undefined)
+    .sort(
+      (left, right) =>
+        left.data.order - right.data.order || compareText(left.data.policyId, right.data.policyId),
+    );
+}
+
 export function selectLegalFooterPolicies<T extends LegalPolicyEntry>(
   policies: readonly T[],
   locale: string,
   production: boolean,
 ): T[] {
-  const ids = [
-    ...new Set(
-      policies
-        .filter((policy) => policy.data.footer)
-        .map((policy) => legalPolicyPath(policy).policyId),
-    ),
-  ];
-
-  return ids
-    .map((policyId) => selectLegalPolicy(policies, policyId, locale, production))
-    .filter((policy): policy is T => policy !== undefined)
-    .sort((left, right) => left.data.order - right.data.order);
+  return selectServedLegalPolicies(policies, locale, production).filter(
+    (policy) => policy.data.footer,
+  );
 }
 
 const CONTACT_POLICY_ID = 'contact';

@@ -16,7 +16,7 @@ export const prerender = false;
      No activeNavId: this page is not a nav destination, and marking one
      current would tell a screen reader the visitor is somewhere they are not. */
 }
-<BaseLayout title="Page not found — LUDWISE">
+<BaseLayout title="Page not found — LUDWISE" indexing={{ kind: 'error' }}>
   <PageContainer width="reading">
     {
       /* titleAs="h1" because this is the whole page, not a surface within one.
