@@ -16,13 +16,11 @@ const accessibleText =
   rounded === null ? null : m.price_percent_off({ percentage: rounded }, messageOptions);
 ---
 
-{
-  rounded !== null && rounded > 0 && visualText !== null && accessibleText !== null && (
-    <span class="lw-discount-badge" data-size={size} aria-label={accessibleText}>
-      {visualText}
-    </span>
-  )
-}
+{rounded !== null && rounded > 0 && visualText !== null && accessibleText !== null && (
+  <span class="lw-discount-badge" data-size={size} aria-label={accessibleText}>
+    {visualText}
+  </span>
+)}
 
 <style>
   .lw-discount-badge {

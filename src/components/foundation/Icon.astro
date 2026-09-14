@@ -40,27 +40,25 @@ const px = typeof size === 'number' ? size : (ICON_SIZES[size] ?? ICON_SIZES.md)
 const markup = LUDWISE_ICONS[name];
 ---
 
-{
-  markup && (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width={px}
-      height={px}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      stroke-width={strokeWidth}
-      stroke-linecap="round"
-      stroke-linejoin="round"
-      role={title ? 'img' : undefined}
-      aria-hidden={title ? undefined : 'true'}
-      aria-label={title}
-      focusable="false"
-      class:list={['lw-icon', className]}
-      set:html={markup}
-    />
-  )
-}
+{markup && (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width={px}
+    height={px}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width={strokeWidth}
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    role={title ? 'img' : undefined}
+    aria-hidden={title ? undefined : 'true'}
+    aria-label={title}
+    focusable="false"
+    class:list={['lw-icon', className]}
+    set:html={markup}
+  />
+)}
 
 <style>
   .lw-icon {

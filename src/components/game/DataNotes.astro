@@ -20,43 +20,41 @@ interface Props {
 const { provenance, class: className } = Astro.props;
 ---
 
-{
-  explainsProvenance(provenance) && (
-    <details class:list={['lw-data-notes', className]}>
-      <summary>How to read these prices</summary>
-      <div class="lw-data-notes__body">
-        {provenance.hasCheckTimes && (
-          <p>
-            A price here carries the time LUDWISE last read it at the store. That is not the time
-            the store last changed it.
-          </p>
-        )}
-        {provenance.hasUntimedPrices && (
-          <p>
-            Not provided means the source did not say when it read the price. LUDWISE does not guess
-            one.
-          </p>
-        )}
-        {provenance.hasOldCheckTimes && (
-          <p>
-            A price LUDWISE read more than a day ago may be out of date. Open the store page to see
-            what it costs now.
-          </p>
-        )}
-        {provenance.hasDerivedDiscounts && (
-          <p>
-            The store gives both the current price and the regular price. LUDWISE works out the
-            discount from the two.
-          </p>
-        )}
+{explainsProvenance(provenance) && (
+  <details class:list={['lw-data-notes', className]}>
+    <summary>How to read these prices</summary>
+    <div class="lw-data-notes__body">
+      {provenance.hasCheckTimes && (
         <p>
-          LUDWISE keeps no record of earlier prices, so nothing here tells you how a price compares
-          with the past.
+          A price here carries the time LUDWISE last read it at the store. That is not the time the
+          store last changed it.
         </p>
-      </div>
-    </details>
-  )
-}
+      )}
+      {provenance.hasUntimedPrices && (
+        <p>
+          Not provided means the source did not say when it read the price. LUDWISE does not guess
+          one.
+        </p>
+      )}
+      {provenance.hasOldCheckTimes && (
+        <p>
+          A price LUDWISE read more than a day ago may be out of date. Open the store page to see
+          what it costs now.
+        </p>
+      )}
+      {provenance.hasDerivedDiscounts && (
+        <p>
+          The store gives both the current price and the regular price. LUDWISE works out the
+          discount from the two.
+        </p>
+      )}
+      <p>
+        LUDWISE keeps no record of earlier prices, so nothing here tells you how a price compares
+        with the past.
+      </p>
+    </div>
+  </details>
+)}
 
 <style>
   .lw-data-notes {

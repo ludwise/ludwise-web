@@ -89,225 +89,223 @@ const PROVENANCE_METHODS: Record<ProvenanceView['method'], string> = {
 
 <BaseLayout title={`${pageTitle} — LUDWISE`} description={pageDescription} activeNavId="games">
   <PageContainer width="standard">
-    {
-      notFound ? (
-        <EmptyState icon="search" title="Game not found" titleAs="h1">
-          This game page does not exist. Check the address or return to the game catalogue.
-          <a slot="action" href="/games">
-            Browse games
-          </a>
-        </EmptyState>
-      ) : failureCode !== null ? (
-        <section class="lw-game-detail__failure" aria-labelledby="game-detail-failure-title">
-          <h1 id="game-detail-failure-title" class="lw-text-heading-xl">
-            Game could not be loaded
-          </h1>
-          <InlineMessage tone="danger" title="The game page is unavailable">
-            Something failed on our side, so this page is not shown. Quote code{' '}
-            <code class="lw-text-code">{failureCode}</code> and request id{' '}
-            <code class="lw-text-code">{Astro.locals.requestId}</code> if you report this.
-            <div slot="action" class="lw-game-detail__recovery">
-              <a href={retryHref}>Try again</a>
-              <a href="/games">Browse games</a>
+    {notFound ? (
+      <EmptyState icon="search" title="Game not found" titleAs="h1">
+        This game page does not exist. Check the address or return to the game catalogue.
+        <a slot="action" href="/games">
+          Browse games
+        </a>
+      </EmptyState>
+    ) : failureCode !== null ? (
+      <section class="lw-game-detail__failure" aria-labelledby="game-detail-failure-title">
+        <h1 id="game-detail-failure-title" class="lw-text-heading-xl">
+          Game could not be loaded
+        </h1>
+        <InlineMessage tone="danger" title="The game page is unavailable">
+          Something failed on our side, so this page is not shown. Quote code{' '}
+          <code class="lw-text-code">{failureCode}</code> and request id{' '}
+          <code class="lw-text-code">{Astro.locals.requestId}</code> if you report this.
+          <div slot="action" class="lw-game-detail__recovery">
+            <a href={retryHref}>Try again</a>
+            <a href="/games">Browse games</a>
+          </div>
+        </InlineMessage>
+      </section>
+    ) : (
+      view && (
+        <article class="lw-game-detail">
+          <nav class="lw-game-detail__breadcrumbs" aria-label="Breadcrumb">
+            <ol>
+              <li>
+                <a href="/games">Games</a>
+              </li>
+              <li aria-current="page">{view.title}</li>
+            </ol>
+          </nav>
+
+          <header class="lw-game-detail__header">
+            {media.cover && (
+              <GameArtwork
+                class="lw-game-detail__cover"
+                src={media.cover.src ?? undefined}
+                title={view.title}
+                ratio="cover"
+                eager={media.cover.eager}
+              />
+            )}
+            <div class="lw-game-detail__identity">
+              <p class="lw-text-label-sm">Game</p>
+              <h1 class="lw-text-heading-xl">{view.title}</h1>
             </div>
-          </InlineMessage>
-        </section>
-      ) : (
-        view && (
-          <article class="lw-game-detail">
-            <nav class="lw-game-detail__breadcrumbs" aria-label="Breadcrumb">
-              <ol>
-                <li>
-                  <a href="/games">Games</a>
-                </li>
-                <li aria-current="page">{view.title}</li>
-              </ol>
-            </nav>
+          </header>
 
-            <header class="lw-game-detail__header">
-              {media.cover && (
-                <GameArtwork
-                  class="lw-game-detail__cover"
-                  src={media.cover.src ?? undefined}
-                  title={view.title}
-                  ratio="cover"
-                  eager={media.cover.eager}
-                />
-              )}
-              <div class="lw-game-detail__identity">
-                <p class="lw-text-label-sm">Game</p>
-                <h1 class="lw-text-heading-xl">{view.title}</h1>
-              </div>
-            </header>
+          {!hasCatalogueDetails && (
+            <InlineMessage tone="info" title="No catalogue details yet">
+              LUDWISE has not collected a description, developer, publisher or release date for this
+              game yet.
+            </InlineMessage>
+          )}
 
-            {!hasCatalogueDetails && (
-              <InlineMessage tone="info" title="No catalogue details yet">
-                LUDWISE has not collected a description, developer, publisher or release date for
-                this game yet.
-              </InlineMessage>
-            )}
+          {metadata?.summary && (
+            <section class="lw-game-detail__section" aria-labelledby="about-game-title">
+              <h2 id="about-game-title" class="lw-text-heading-md">
+                About this game
+              </h2>
+              <p class="lw-text-body-lg">{metadata.summary}</p>
+            </section>
+          )}
 
-            {metadata?.summary && (
-              <section class="lw-game-detail__section" aria-labelledby="about-game-title">
-                <h2 id="about-game-title" class="lw-text-heading-md">
-                  About this game
-                </h2>
-                <p class="lw-text-body-lg">{metadata.summary}</p>
-              </section>
-            )}
-
-            {hasMetadata && metadata && (
-              <section class="lw-game-detail__section" aria-labelledby="game-details-title">
-                <h2 id="game-details-title" class="lw-text-heading-md">
-                  Game details
-                </h2>
-                <dl class="lw-game-detail__metadata">
-                  {metadata.developer && (
-                    <>
-                      <dt>Developer</dt>
-                      <dd>{metadata.developer}</dd>
-                    </>
-                  )}
-                  {metadata.publisher && (
-                    <>
-                      <dt>Publisher</dt>
-                      <dd>{metadata.publisher}</dd>
-                    </>
-                  )}
-                  {releaseDate && (
-                    <>
-                      <dt>Release date</dt>
-                      <dd>{releaseDate}</dd>
-                    </>
-                  )}
-                  {genres.length > 0 && (
-                    <>
-                      <dt>Genres</dt>
-                      <dd>
-                        <ul class="lw-game-detail__metadata-values" aria-label="Genres">
-                          {genres.map((genre) => (
-                            <li>{genre}</li>
-                          ))}
-                        </ul>
-                      </dd>
-                    </>
-                  )}
-                  {platforms.length > 0 && (
-                    <>
-                      <dt>Platforms</dt>
-                      <dd>
-                        <ul class="lw-game-detail__metadata-values" aria-label="Platforms">
-                          {platforms.map((platform) => (
-                            <li>{platform}</li>
-                          ))}
-                        </ul>
-                      </dd>
-                    </>
-                  )}
-                </dl>
-                {view.metadataProvenance.length > 0 && (
-                  <details class="lw-game-detail__provenance">
-                    <summary>Where this information came from</summary>
-                    <p>LUDWISE took each value from the source named beside it.</p>
-                    <ul>
-                      {view.metadataProvenance.map((item) => (
-                        <li>
-                          {provenanceFieldLabel(item.field)}: {item.sourceName},{' '}
-                          {PROVENANCE_METHODS[item.method]}
-                        </li>
-                      ))}
-                    </ul>
-                  </details>
+          {hasMetadata && metadata && (
+            <section class="lw-game-detail__section" aria-labelledby="game-details-title">
+              <h2 id="game-details-title" class="lw-text-heading-md">
+                Game details
+              </h2>
+              <dl class="lw-game-detail__metadata">
+                {metadata.developer && (
+                  <>
+                    <dt>Developer</dt>
+                    <dd>{metadata.developer}</dd>
+                  </>
                 )}
-              </section>
-            )}
-
-            <section
-              class="lw-game-detail__section lw-game-detail__offers"
-              aria-labelledby="current-offers-title"
-            >
-              <div class="lw-game-detail__section-heading">
-                <h2 id="current-offers-title" class="lw-text-heading-md">
-                  Current offers
-                </h2>
-                {view.offerGroups.length > 0 && (
-                  <p class="lw-text-body-sm">
-                    Offers are grouped by market and currency. Available prices are lowest first
-                    within each currency.
-                  </p>
+                {metadata.publisher && (
+                  <>
+                    <dt>Publisher</dt>
+                    <dd>{metadata.publisher}</dd>
+                  </>
                 )}
-              </div>
-              <FreshnessNotice freshness={offerFreshness} nowMs={nowMs} />
-              <DataNotes provenance={offerProvenance} />
-
-              {view.offerGroups.length === 0 ? (
-                <EmptyState icon="store" title="No current offers" compact>
-                  There are no current store offers to compare for this game.
-                </EmptyState>
-              ) : (
-                <div class="lw-game-detail__offer-groups">
-                  {view.offerGroups.map((group, index) => (
-                    <section
-                      class="lw-game-detail__offer-group"
-                      aria-labelledby={`offer-group-${index}`}
-                    >
-                      <h3 id={`offer-group-${index}`} class="lw-text-heading-sm">
-                        {group.market?.name ?? 'Market not provided'}
-                        {group.currency && (
-                          <span class="lw-game-detail__currency"> · {group.currency.code}</span>
-                        )}
-                      </h3>
-                      <OfferTable group={group} gameTitle={view.title} nowMs={Astro.locals.nowMs} />
-                    </section>
-                  ))}
-                </div>
+                {releaseDate && (
+                  <>
+                    <dt>Release date</dt>
+                    <dd>{releaseDate}</dd>
+                  </>
+                )}
+                {genres.length > 0 && (
+                  <>
+                    <dt>Genres</dt>
+                    <dd>
+                      <ul class="lw-game-detail__metadata-values" aria-label="Genres">
+                        {genres.map((genre) => (
+                          <li>{genre}</li>
+                        ))}
+                      </ul>
+                    </dd>
+                  </>
+                )}
+                {platforms.length > 0 && (
+                  <>
+                    <dt>Platforms</dt>
+                    <dd>
+                      <ul class="lw-game-detail__metadata-values" aria-label="Platforms">
+                        {platforms.map((platform) => (
+                          <li>{platform}</li>
+                        ))}
+                      </ul>
+                    </dd>
+                  </>
+                )}
+              </dl>
+              {view.metadataProvenance.length > 0 && (
+                <details class="lw-game-detail__provenance">
+                  <summary>Where this information came from</summary>
+                  <p>LUDWISE took each value from the source named beside it.</p>
+                  <ul>
+                    {view.metadataProvenance.map((item) => (
+                      <li>
+                        {provenanceFieldLabel(item.field)}: {item.sourceName},{' '}
+                        {PROVENANCE_METHODS[item.method]}
+                      </li>
+                    ))}
+                  </ul>
+                </details>
               )}
             </section>
+          )}
 
-            {media.gallery && (
-              <section class="lw-game-detail__section" aria-labelledby="screenshots-title">
-                <h2 id="screenshots-title" class="lw-text-heading-md">
-                  {media.gallery.heading}
-                </h2>
-                {/* A plain container and not a list. A screenshot carries no name, so
+          <section
+            class="lw-game-detail__section lw-game-detail__offers"
+            aria-labelledby="current-offers-title"
+          >
+            <div class="lw-game-detail__section-heading">
+              <h2 id="current-offers-title" class="lw-text-heading-md">
+                Current offers
+              </h2>
+              {view.offerGroups.length > 0 && (
+                <p class="lw-text-body-sm">
+                  Offers are grouped by market and currency. Available prices are lowest first
+                  within each currency.
+                </p>
+              )}
+            </div>
+            <FreshnessNotice freshness={offerFreshness} nowMs={nowMs} />
+            <DataNotes provenance={offerProvenance} />
+
+            {view.offerGroups.length === 0 ? (
+              <EmptyState icon="store" title="No current offers" compact>
+                There are no current store offers to compare for this game.
+              </EmptyState>
+            ) : (
+              <div class="lw-game-detail__offer-groups">
+                {view.offerGroups.map((group, index) => (
+                  <section
+                    class="lw-game-detail__offer-group"
+                    aria-labelledby={`offer-group-${index}`}
+                  >
+                    <h3 id={`offer-group-${index}`} class="lw-text-heading-sm">
+                      {group.market?.name ?? 'Market not provided'}
+                      {group.currency && (
+                        <span class="lw-game-detail__currency"> · {group.currency.code}</span>
+                      )}
+                    </h3>
+                    <OfferTable group={group} gameTitle={view.title} nowMs={Astro.locals.nowMs} />
+                  </section>
+                ))}
+              </div>
+            )}
+          </section>
+
+          {media.gallery && (
+            <section class="lw-game-detail__section" aria-labelledby="screenshots-title">
+              <h2 id="screenshots-title" class="lw-text-heading-md">
+                {media.gallery.heading}
+              </h2>
+              {/* A plain container and not a list. A screenshot carries no name, so
                     list semantics would announce members that say nothing. */}
-                <div class="lw-game-detail__gallery">
-                  {media.gallery.pictures.map((screenshot) => (
-                    <GameArtwork
-                      src={screenshot.src ?? undefined}
-                      title={view.title}
-                      ratio="screenshot"
-                      eager={screenshot.eager}
-                    />
-                  ))}
-                </div>
-              </section>
-            )}
+              <div class="lw-game-detail__gallery">
+                {media.gallery.pictures.map((screenshot) => (
+                  <GameArtwork
+                    src={screenshot.src ?? undefined}
+                    title={view.title}
+                    ratio="screenshot"
+                    eager={screenshot.eager}
+                  />
+                ))}
+              </div>
+            </section>
+          )}
 
-            {media.videos && (
-              <section class="lw-game-detail__section" aria-labelledby="videos-title">
-                <h2 id="videos-title" class="lw-text-heading-md">
-                  {media.videos.heading}
-                </h2>
-                <ul class="lw-game-detail__videos">
-                  {media.videos.links.map((video) => (
-                    <li>
-                      <a href={video.href} target="_blank" rel="noopener noreferrer">
-                        {video.label}
-                        <Icon name="external-link" size="sm" />
-                        <span class="lw-visually-hidden">Opens in a new tab</span>
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </section>
-            )}
+          {media.videos && (
+            <section class="lw-game-detail__section" aria-labelledby="videos-title">
+              <h2 id="videos-title" class="lw-text-heading-md">
+                {media.videos.heading}
+              </h2>
+              <ul class="lw-game-detail__videos">
+                {media.videos.links.map((video) => (
+                  <li>
+                    <a href={video.href} target="_blank" rel="noopener noreferrer">
+                      {video.label}
+                      <Icon name="external-link" size="sm" />
+                      <span class="lw-visually-hidden">Opens in a new tab</span>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
 
-            <DataSources view={view} />
-          </article>
-        )
+          <DataSources view={view} />
+        </article>
       )
-    }
+    )}
   </PageContainer>
 </BaseLayout>
 

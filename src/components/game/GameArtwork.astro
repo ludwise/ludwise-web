@@ -71,34 +71,32 @@ const locale = resolveLocale(Astro.currentLocale);
   class:list={['lw-artwork', className]}
   style={{ aspectRatio: ASPECT[ratio], borderRadius: radius }}
 >
-  {
-    loading ? (
-      <Skeleton width="100%" height="100%" radius={radius} />
-    ) : (
-      <Fragment>
-        <div aria-hidden="true" class="lw-artwork__placeholder">
-          <Icon name="image-off" size="lg" />
-          {!iconOnly && (
-            <Fragment>
-              <span class="lw-artwork__title">{title}</span>
-              <span class="lw-artwork__note">{m.artwork_none_available({}, { locale })}</span>
-            </Fragment>
-          )}
-        </div>
-        {src && (
-          <img
-            class="lw-artwork__image"
-            src={src}
-            alt=""
-            loading={eager ? 'eager' : 'lazy'}
-            decoding="async"
-            fetchpriority={eager ? 'high' : undefined}
-          />
+  {loading ? (
+    <Skeleton width="100%" height="100%" radius={radius} />
+  ) : (
+    <Fragment>
+      <div aria-hidden="true" class="lw-artwork__placeholder">
+        <Icon name="image-off" size="lg" />
+        {!iconOnly && (
+          <Fragment>
+            <span class="lw-artwork__title">{title}</span>
+            <span class="lw-artwork__note">{m.artwork_none_available({}, { locale })}</span>
+          </Fragment>
         )}
-        {scrim && <div aria-hidden="true" class="lw-artwork__scrim" />}
-      </Fragment>
-    )
-  }
+      </div>
+      {src && (
+        <img
+          class="lw-artwork__image"
+          src={src}
+          alt=""
+          loading={eager ? 'eager' : 'lazy'}
+          decoding="async"
+          fetchpriority={eager ? 'high' : undefined}
+        />
+      )}
+      {scrim && <div aria-hidden="true" class="lw-artwork__scrim" />}
+    </Fragment>
+  )}
 </div>
 
 <style>

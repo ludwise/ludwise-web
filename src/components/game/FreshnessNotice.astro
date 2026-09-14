@@ -26,19 +26,15 @@ const checkedAt =
 const untimed = freshness.total > 0 && freshness.observedCount === 0;
 ---
 
-{
-  freshness.level === 'stale' && checkedAt !== null && (
-    <InlineMessage tone="warning" title="These prices may be out of date">
-      The newest price on this page was checked {checkedAt}. A store may have changed it since.
-    </InlineMessage>
-  )
-}
+{freshness.level === 'stale' && checkedAt !== null && (
+  <InlineMessage tone="warning" title="These prices may be out of date">
+    The newest price on this page was checked {checkedAt}. A store may have changed it since.
+  </InlineMessage>
+)}
 
-{
-  untimed && (
-    <InlineMessage tone="warning" title="No store reported a check time">
-      No store reported when its price was last read, so LUDWISE cannot say how current these prices
-      are.
-    </InlineMessage>
-  )
-}
+{untimed && (
+  <InlineMessage tone="warning" title="No store reported a check time">
+    No store reported when its price was last read, so LUDWISE cannot say how current these prices
+    are.
+  </InlineMessage>
+)}

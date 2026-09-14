@@ -19,11 +19,9 @@ const displayDate = (date: Date) =>
 ---
 
 <header class="lw-policy-header">
-  {
-    status === 'draft' && (
-      <p class="lw-policy-header__status">{m.legal_draft_for_review({}, messageOptions)}</p>
-    )
-  }
+  {status === 'draft' && (
+    <p class="lw-policy-header__status">{m.legal_draft_for_review({}, messageOptions)}</p>
+  )}
   <h1>{title}</h1>
   <p class="lw-policy-header__description">{description}</p>
 
@@ -32,14 +30,12 @@ const displayDate = (date: Date) =>
       <dt>{m.legal_version_label({}, messageOptions)}</dt>
       <dd>{version}</dd>
     </div>
-    {
-      effectiveDate && (
-        <div>
-          <dt>{m.legal_effective_label({}, messageOptions)}</dt>
-          <dd>{displayDate(effectiveDate)}</dd>
-        </div>
-      )
-    }
+    {effectiveDate && (
+      <div>
+        <dt>{m.legal_effective_label({}, messageOptions)}</dt>
+        <dd>{displayDate(effectiveDate)}</dd>
+      </div>
+    )}
     <div>
       <dt>{m.legal_last_updated_label({}, messageOptions)}</dt>
       <dd>{displayDate(lastUpdated)}</dd>

@@ -86,8 +86,7 @@ const indexable = Astro.locals.config.environment === 'production';
     {!indexable && <meta name="robots" content="noindex,nofollow" />}
     <link rel="canonical" href={canonical.href} />
 
-    {
-      /* The design system's logo mark, served verbatim and pinned to it by
+    {/* The design system's logo mark, served verbatim and pinned to it by
          tests/integration/design/asset-parity.test.ts.
 
          SVG only. A raster fallback would need a rasterisation step and an
@@ -95,8 +94,7 @@ const indexable = Astro.locals.config.environment === 'production';
          every browser this project supports reads an SVG icon. A browser that
          does not falls back to probing /favicon.ico, gets a 404 and shows its
          own default glyph. That is the same thing it showed before this
-         existed. */
-    }
+         existed. */}
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
 
     {
@@ -114,21 +112,23 @@ const indexable = Astro.locals.config.environment === 'production';
          optimization is not the exemption. So the cookie exists only when the
          visitor used the toggle, which is squarely inside it. The cost is a
          few hundred inline bytes per page for a visitor who never toggles. */
-      theme === null && (
-        <script is:inline>
-          {(() => {
+      theme === null && <script is:inline>
+        {
+          (() => {
             document.documentElement.dataset.theme = window.matchMedia(
               '(prefers-color-scheme: dark)',
             ).matches
               ? 'dark'
               : 'light';
-          })()}
-        </script>
-      )
+          })();
+        }
+      </script>
     }
   </head>
   <body>
-    <a class="lw-skip-link" href="#main-content">{m.shell_skip_to_content({}, messageOptions)}</a>
+    <a class="lw-skip-link" href="#main-content">
+      {m.shell_skip_to_content({}, messageOptions)}
+    </a>
 
     <AppHeader
       client:load
@@ -141,13 +141,11 @@ const indexable = Astro.locals.config.environment === 'production';
       searchValue={Astro.url.searchParams.get('q') ?? undefined}
     />
 
-    {
-      /* tabindex="-1" so the skip link moves focus rather than only moving the
+    {/* tabindex="-1" so the skip link moves focus rather than only moving the
          sequential navigation start point. Current browsers do the latter
          correctly on their own. A screen reader virtual cursor historically
          did not follow a target it could not focus, and one attribute removes
-         the question. */
-    }
+         the question. */}
     <main id="main-content" tabindex="-1">
       <slot />
     </main>

@@ -26,29 +26,27 @@ const locale = resolveLocale(Astro.currentLocale);
 
 <nav aria-label={m.breadcrumbs_label({}, { locale })} class:list={['lw-breadcrumbs', className]}>
   <ol class="lw-breadcrumbs__list">
-    {
-      items.map((item, index) => {
-        const last = index === items.length - 1;
-        return (
-          <li class="lw-breadcrumbs__item">
-            {last || item.href === undefined ? (
-              <span class="lw-breadcrumbs__current" aria-current={last ? 'page' : undefined}>
-                {item.label}
-              </span>
-            ) : (
-              <a class="lw-breadcrumbs__link" href={item.href}>
-                {item.label}
-              </a>
-            )}
-            {!last && (
-              <span aria-hidden="true" class="lw-breadcrumbs__separator">
-                <Icon name="chevron-right" size="xs" />
-              </span>
-            )}
-          </li>
-        );
-      })
-    }
+    {items.map((item, index) => {
+      const last = index === items.length - 1;
+      return (
+        <li class="lw-breadcrumbs__item">
+          {last || item.href === undefined ? (
+            <span class="lw-breadcrumbs__current" aria-current={last ? 'page' : undefined}>
+              {item.label}
+            </span>
+          ) : (
+            <a class="lw-breadcrumbs__link" href={item.href}>
+              {item.label}
+            </a>
+          )}
+          {!last && (
+            <span aria-hidden="true" class="lw-breadcrumbs__separator">
+              <Icon name="chevron-right" size="xs" />
+            </span>
+          )}
+        </li>
+      );
+    })}
   </ol>
 </nav>
 

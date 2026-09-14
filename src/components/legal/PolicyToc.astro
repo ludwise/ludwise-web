@@ -17,20 +17,18 @@ const messageOptions = { locale } as const;
 const items = headings.filter((heading) => heading.depth === 2);
 ---
 
-{
-  items.length > 0 && (
-    <nav class="lw-policy-toc" aria-label={m.legal_contents_label({}, messageOptions)}>
-      <p class="lw-policy-toc__title">{m.legal_on_this_page({}, messageOptions)}</p>
-      <ol>
-        {items.map((heading) => (
-          <li>
-            <a href={`#${heading.slug}`}>{heading.text}</a>
-          </li>
-        ))}
-      </ol>
-    </nav>
-  )
-}
+{items.length > 0 && (
+  <nav class="lw-policy-toc" aria-label={m.legal_contents_label({}, messageOptions)}>
+    <p class="lw-policy-toc__title">{m.legal_on_this_page({}, messageOptions)}</p>
+    <ol>
+      {items.map((heading) => (
+        <li>
+          <a href={`#${heading.slug}`}>{heading.text}</a>
+        </li>
+      ))}
+    </ol>
+  </nav>
+)}
 
 <style>
   .lw-policy-toc {
