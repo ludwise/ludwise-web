@@ -11,6 +11,8 @@ const HEADERS = {
   'content-type': 'application/json; charset=utf-8',
   'cache-control': 'no-store, no-cache, must-revalidate',
   'x-content-type-options': 'nosniff',
+  // A probe is not a page. Production adds no indexing header, so the route sends one.
+  'x-robots-tag': 'noindex',
 };
 
 /**

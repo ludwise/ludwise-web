@@ -15,6 +15,7 @@ import { formatReleaseDate } from '../../lib/formatting/game-detail.js';
 import { provenanceFieldLabel } from '../../lib/formatting/provenance.js';
 import { mediaForRendering } from '../../lib/game/media.js';
 import { EVENTS } from '../../lib/logging/events.js';
+import type { PageIndexing } from '../../lib/seo/page-head.js';
 import { surfaceFreshness } from '../../lib/state/freshness.js';
 import { surfaceProvenance } from '../../lib/state/provenance.js';
 
@@ -74,6 +75,11 @@ const hasCatalogueDetails = hasMetadata || (metadata?.summary ?? null) !== null;
 
 const media = mediaForRendering(view?.media);
 
+// The backend can resolve a case variant or an older slug, so the address that
+// was requested is not always the canonical one.
+const indexing: PageIndexing | undefined =
+  view === null ? undefined : { kind: 'indexable', canonicalPath: `/games/${view.slug}` };
+
 const nowMs = Astro.locals.nowMs ?? Date.now();
 const offers = view?.offerGroups.flatMap((group) => group.offers) ?? [];
 const offerFreshness = surfaceFreshness(offers);
@@ -87,7 +93,13 @@ const PROVENANCE_METHODS: Record<ProvenanceView['method'], string> = {
 };
 ---
 
-<BaseLayout title={`${pageTitle} — LUDWISE`} description={pageDescription} activeNavId="games">
+<BaseLayout
+  title={`${pageTitle} — LUDWISE`}
+  description={pageDescription}
+  activeNavId="games"
+  indexing={indexing}
+  shareCover={media.cover}
+>
   <PageContainer width="standard">
     {
       notFound ? (

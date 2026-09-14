@@ -23,14 +23,20 @@ const ALLOW_EVERYTHING = 'User-agent: *\nAllow: /\n';
  * Deliberately lists no paths. A disallow list naming real routes is a public index of the routes
  * somebody thought were worth hiding.
  *
- * No `Sitemap:` line: there is no sitemap yet, and pointing at one that 404s is worse than saying
- * nothing. It belongs here when one exists.
+ * Only the production body has a `Sitemap:` line, because the other bodies refuse every crawler.
+ * `/sitemap.xml` answers in every environment.
  */
 export const GET: APIRoute = ({ locals }) =>
   new Response(
-    locals.config.environment === 'production' ? ALLOW_EVERYTHING : DISALLOW_EVERYTHING,
+    locals.config.environment === 'production'
+      ? `${ALLOW_EVERYTHING}Sitemap: ${new URL('/sitemap.xml', locals.config.siteUrl).href}\n`
+      : DISALLOW_EVERYTHING,
     {
       status: 200,
-      headers: { 'content-type': 'text/plain; charset=utf-8' },
+      headers: {
+        'content-type': 'text/plain; charset=utf-8',
+        // The body is anonymous and the same for every visitor, so a cache can keep it for an hour.
+        'cache-control': 'public, max-age=3600',
+      },
     },
   );

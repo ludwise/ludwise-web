@@ -61,8 +61,9 @@ same gate applies in both directions.
 Run these steps days before the swap. None of them change the live site.
 
 1. Confirm that `SITE_URL` on the `production` GitHub environment reads
-   `https://ludwise.com`. The build reads it, and `assertEnvironmentsMatch`
-   refuses a mismatch.
+   `https://ludwise.com`. The deploy checks read it. The Worker reads the
+   `SITE_URL` value of the `production` environment in `wrangler.jsonc` at
+   runtime. Confirm that the two values agree, because no check compares them.
 2. Confirm that `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` are present on
    the same environment. The prelaunch deploy already uses both.
 3. Confirm that the approval rules on the `production` environment name the
@@ -135,8 +136,9 @@ identifier from step 5.
 
 Nothing survives the swap except by revalidation, and the new ETag settles that.
 The purge is one API call against a site with no warm cache to protect. Submit no
-sitemap yet. The sitemap submission belongs to
-[Establish the SEO baseline](https://github.com/ludwise/ludwise-web/issues/9).
+sitemap yet. The production Worker serves `/sitemap.xml`, but
+[the window](go-and-no-go-standard.md#the-window) submits no sitemap until gate 4
+completes.
 
 **Rollback.** The same two levers as phase 3.
 
@@ -146,7 +148,8 @@ sitemap yet. The sitemap submission belongs to
 
 - `/api/health` reports `environment=production` and `service=ludwise-web`.
 - No `X-Robots-Tag` header is sent.
-- `robots.txt` allows crawling.
+- `robots.txt` allows crawling, and it has a `Sitemap:` line.
+- `/sitemap.xml` answers 200 with the `application/xml` content type.
 - `/ops`, `/ops/logs`, `/v1/games` and `/v1/sales` answer 404.
 - `/`, `/games` and `/sales` answer 200.
 

@@ -8,6 +8,7 @@ import { isApiError, toLogContext } from '../lib/api/errors.js';
 import { adviseGameSearch } from '../lib/http/filter-advice.js';
 import { toGameSearchInput } from '../lib/http/game-search-query.js';
 import { EVENTS } from '../lib/logging/events.js';
+import { listingIndexing } from '../lib/seo/page-head.js';
 
 export const prerender = false;
 
@@ -145,6 +146,7 @@ const retryHref = `${Astro.url.pathname}${Astro.url.search}`;
   title="Games — LUDWISE"
   description="Search the LUDWISE game catalogue."
   activeNavId="games"
+  indexing={listingIndexing(Astro.url)}
 >
   <PageContainer width="wide">
     <div class="lw-games__heading-row">

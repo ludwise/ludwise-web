@@ -4,7 +4,9 @@ import { getRelativeLocaleUrl } from 'astro:i18n';
 import { AppHeader } from '../components/navigation/AppHeader.tsx';
 import SiteFooter from '../components/navigation/SiteFooter.astro';
 import { getTextDirection, messages as m, resolveLocale } from '../i18n/index.js';
+import type { MediaPicture } from '../lib/game/media.js';
 import { readThemeCookie } from '../lib/http/theme.js';
+import { pageHead, type PageIndexing } from '../lib/seo/page-head.js';
 import '../styles/global.css';
 
 interface Props {
@@ -12,9 +14,16 @@ interface Props {
   description?: string | undefined;
   /** Which nav destination is current. Omit on pages outside the nav, for example 404. */
   activeNavId?: string | undefined;
+  /**
+   * How a crawler treats this page. The default is an indexable page at its
+   * pathname. The environment flag can only make it more restrictive.
+   */
+  indexing?: PageIndexing | undefined;
+  /** The game cover that `og:image` names. Omit it on a page with no cover. */
+  shareCover?: MediaPicture | null | undefined;
 }
 
-const { title, description, activeNavId } = Astro.props;
+const { title, description, activeNavId, shareCover } = Astro.props;
 const locale = resolveLocale(Astro.currentLocale);
 const messageOptions = { locale } as const;
 
@@ -42,17 +51,23 @@ const headerCopy = {
   menuLabel: m.shell_menu_label({}, messageOptions),
 };
 
-const canonical = new URL(Astro.url.pathname, Astro.site ?? Astro.url.origin);
-
 // Resolved server-side so the first response carries the right theme. `null` is
 // "no preference expressed", which differs from "light": it hands the decision
 // to the pre-paint script rather than asserting a preference nobody made.
 const theme = readThemeCookie(Astro.request.headers.get('cookie'));
 
-// Belt to the X-Robots-Tag header's braces, for a page saved, proxied or
-// re-served where the header did not survive. Neither is a security control -
-// Cloudflare Access is - and production must never receive either.
-const indexable = Astro.locals.config.environment === 'production';
+// Outside production, the robots element repeats the X-Robots-Tag header for a
+// page saved or re-served without it. Neither is a security control. In
+// production only an error page or a query variant sends a robots element.
+const indexableEnvironment = Astro.locals.config.environment === 'production';
+const head = pageHead({
+  siteUrl: Astro.locals.config.siteUrl,
+  indexableEnvironment,
+  indexing: Astro.props.indexing ?? { kind: 'indexable', canonicalPath: Astro.url.pathname },
+  title,
+  description,
+  shareCover,
+});
 ---
 
 <!doctype html>
@@ -83,8 +98,9 @@ const indexable = Astro.locals.config.environment === 'production';
 
     <title>{title}</title>
     {description && <meta name="description" content={description} />}
-    {!indexable && <meta name="robots" content="noindex,nofollow" />}
-    <link rel="canonical" href={canonical.href} />
+    {head.robots !== null && <meta name="robots" content={head.robots} />}
+    {head.canonical !== null && <link rel="canonical" href={head.canonical} />}
+    {head.meta.map((tag) => <meta {...{ [tag.attribute]: tag.key }} content={tag.content} />)}
 
     {
       /* The design system's logo mark, served verbatim and pinned to it by
