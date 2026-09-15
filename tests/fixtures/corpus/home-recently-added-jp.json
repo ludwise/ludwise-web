@@ -1,0 +1,115 @@
+{
+  "status": 200,
+  "body": {
+    "context": {
+      "marketCode": "JP",
+      "marketName": "Japan",
+      "currencyCode": "JPY",
+      "currencyMinorUnit": 0
+    },
+    "games": [
+      {
+        "id": "00000000-0000-7000-8000-000000000115",
+        "slug": "steep-discount-demo",
+        "title": "Steep Discount Demo Game",
+        "artwork": null,
+        "offer": null
+      },
+      {
+        "id": "00000000-0000-7000-8000-000000000114",
+        "slug": "yen-sale-demo",
+        "title": "Yen Sale Demo Game",
+        "artwork": null,
+        "offer": {
+          "storeSlug": "aurora-market",
+          "storeName": "Aurora Market",
+          "editionLabel": null,
+          "price": {
+            "amountMinor": 2392,
+            "currencyCode": "JPY",
+            "minorUnit": 0
+          },
+          "referencePrice": {
+            "amountMinor": 5980,
+            "currencyCode": "JPY",
+            "minorUnit": 0
+          },
+          "discountPercentage": 60,
+          "observedAtMs": 1750000000000,
+          "freshness": "stale"
+        }
+      },
+      {
+        "id": "00000000-0000-7000-8000-000000000113",
+        "slug": "withdrawn-demo",
+        "title": "Withdrawn Demo Game",
+        "artwork": null,
+        "offer": null
+      },
+      {
+        "id": "00000000-0000-7000-8000-000000000112",
+        "slug": "equal-price-demo",
+        "title": "Equal Price Demo Game",
+        "artwork": null,
+        "offer": null
+      },
+      {
+        "id": "00000000-0000-7000-8000-000000000111",
+        "slug": "two-store-demo",
+        "title": "Two Store Demo Game",
+        "artwork": null,
+        "offer": null
+      },
+      {
+        "id": "00000000-0000-7000-8000-000000000110",
+        "slug": "half-off-demo",
+        "title": "Half Off Demo Game",
+        "artwork": null,
+        "offer": null
+      },
+      {
+        "id": "00000000-0000-7000-8000-000000000015",
+        "slug": "promoted-cover-demo",
+        "title": "Promoted Cover Demo Game",
+        "artwork": {
+          "url": "https://images.igdb.com/igdb/image/upload/t_1080p/demo-cover-only.jpg",
+          "profile": "hero",
+          "sourceKind": "cover",
+          "provenance": {
+            "providerSlug": "igdb",
+            "providerName": "IGDB",
+            "observedAtMs": 1750000000000
+          },
+          "variants": [
+            {
+              "url": "https://images.igdb.com/igdb/image/upload/t_cover_small/demo-cover-only.jpg",
+              "width": 90
+            },
+            {
+              "url": "https://images.igdb.com/igdb/image/upload/t_cover_big/demo-cover-only.jpg",
+              "width": 264
+            },
+            {
+              "url": "https://images.igdb.com/igdb/image/upload/t_720p/demo-cover-only.jpg",
+              "width": 540
+            },
+            {
+              "url": "https://images.igdb.com/igdb/image/upload/t_1080p/demo-cover-only.jpg",
+              "width": 810
+            }
+          ]
+        },
+        "offer": null
+      },
+      {
+        "id": "00000000-0000-7000-8000-000000000009",
+        "slug": "no-offers-demo",
+        "title": "No Offers Demo Game",
+        "artwork": null,
+        "offer": null
+      }
+    ],
+    "limit": 8,
+    "freshness": "stale"
+  }
+}

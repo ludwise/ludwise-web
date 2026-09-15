@@ -1,0 +1,38 @@
+---
+/**
+ * The statement of which region the prices on a page belong to, with the way to
+ * change it.
+ *
+ * A page states the region and never offers its own market or currency
+ * control. The one control is the site-level region control. This link opens
+ * the region page, which works without script.
+ */
+import { resolveLocale } from '../../i18n/index.js';
+import { formatRegionLabel } from '../../lib/formatting/region.js';
+import { regionPagePath } from '../../lib/region/return-path.js';
+import type { VisitorRegion } from '../../lib/region/visitor-region.js';
+
+interface Props {
+  region: VisitorRegion;
+}
+
+const { region } = Astro.props;
+const label = formatRegionLabel(region, resolveLocale(Astro.currentLocale));
+const changeHref = regionPagePath(`${Astro.url.pathname}${Astro.url.search}`);
+---
+
+<p class="lw-text-body-md lw-region-statement">
+  Prices for <strong>{label}</strong>.{' '}
+  <a href={changeHref}>Change region</a>
+</p>
+
+<style>
+  .lw-region-statement {
+    color: var(--color-text-secondary);
+  }
+
+  .lw-region-statement strong {
+    color: var(--color-text-primary);
+    font-weight: var(--font-weight-semibold);
+  }
+</style>

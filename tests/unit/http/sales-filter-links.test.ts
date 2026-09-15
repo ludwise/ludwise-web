@@ -28,31 +28,6 @@ describe('pathWithoutFilter', () => {
     expect(pathWithoutFilter(params('minDiscount=40&page=3'), 'minDiscount')).toBe('/sales');
   });
 
-  /**
-   * Price bounds are amounts in the currency being removed. Keeping them
-   * would silently reinterpret them in another one - #7's regression.
-   */
-  it('drops the price bounds when the market changes', () => {
-    expect(pathWithoutFilter(params('market=DE&currency=EUR&min=20&max=50'), 'market')).toBe(
-      '/sales',
-    );
-  });
-
-  it('drops the price bounds when the currency changes', () => {
-    expect(pathWithoutFilter(params('market=DE&currency=EUR&min=20&max=50'), 'currency')).toBe(
-      '/sales',
-    );
-  });
-
-  it('removes both market and currency together, never one alone', () => {
-    expect(pathWithoutFilter(params('market=DE&currency=EUR&minDiscount=40'), 'market')).toBe(
-      '/sales?minDiscount=40',
-    );
-    expect(pathWithoutFilter(params('market=DE&currency=EUR&minDiscount=40'), 'currency')).toBe(
-      '/sales?minDiscount=40',
-    );
-  });
-
   // The minimum and maximum price are one filter with two edges. Removing
   // one without the other would leave a bound the visitor never asked for on
   // its own.
@@ -89,25 +64,22 @@ describe('pathForPage', () => {
 });
 
 describe('pathWithFiltersCleared', () => {
-  /**
-   * The pair a visitor is reading is not a filter they set. Dropping it would
-   * answer "remove the filters" by also moving them to another market.
-   */
-  it('keeps the market, the currency and the order, and drops every filter', () => {
+  // Sort is an order rather than a filter, so it excludes nothing.
+  it('keeps the order, and drops every filter', () => {
     expect(
-      pathWithFiltersCleared(
-        params('market=DE&currency=EUR&sort=price&store=orbit&minDiscount=40&min=20&max=50'),
-      ),
-    ).toBe('/sales?market=DE&currency=EUR&sort=price');
+      pathWithFiltersCleared(params('sort=price&store=orbit&minDiscount=40&min=20&max=50')),
+    ).toBe('/sales?sort=price');
   });
 
-  it('returns the bare path when the visitor chose no pair', () => {
+  it('returns the bare path when no order was chosen', () => {
     expect(pathWithFiltersCleared(params('minDiscount=99&fromYear=2015'))).toBe('/sales');
   });
 
   it('resets the page, so clearing filters lands on the first result', () => {
-    expect(pathWithFiltersCleared(params('market=DE&currency=EUR&page=4'))).toBe(
-      '/sales?market=DE&currency=EUR',
-    );
+    expect(pathWithFiltersCleared(params('sort=price&page=4'))).toBe('/sales?sort=price');
+  });
+
+  it('carries no market or currency, which the visitor region sets', () => {
+    expect(pathWithFiltersCleared(params('market=DE&currency=EUR&minDiscount=40'))).toBe('/sales');
   });
 });

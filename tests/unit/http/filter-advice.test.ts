@@ -18,9 +18,9 @@ describe('adviseGameSearch', () => {
   });
 
   it('deduplicates when two fields share one sentence', () => {
-    // A market without its currency is refused on both sides by the backend.
+    // An unsupported pair is refused on both sides by the backend.
     expect(adviseGameSearch(['marketCode', 'currencyCode'])).toEqual([
-      'Choose a market and a currency together, or leave both on Any.',
+      "LUDWISE couldn't use your region. Choose your region again.",
     ]);
   });
 
@@ -62,10 +62,12 @@ describe('adviseSales', () => {
     ]);
   });
 
-  it("words the market/currency rule differently from /games, since /games's controls differ", () => {
-    expect(adviseSales(['marketCode'])).toEqual(['Choose a market and a currency together.']);
-    expect(adviseGameSearch(['marketCode'])).toEqual([
-      'Choose a market and a currency together, or leave both on Any.',
+  it('points to the region control on both pages, the one control that sets the pair', () => {
+    expect(adviseSales(['currencyCode', 'marketCode'])).toEqual([
+      "LUDWISE couldn't use your region. Choose your region again.",
+    ]);
+    expect(adviseGameSearch(['currencyCode', 'marketCode'])).toEqual([
+      "LUDWISE couldn't use your region. Choose your region again.",
     ]);
   });
 

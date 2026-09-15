@@ -6,8 +6,9 @@ import DataNotes from '../components/game/DataNotes.astro';
 import FreshnessNotice from '../components/game/FreshnessNotice.astro';
 import GameCard from '../components/game/GameCard.astro';
 import PageContainer from '../components/layout/PageContainer.astro';
+import RegionStatement from '../components/region/RegionStatement.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
-import type { BrowseSalesInput, BrowseSalesView } from '../lib/api/contract.js';
+import type { BrowseSalesView } from '../lib/api/contract.js';
 import { isApiError, toLogContext } from '../lib/api/errors.js';
 import { adviseSales } from '../lib/http/filter-advice.js';
 import {
@@ -17,28 +18,32 @@ import {
 } from '../lib/http/sales-filter-links.js';
 import { surfaceFreshness } from '../lib/state/freshness.js';
 import { surfaceProvenance } from '../lib/state/provenance.js';
-import { PAIR_SEPARATOR, toBrowseSalesInput } from '../lib/http/sales-query.js';
-import { compareText } from '../lib/text/order.js';
+import { readSalesFilters, toBrowseSalesInput } from '../lib/http/sales-query.js';
 import { EVENTS } from '../lib/logging/events.js';
+import { regionPagePath } from '../lib/region/return-path.js';
+import type { VisitorRegion } from '../lib/region/visitor-region.js';
 import { listingIndexing } from '../lib/seo/page-head.js';
 
 export const prerender = false;
 
 const { locals } = Astro;
 const params = Astro.url.searchParams;
-const input: BrowseSalesInput = toBrowseSalesInput(params);
 
 const SORT_LABELS = [
   { value: 'discount', label: 'Discount, largest first' },
   { value: 'price', label: 'Price, lowest first' },
 ] as const;
 
+const input = readSalesFilters(params);
+
+let region: VisitorRegion | null = null;
 let view: BrowseSalesView | null = null;
 let failureCode: string | null = null;
 let rejectedFilters: readonly string[] = [];
 
 try {
-  view = await locals.backend().browseSales(input);
+  region = (await locals.visitorRegion()).region;
+  view = await locals.backend().browseSales(toBrowseSalesInput(input, region));
 } catch (error) {
   if (!isApiError(error)) throw error;
 
@@ -88,20 +93,12 @@ const context = view?.context ?? null;
 const selectedStores = new Set(input.stores ?? []);
 const storeCount = view?.facets.stores.length ?? 0;
 
-// The pairs holding a sale, plus the one the visitor asked for when it holds
-// none. Otherwise the select offers a pair nobody chose while the address bar
-// says otherwise. Locale-independent order, so every list on the page agrees.
-const offeredContexts =
-  context !== null &&
-  !(view?.facets.contexts ?? []).some(
-    (c) => c.marketCode === context.marketCode && c.currencyCode === context.currencyCode,
-  )
-    ? [...(view?.facets.contexts ?? []), context].sort(
-        (left, right) =>
-          compareText(left.marketCode, right.marketCode) ||
-          compareText(left.currencyCode, right.currencyCode),
-      )
-    : (view?.facets.contexts ?? []);
+/**
+ * No price observed at all, in any pair. An older backend answers `context: null`
+ * for it. A backend on record 0044 names the pair and answers `hasAnyOfferData: false`.
+ */
+const nothingCollected =
+  view !== null && !view.hasAnyOfferData && (context === null || view.contextCount === 0);
 
 const hasFilters =
   (input.stores?.length ?? 0) > 0 ||
@@ -131,6 +128,7 @@ const salesFreshness = surfaceFreshness(saleOffers);
 const salesProvenance = surfaceProvenance(saleOffers);
 const retryHref = `${Astro.url.pathname}${Astro.url.search}`;
 const clearedFiltersPath = pathWithFiltersCleared(params);
+const changeRegionHref = regionPagePath(retryHref);
 ---
 
 <BaseLayout
@@ -143,12 +141,12 @@ const clearedFiltersPath = pathWithFiltersCleared(params);
     <div class="lw-sales__heading-row">
       <div>
         <h1 class="lw-text-heading-xl">Current sales</h1>
+        {region && <RegionStatement region={region} />}
         {
           view && context && view.contextCount > 0 && !filtersRejected && (
             <p class="lw-text-body-md lw-sales__intro">
               {counted(view.contextCount, 'game is', 'games are')} on sale at{' '}
-              {counted(storeCount, 'store', 'stores')}. Showing {context.marketName} prices, in{' '}
-              {context.currencyCode}.
+              {counted(storeCount, 'store', 'stores')}.
             </p>
           )
         }
@@ -158,8 +156,6 @@ const clearedFiltersPath = pathWithFiltersCleared(params);
         view && context && view.contextCount > 0 && !filtersRejected && (
           <form method="get" action="/sales" class="lw-sales__sort">
             {/* Carried so changing the order keeps the filters the visitor set. */}
-            <input type="hidden" name="market" value={context.marketCode} />
-            <input type="hidden" name="currency" value={context.currencyCode} />
             {input.stores?.map((store) => (
               <input type="hidden" name="store" value={store} />
             ))}
@@ -228,16 +224,16 @@ const clearedFiltersPath = pathWithFiltersCleared(params);
     }
 
     {
-      view && context === null ? (
-        view.hasAnyOfferData ? (
-          <EmptyState icon="tag" title="No games are on sale right now">
-            LUDWISE lists a game here only when a store supplies both a current price and a regular
-            price to compare it against. No game meets that today.
-          </EmptyState>
-        ) : (
+      view && (context === null || nothingCollected) ? (
+        nothingCollected ? (
           <EmptyState icon="tag" title="LUDWISE has not collected any prices yet">
             LUDWISE hasn't observed anything from any store yet, so there's nothing to compare. That
             isn't a claim that no game is discounted.
+          </EmptyState>
+        ) : (
+          <EmptyState icon="tag" title="No games are on sale right now">
+            LUDWISE lists a game here only when a store supplies both a current price and a regular
+            price to compare it against. No game meets that today.
           </EmptyState>
         )
       ) : view && context ? (
@@ -245,57 +241,7 @@ const clearedFiltersPath = pathWithFiltersCleared(params);
           <details class="lw-sale-filters">
             <summary>Filters</summary>
 
-            <form method="get" action="/sales" class="lw-sale-filters__pair-form">
-              {/* Every other filter is carried forward except the price bounds.
-                  Those are amounts in the currency being left. Keeping them
-                  would silently reinterpret them in another one. */}
-              {input.stores?.map((store) => (
-                <input type="hidden" name="store" value={store} />
-              ))}
-              {input.minDiscountPercentage !== undefined && (
-                <input
-                  type="hidden"
-                  name="minDiscount"
-                  value={inputValue(input.minDiscountPercentage)}
-                />
-              )}
-              {input.releaseYearFrom !== undefined && (
-                <input type="hidden" name="fromYear" value={inputValue(input.releaseYearFrom)} />
-              )}
-              {input.releaseYearTo !== undefined && (
-                <input type="hidden" name="toYear" value={inputValue(input.releaseYearTo)} />
-              )}
-              {input.sort && <input type="hidden" name="sort" value={input.sort} />}
-
-              <label>
-                <span>Market and currency</span>
-                {/* One control offering only the pairs that hold a sale. So a
-                    visitor cannot submit a market and a currency that were
-                    never paired. Two independent selects allow it: changing
-                    one can leave the other pointed at a currency the
-                    new market never quoted in. */}
-                <select name="pair">
-                  {offeredContexts.map((option) => (
-                    <option
-                      value={`${option.marketCode}${PAIR_SEPARATOR}${option.currencyCode}`}
-                      selected={
-                        option.marketCode === context.marketCode &&
-                        option.currencyCode === context.currencyCode
-                      }
-                    >
-                      {option.marketName}, {option.currencyCode}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <button type="submit">Apply market</button>
-            </form>
-
             <form method="get" action="/sales" class="lw-sale-filters__form">
-              {/* The pair is not a control in this form, so it is carried
-                  forward rather than left to default. */}
-              <input type="hidden" name="market" value={context.marketCode} />
-              <input type="hidden" name="currency" value={context.currencyCode} />
               {input.sort && <input type="hidden" name="sort" value={input.sort} />}
 
               <fieldset>
@@ -460,13 +406,11 @@ const clearedFiltersPath = pathWithFiltersCleared(params);
               <h2 class="lw-visually-hidden">Games on sale</h2>
               {filtersRejected ? null : view.contextCount === 0 ? (
                 <EmptyState icon="tag" title={`No ${context.marketName} sales right now`}>
-                  Prices are only compared inside one market and currency, so a sale in another
-                  market does not appear here.
-                  {input.marketCode !== undefined && (
-                    <a slot="action" href="/sales">
-                      See all sales
-                    </a>
-                  )}
+                  LUDWISE shows prices for one region at a time, so sales in other regions don't
+                  appear here.
+                  <a slot="action" href={changeRegionHref}>
+                    Change region
+                  </a>
                 </EmptyState>
               ) : view.resultCount === 0 ? (
                 <EmptyState icon="funnel" title="No games match these filters">
@@ -612,26 +556,6 @@ const clearedFiltersPath = pathWithFiltersCleared(params);
     cursor: pointer;
   }
 
-  /* Setting `display` here is harmless whether or not the browser is
-     currently rendering this content: closed <details> content is hidden
-     through its `::details-content` box (see the desktop media query
-     below), not through overriding the display an author gives the
-     content itself - so declaring the layout unconditionally does not
-     fight the native collapsed state a narrow viewport starts in. */
-  .lw-sale-filters__pair-form {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: end;
-    gap: var(--space-3);
-    padding: 0 var(--space-4) var(--space-4);
-  }
-
-  .lw-sale-filters__pair-form label {
-    display: grid;
-    gap: var(--space-1);
-    min-inline-size: 12rem;
-  }
-
   .lw-sale-filters__form {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -648,7 +572,6 @@ const clearedFiltersPath = pathWithFiltersCleared(params);
 
   legend,
   .lw-sale-filters label > span,
-  .lw-sale-filters__pair-form label > span,
   .lw-sales__sort label > span {
     color: var(--color-text-secondary);
     font: var(--text-label-md);
@@ -705,7 +628,6 @@ const clearedFiltersPath = pathWithFiltersCleared(params);
   }
 
   .lw-sale-filters__actions button,
-  .lw-sale-filters__pair-form button,
   .lw-sales__sort button {
     min-block-size: var(--target-min-touch);
     padding-inline: var(--space-4);
@@ -718,13 +640,11 @@ const clearedFiltersPath = pathWithFiltersCleared(params);
   }
 
   .lw-sale-filters__actions button:hover,
-  .lw-sale-filters__pair-form button:hover,
   .lw-sales__sort button:hover {
     background: var(--color-action-primary-hover);
   }
 
   .lw-sale-filters__actions button:active,
-  .lw-sale-filters__pair-form button:active,
   .lw-sales__sort button:active {
     background: var(--color-action-primary-active);
   }
@@ -828,8 +748,9 @@ const clearedFiltersPath = pathWithFiltersCleared(params);
       block-size: auto;
     }
 
-    .lw-sale-filters__pair-form {
-      padding-block-start: var(--space-4);
+    /* The summary is hidden at this width, so no line separates it from the form. */
+    .lw-sale-filters__form {
+      border-block-start: 0;
     }
   }
 

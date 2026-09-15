@@ -82,6 +82,21 @@
       "deprecation": null
     },
     {
+      "conceptId": "pricing-region",
+      "preferredTerm": "pricing region",
+      "partOfSpeech": "noun",
+      "technicalCategory": "technical-noun",
+      "meaning": "The one area a visitor reads prices for. It binds one region identifier to one market and one currency.",
+      "allowedContext": ["product", "architecture", "code", "user-facing"],
+      "prohibitedSynonyms": [],
+      "approvedAbbreviation": null,
+      "officialExternalName": false,
+      "notes": "A pricing region selects a market; it is not a market, because two regions can select one market. Visitor text writes region alone for it. This is a different concept from the interface area in surface-or-region. The backend owns the region list (backend record 0044).",
+      "source": "CONTEXT.md, docs/architecture.md, src/lib/region/visitor-region.ts",
+      "status": "approved",
+      "deprecation": null
+    },
+    {
       "conceptId": "catalog",
       "preferredTerm": "catalog",
       "partOfSpeech": "noun",

@@ -20,9 +20,9 @@ const BOUNDARIES: readonly BoundaryCase[] = [
   { label: 'header search', route: '/', selector: '.lw-search:visible', side: 'top' },
   { label: 'game filters panel', route: '/games', selector: '.lw-game-filters', side: 'top' },
   {
-    label: 'game filter select',
+    label: 'game filter number field',
     route: '/games',
-    selector: '.lw-game-filters select[name="market"]',
+    selector: '.lw-game-filters input[name="min"]',
     side: 'top',
   },
   { label: 'game list item', route: '/games', selector: '.lw-game-list__item', side: 'top' },
@@ -33,16 +33,23 @@ const BOUNDARIES: readonly BoundaryCase[] = [
     side: 'top',
   },
   {
+    // Germany is the fallback region, and this game holds a German offer.
     label: 'game detail offers',
-    route: '/games/canonical-demo',
+    route: '/games/half-off-demo',
     selector: '.lw-offer-table__viewport',
     side: 'top',
   },
   { label: 'sales filters panel', route: '/sales', selector: '.lw-sale-filters', side: 'top' },
   {
-    label: 'sales filter select',
+    label: 'sales sort select',
     route: '/sales',
-    selector: '.lw-sale-filters select[name="pair"]',
+    selector: '.lw-sales__sort select[name="sort"]',
+    side: 'top',
+  },
+  {
+    label: 'header region control',
+    route: '/sales',
+    selector: '.lw-header__region button',
     side: 'top',
   },
   { label: 'sales card', route: '/sales', selector: '.lw-game-card', side: 'top' },
@@ -80,9 +87,11 @@ for (const theme of THEMES) {
     test.setTimeout(90_000);
     const context = await browser.newContext();
     await context.addCookies([{ name: THEME_COOKIE_NAME, value: theme, url: BASE_URL }]);
-    const page = await context.newPage();
 
+    // One page for each route. In local development runs, one tab through
+    // every route here crashed its renderer before the last route.
     for (const route of [...new Set(BOUNDARIES.map((item) => item.route))]) {
+      const page = await context.newPage();
       await page.goto(route);
       for (const item of BOUNDARIES.filter((candidate) => candidate.route === route)) {
         const colours = await readBoundary(page, item);
@@ -92,6 +101,7 @@ for (const theme of THEMES) {
         );
         expect(ratio, `${theme} ${item.label}`).toBeGreaterThanOrEqual(3);
       }
+      await page.close();
     }
 
     await context.close();
@@ -107,7 +117,7 @@ for (const theme of THEMES) {
       {
         label: 'mobile game filter',
         route: '/games',
-        selector: '.lw-game-filters select[name="market"]',
+        selector: '.lw-game-filters input[name="min"]',
       },
     ]) {
       await page.goto(item.route);

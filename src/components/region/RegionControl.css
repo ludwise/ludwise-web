@@ -1,0 +1,58 @@
+/* RegionControl. A React island cannot use Astro's scoped <style>, so every
+   class here starts with `lw-region-control` to avoid collisions. */
+
+.lw-region-control__trigger {
+  white-space: nowrap;
+}
+
+.lw-region-control {
+  display: grid;
+  gap: var(--space-3);
+  text-align: start;
+}
+
+.lw-region-control__heading {
+  color: var(--color-text-primary);
+  font: var(--text-heading-sm);
+  letter-spacing: var(--letter-spacing-heading);
+}
+
+.lw-region-control__text {
+  color: var(--color-text-secondary);
+  font: var(--text-body-sm);
+  white-space: normal;
+}
+
+.lw-region-control__currency {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+  color: var(--color-text-secondary);
+  font: var(--text-label-md);
+  letter-spacing: var(--letter-spacing-label);
+}
+
+.lw-region-control__currency output {
+  color: var(--color-text-primary);
+  font: var(--text-body-md);
+  font-weight: var(--font-weight-semibold);
+}
+
+.lw-region-control__save {
+  justify-self: start;
+  min-block-size: var(--target-min-touch);
+  padding-inline: var(--space-4);
+  border: 0;
+  border-radius: var(--radius-button);
+  background: var(--color-action-primary);
+  color: var(--color-action-primary-text);
+  font: var(--text-label-md);
+  cursor: pointer;
+}
+.lw-region-control__save:hover {
+  background: var(--color-action-primary-hover);
+}
+.lw-region-control__save:active {
+  background: var(--color-action-primary-active);
+}

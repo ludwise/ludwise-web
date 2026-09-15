@@ -28,7 +28,7 @@ the way in, and this table keeps them apart on the way out.
 | Empty catalog          | `resultCount` is 0 and no filter is set                      | `EmptyState`, with no recovery control. There is no filter to remove                 |
 | No search results      | `resultCount` is 0 with a term or a filter set               | `EmptyState`, plus a link to the whole catalog                                       |
 | No offers              | `offerGroups` is empty                                       | `EmptyState` inside the offers section. The rest of the page still renders           |
-| No sale in this market | `contextCount` is 0                                          | `EmptyState`, plus a link to every market                                            |
+| No sale in this region | `contextCount` is 0                                          | `EmptyState`, plus a link that changes the region                                    |
 | No prices collected    | `hasAnyOfferData` is false                                   | `EmptyState` that names the collection state, never the market                       |
 | No catalog details     | `metadata` is null, or holds nothing                         | `InlineMessage`, tone `info`, in place of the sections that would have rendered      |
 | A field LUDWISE lacks  | One field inside `metadata` is null                          | Nothing. The row is absent rather than filled with a placeholder                     |

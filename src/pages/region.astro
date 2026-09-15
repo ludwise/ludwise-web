@@ -1,0 +1,229 @@
+---
+import InlineMessage from '../components/feedback/InlineMessage.astro';
+import PageContainer from '../components/layout/PageContainer.astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { messages as m, resolveLocale } from '../i18n/index.js';
+import { isApiError } from '../lib/api/errors.js';
+import { formatRegionLabel, regionOptions } from '../lib/formatting/region.js';
+import { EVENTS } from '../lib/logging/events.js';
+import { readCountryCode } from '../lib/region/country-code.js';
+import { serializeRegionCookie } from '../lib/region/region-cookie.js';
+import {
+  regionPagePath,
+  returnPathAfterRegionChange,
+  safeReturnPath,
+} from '../lib/region/return-path.js';
+import { findPricingRegion, type VisitorRegionContext } from '../lib/region/visitor-region.js';
+
+export const prerender = false;
+
+/**
+ * The page that saves a visitor pricing region.
+ *
+ * A GET renders the chooser, so the region can change without script. A POST
+ * saves a supported choice in the region cookie. Then it sends the visitor
+ * back to the page they were on. Astro refuses a cross-site form POST before
+ * this code runs.
+ *
+ * A refused choice changes nothing. The page says so, and it keeps the way
+ * back to the page the visitor was on.
+ */
+
+const { locals } = Astro;
+const locale = resolveLocale(Astro.currentLocale);
+const isSave = Astro.request.method === 'POST';
+
+let form: FormData | null = null;
+if (isSave) {
+  try {
+    form = await Astro.request.formData();
+  } catch {
+    form = null;
+  }
+}
+
+const returnTo = safeReturnPath(
+  isSave ? form?.get('return') : Astro.url.searchParams.get('return'),
+);
+
+let context: VisitorRegionContext | null = null;
+let failureCode: string | null = null;
+try {
+  context = await locals.visitorRegion();
+} catch (error) {
+  if (!isApiError(error)) throw error;
+  failureCode = error.code;
+  Astro.response.status = 503;
+}
+
+let refused = false;
+if (isSave && context !== null) {
+  const chosen = findPricingRegion(context.regions, readCountryCode(form?.get('country')));
+
+  if (chosen === undefined) {
+    refused = true;
+    Astro.response.status = 400;
+    locals.logger.warn(EVENTS.REGION_CHOICE_REFUSED, 'Region choice was refused', {
+      error_category: 'application',
+    });
+  } else {
+    const location = returnPathAfterRegionChange(form?.get('return'), {
+      currencyChanged: chosen.currencyCode !== context.region.currencyCode,
+    });
+    return new Response(null, {
+      status: 303,
+      headers: {
+        location,
+        'set-cookie': serializeRegionCookie(chosen.countryCode, {
+          secure: Astro.url.protocol === 'https:',
+        }),
+        'cache-control': 'no-store',
+      },
+    });
+  }
+}
+
+const messageOptions = { locale } as const;
+const options = context === null ? [] : regionOptions(context.regions, locale);
+const currentLabel = context === null ? null : formatRegionLabel(context.region, locale);
+const retryHref = regionPagePath(returnTo);
+---
+
+<BaseLayout
+  title="Region — LUDWISE"
+  description="Choose the region LUDWISE shows prices for."
+  indexing={{ kind: 'query-variant', canonicalPath: '/region' }}
+  regionReturnPath={returnTo}
+>
+  <PageContainer width="reading">
+    <h1 class="lw-text-heading-xl">{m.shell_region_heading({}, messageOptions)}</h1>
+    <p class="lw-text-body-md lw-region__lead">
+      {m.shell_region_explanation({}, messageOptions)}
+    </p>
+
+    {
+      failureCode !== null && (
+        <InlineMessage tone="danger" title="Regions could not be loaded">
+          {isSave && "Your region hasn't changed. "}Something failed on our side. If you report
+          this, the code is <code class="lw-text-code">{failureCode}</code> and the request id is{' '}
+          <code class="lw-text-code">{locals.requestId}</code>.
+          <div slot="action" class="lw-region__actions">
+            <a href={retryHref}>Try again</a>
+            <a href={returnTo}>Back to the page you were on</a>
+          </div>
+        </InlineMessage>
+      )
+    }
+
+    {
+      refused && (
+        <InlineMessage tone="warning" title="That region can't be used">
+          Your region hasn't changed. Choose one of the regions below, then save again.
+          <a slot="action" href={returnTo}>
+            Back to the page you were on
+          </a>
+        </InlineMessage>
+      )
+    }
+
+    {
+      context !== null && (
+        <form method="post" action="/region" class="lw-region__form">
+          <p class="lw-text-body-md">
+            Current region: <strong>{currentLabel}</strong>
+          </p>
+          <input type="hidden" name="return" value={returnTo} />
+          <label>
+            <span>{m.shell_region_select_label({}, messageOptions)}</span>
+            <select name="country" aria-describedby="lw-region-currency-note">
+              {options.map((option) => (
+                <option
+                  value={option.countryCode}
+                  selected={option.countryCode === context.region.countryCode}
+                >
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <p class="lw-text-body-sm lw-region__note" id="lw-region-currency-note">
+            Each region has one currency. LUDWISE doesn't convert prices between currencies.
+          </p>
+          <div class="lw-region__actions">
+            <button type="submit">{m.shell_region_save({}, messageOptions)}</button>
+            <a href={returnTo}>Back to the page you were on</a>
+          </div>
+        </form>
+      )
+    }
+  </PageContainer>
+</BaseLayout>
+
+<style>
+  h1 {
+    margin-block-end: var(--space-2);
+  }
+
+  .lw-region__lead,
+  .lw-region__note {
+    color: var(--color-text-secondary);
+  }
+
+  .lw-region__lead {
+    margin-block-end: var(--space-6);
+  }
+
+  .lw-region__form {
+    display: grid;
+    gap: var(--space-4);
+    margin-block-start: var(--space-6);
+  }
+
+  .lw-region__form label {
+    display: grid;
+    gap: var(--space-1);
+  }
+
+  .lw-region__form label > span {
+    color: var(--color-text-secondary);
+    font: var(--text-label-md);
+  }
+
+  select {
+    inline-size: 100%;
+    max-inline-size: 24rem;
+    min-block-size: var(--target-min-touch);
+    padding: var(--space-2) var(--space-3);
+    border: var(--border-width-hairline) solid var(--color-border-component);
+    border-radius: var(--radius-md);
+    background: var(--color-surface-raised);
+    color: var(--color-text-primary);
+    font: var(--text-body-md);
+  }
+
+  .lw-region__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-4);
+  }
+
+  button {
+    min-block-size: var(--target-min-touch);
+    padding-inline: var(--space-4);
+    border: 0;
+    border-radius: var(--radius-button);
+    background: var(--color-action-primary);
+    color: var(--color-action-primary-text);
+    font: var(--text-label-md);
+    cursor: pointer;
+  }
+
+  button:hover {
+    background: var(--color-action-primary-hover);
+  }
+
+  button:active {
+    background: var(--color-action-primary-active);
+  }
+</style>

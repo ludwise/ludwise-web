@@ -13,6 +13,7 @@ export const EVENTS = {
   CONFIG_INVALID: 'config.invalid',
   ACCESS_DENIED: 'access.denied',
   APPLICATION_QUERY_FAILED: 'application.query_failed',
+  REGION_CHOICE_REFUSED: 'region.choice_refused',
   CLOUDFLARE_REQUEST_FAILED: 'cloudflare.request_failed',
   PROVIDER_SYNC_STARTED: 'provider.sync.started',
   PROVIDER_SYNC_COMPLETED: 'provider.sync.completed',

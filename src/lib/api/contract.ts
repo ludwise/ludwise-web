@@ -353,7 +353,11 @@ export interface SaleFacetsView {
 }
 
 export interface BrowseSalesView {
-  /** `null` when nothing is on sale anywhere. See `hasAnyOfferData`. */
+  /**
+   * The resolved pair: the requested supported pair, or the fallback
+   * region's pair (record 0044). `gameCount` of 0 means this pair holds
+   * no sale. `null` only on a deployment older than record 0044.
+   */
   readonly context: SaleContextView | null;
   readonly games: readonly SaleGameView[];
   /** Games left after filtering. */
@@ -371,11 +375,12 @@ export interface BrowseSalesView {
   /**
    * Whether LUDWISE has recorded any offer at all, anywhere.
    *
-   * Meaningful only when `context` is `null`, and it exists to keep one
-   * sentence honest. "No game is on sale right now" and "LUDWISE has not
-   * collected any prices yet" render the same empty view. They mean entirely
-   * different things. Claiming the first when the second is true is a
-   * fabricated claim about the market.
+   * Meaningful whenever this pair holds no sale (`context.gameCount` is
+   * 0, or `context` is `null` on an older deployment). It separates
+   * "nothing observed yet" from "nothing on sale in this pair". "No
+   * game is on sale right now" and "LUDWISE has not collected any
+   * prices yet" render the same empty view. Claiming the first when the
+   * second is true is a fabricated claim about the market.
    */
   readonly hasAnyOfferData: boolean;
 }
@@ -399,7 +404,7 @@ export const DATA_FRESHNESS_STATES = ['recently_verified', 'stale', 'never_verif
 
 export type DataFreshness = (typeof DATA_FRESHNESS_STATES)[number];
 
-/** The market and currency pair both home lists quote every price in (ADR 0021). */
+/** The resolved pair both home lists quote every price in (record 0044). */
 export interface HomeContextView {
   readonly marketCode: string;
   readonly marketName: string;
@@ -434,13 +439,19 @@ export interface HomeGameView {
 }
 
 export interface CurrentDiscountsView {
-  /** `null` when no pair holds a sale. */
+  /**
+   * The resolved pair (record 0044). An empty `games` list means this
+   * pair holds no sale. `null` only on a deployment older than record 0044.
+   */
   readonly context: HomeContextView | null;
   readonly games: readonly HomeGameView[];
   readonly limit: number;
   /** `null` when the list shows no offer. */
   readonly freshness: DataFreshness | null;
-  /** Meaningful only when `context` is `null`. Same meaning as on `/v1/sales`. */
+  /**
+   * Meaningful whenever `games` is empty. It separates "nothing observed
+   * yet" from "nothing on sale in this pair". Same meaning as on `/v1/sales`.
+   */
   readonly hasAnyOfferData: boolean;
 }
 
@@ -449,6 +460,35 @@ export interface RecentlyAddedView {
   readonly games: readonly HomeGameView[];
   readonly limit: number;
   readonly freshness: DataFreshness | null;
+}
+
+// ---------------------------------------------------------------------------
+// GET /v1/pricing-regions
+// ---------------------------------------------------------------------------
+
+/**
+ * The canonical visitor pricing region: a country, and the market and
+ * currency every price-bearing read resolves for it (record 0044). No
+ * provider vocabulary appears in this name or any field of it.
+ */
+export interface PricingRegionView {
+  /**
+   * The visitor-facing identifier, for example `"DE"`. The client
+   * localizes it for display. `marketName` names the market, not the
+   * country: two countries can share one market.
+   */
+  readonly countryCode: string;
+  readonly marketCode: string;
+  readonly marketName: string;
+  readonly currencyCode: string;
+  readonly currencyMinorUnit: number;
+}
+
+export interface PricingRegionsView {
+  /** Every supported region, ordered by `countryCode`. */
+  readonly regions: readonly PricingRegionView[];
+  /** The region a price-bearing read resolves to when a visitor names no pair. */
+  readonly fallbackCountryCode: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -571,6 +611,29 @@ export interface BrowseSalesInput {
   readonly releaseYearTo?: number | undefined;
   readonly sort?: string | undefined;
   readonly page?: number | undefined;
+}
+
+/**
+ * `/v1/games/{slug}` accepts an explicit pair (record 0044). Sent as
+ * `market` and `currency`, the same names `/v1/sales` and `/v1/games` use.
+ * A supported pair narrows `offerGroups` to that pair. No pair leaves every
+ * group.
+ */
+export interface GameDetailInput {
+  readonly slug: string;
+  readonly marketCode?: string | undefined;
+  readonly currencyCode?: string | undefined;
+}
+
+/**
+ * `/v1/home/current-discounts` and `/v1/home/recently-added` accept the same
+ * explicit pair (record 0044), sent as `market` and `currency`. No pair
+ * resolves to the canonical fallback region rather than to record 0021's
+ * former default.
+ */
+export interface HomeReadInput {
+  readonly marketCode?: string | undefined;
+  readonly currencyCode?: string | undefined;
 }
 
 /**

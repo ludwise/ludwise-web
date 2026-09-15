@@ -7,10 +7,10 @@ navLabel: Privacy
 footer: true
 order: 20
 description: How LUDWISE handles visitor data for the public service.
-version: '1.0'
+version: '1.1'
 status: current
-lastUpdated: 2026-09-10
-effectiveDate: 2026-09-10
+lastUpdated: 2026-09-15
+effectiveDate: 2026-09-15
 ---
 
 ## Who operates LUDWISE
@@ -34,6 +34,20 @@ LUDWISE uses these records to operate the service, find faults, and protect the 
 The legal basis is Article 6(1)(f) GDPR, legitimate interest in operating a reliable and secure service.
 Operational records are kept only while they are needed for these purposes.
 Cloudflare account settings control the exact platform-log retention period.
+
+## Pricing region
+
+LUDWISE shows prices for one region at a time.
+To choose that region on a first visit, the website reads the country that Cloudflare assigns to the request.
+LUDWISE uses only that country, and only to choose which regional prices to show.
+It does not ask your browser for your location, and it does not use a separate geolocation service.
+It does not store the country, your IP address, or a location history.
+
+You can choose another region with the region control.
+LUDWISE then stores the identifier of that region in a first-party cookie named `region`.
+The cookie expires after one year.
+It is not used for advertising, analytics, or visitor profiling.
+See the [Cookie Policy](/legal/cookies) for more detail.
 
 ## Theme preference
 

@@ -6,12 +6,12 @@
  *
  * The middlewares run in an order that is not arbitrary.
  *
- *     `correlation -> configuration -> clock -> logging -> ports`
+ *     `correlation -> configuration -> clock -> logging -> ports -> region`
  *
  * Correlation runs first and cannot fail, so a configuration failure still
  * produces a response carrying a request id. Configuration precedes logging
- * because the logger's level comes from it. The two ports, `backend` and
- * `media`, come last because each reads configuration resolved above.
+ * because the logger's level comes from it. The two ports come next, because
+ * each reads configuration. The region reads through the backend port, so it is last.
  */
 
 // The supported way to reach a binding in this adapter. `Astro.locals.runtime`
@@ -33,6 +33,15 @@ import { routeTemplate } from './lib/http/route.js';
 import { withSecurityHeaders } from './lib/http/security-headers.js';
 import { createMediaProxy } from './lib/media/proxy.js';
 import { isMediaPath } from './lib/media/target.js';
+import { detectCountryCode } from './lib/region/detection.js';
+import {
+  createPricingRegionCache,
+  REGION_CACHE_FRESH_MS,
+  REGION_CACHE_USABLE_MS,
+} from './lib/region/region-cache.js';
+import { clearRegionCookie, readRegionCookie } from './lib/region/region-cookie.js';
+import { resolveVisitorRegion, type RegionResolution } from './lib/region/visitor-region.js';
+import { isApiError, toLogContext } from './lib/api/errors.js';
 import { EVENTS } from './lib/logging/events.js';
 import { operationalLogger } from './lib/logging/index.js';
 
@@ -300,6 +309,89 @@ const media = defineMiddleware((context, next) => {
 });
 
 /**
+ * The supported regions, held for this isolate. Module scope, because a
+ * request-scoped copy would read the backend on every page.
+ */
+const pricingRegions = createPricingRegionCache({
+  now: () => Date.now(),
+  freshForMs: REGION_CACHE_FRESH_MS,
+  usableForMs: REGION_CACHE_USABLE_MS,
+});
+
+/**
+ * Installs the visitor region for this request.
+ *
+ * A memoised thunk, for the reason `backend` is one. The header and the page
+ * both read it, and one request resolves it once.
+ *
+ * A saved region the backend no longer supports is removed from the browser.
+ * The removal needs the resolution before the response exists. So a page
+ * request that carries a saved region resolves it before the page renders.
+ */
+const region = defineMiddleware(async (context, next) => {
+  const signals = {
+    selectedCountryCode: readRegionCookie(context.request.headers.get('cookie')),
+    detectedCountryCode: detectCountryCode(context.request, context.locals.config.environment),
+  };
+  let pending: ReturnType<App.Locals['visitorRegion']> | undefined;
+  let resolution: RegionResolution | undefined;
+
+  context.locals.visitorRegion = () => {
+    pending ??= pricingRegions
+      .read(() => context.locals.backend().listPricingRegions())
+      .then((regions) => {
+        resolution = resolveVisitorRegion(regions, signals);
+        return { region: resolution.region, regions };
+      })
+      .catch((error: unknown) => {
+        context.locals.logger.error(
+          EVENTS.APPLICATION_QUERY_FAILED,
+          'Visitor region could not be resolved',
+          {
+            error,
+            error_category: 'application',
+            ...(isApiError(error) ? toLogContext(error) : {}),
+          },
+        );
+        throw error;
+      });
+    return pending;
+  };
+
+  const acceptsPage = context.request.headers.get('accept')?.includes('text/html') === true;
+  if (signals.selectedCountryCode !== null && acceptsPage) {
+    // A failure is already logged, and the page reads the same rejection again.
+    await context.locals.visitorRegion().catch(() => undefined);
+  }
+
+  const response = await next();
+  if (resolution?.discardSelection === true) {
+    return withHeader(
+      response,
+      'set-cookie',
+      clearRegionCookie({ secure: context.url.protocol === 'https:' }),
+    );
+  }
+  return response;
+});
+
+/** Appends a header, and rebuilds a response whose headers cannot change. */
+function withHeader(response: Response, name: string, value: string): Response {
+  try {
+    response.headers.append(name, value);
+    return response;
+  } catch {
+    const headers = new Headers(response.headers);
+    headers.append(name, value);
+    return new Response(response.body, {
+      status: response.status,
+      statusText: response.statusText,
+      headers,
+    });
+  }
+}
+
+/**
  * A development-only origin override, or `undefined` everywhere else.
  *
  * The one place this Worker reads an origin from a variable, and the guard is
@@ -351,4 +443,12 @@ function resolveTransport(environment: Environment): { fetch: typeof fetch; base
   throw new Error('No backend transport is available');
 }
 
-export const onRequest = sequence(correlation, configuration, testClock, logging, backend, media);
+export const onRequest = sequence(
+  correlation,
+  configuration,
+  testClock,
+  logging,
+  backend,
+  media,
+  region,
+);

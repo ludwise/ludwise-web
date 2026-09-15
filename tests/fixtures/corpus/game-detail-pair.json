@@ -1,0 +1,239 @@
+{
+  "status": 200,
+  "body": {
+    "id": "00000000-0000-7000-8000-000000000008",
+    "slug": "canonical-demo",
+    "title": "Canonical Demo Game",
+    "metadata": {
+      "summary": "A small fixture proving that a game page reads canonical data without knowing its source.",
+      "developer": "Example Studio",
+      "publisher": "Example Publisher",
+      "releaseDate": "2025-04-18",
+      "genres": [
+        "Action",
+        "RPG"
+      ],
+      "platforms": [
+        "Linux",
+        "Windows"
+      ]
+    },
+    "metadataProvenance": [
+      {
+        "field": "developer",
+        "sourceName": "Orbit Source",
+        "method": "direct",
+        "observedAtMs": 1750000000000
+      },
+      {
+        "field": "publisher",
+        "sourceName": "Orbit Source",
+        "method": "direct",
+        "observedAtMs": 1750000000000
+      },
+      {
+        "field": "release_date",
+        "sourceName": "Orbit Source",
+        "method": "direct",
+        "observedAtMs": 1750000000000
+      },
+      {
+        "field": "summary",
+        "sourceName": "Orbit Source",
+        "method": "direct",
+        "observedAtMs": 1750000000000
+      },
+      {
+        "field": "title",
+        "sourceName": "Orbit Source",
+        "method": "direct",
+        "observedAtMs": 1750000000000
+      }
+    ],
+    "offerGroups": [
+      {
+        "market": {
+          "id": "00000000-0000-7000-8000-000000000005",
+          "code": "EU",
+          "name": "European Union",
+          "countryCode": "EU"
+        },
+        "currency": {
+          "code": "EUR",
+          "minorUnit": 2
+        },
+        "offers": [
+          {
+            "id": "00000000-0000-7000-8000-000000000013",
+            "storeName": "Orbit Market",
+            "storeSlug": "orbit-market",
+            "storePageUrl": "https://orbit-market.example.test/canonical-demo",
+            "offerUrl": null,
+            "kind": "edition",
+            "editionLabel": "Deluxe edition",
+            "availability": "available",
+            "price": {
+              "amountMinor": 0,
+              "currencyCode": "EUR",
+              "minorUnit": 2
+            },
+            "referencePrice": null,
+            "discountPercentage": null,
+            "discountEndsAtMs": null,
+            "sourceName": "Orbit Source",
+            "observedAtMs": 1750000000000,
+            "freshness": "stale"
+          },
+          {
+            "id": "00000000-0000-7000-8000-000000000012",
+            "storeName": "Orbit Market",
+            "storeSlug": "orbit-market",
+            "storePageUrl": "https://orbit-market.example.test/canonical-demo",
+            "offerUrl": "https://orbit-market.example.test/buy/canonical-demo",
+            "kind": "base_game",
+            "editionLabel": "Base game",
+            "availability": "available",
+            "price": {
+              "amountMinor": 1299,
+              "currencyCode": "EUR",
+              "minorUnit": 2
+            },
+            "referencePrice": {
+              "amountMinor": 1999,
+              "currencyCode": "EUR",
+              "minorUnit": 2
+            },
+            "discountPercentage": 35,
+            "discountEndsAtMs": null,
+            "sourceName": "Orbit Source",
+            "observedAtMs": 1750000000000,
+            "freshness": "stale"
+          },
+          {
+            "id": "00000000-0000-7000-8000-000000000014",
+            "storeName": "Copper Shop",
+            "storeSlug": "copper-shop",
+            "storePageUrl": "https://copper-shop.example.test/canonical-demo",
+            "offerUrl": "https://copper-shop.example.test/buy/canonical-demo",
+            "kind": "base_game",
+            "editionLabel": "Base game",
+            "availability": "available",
+            "price": {
+              "amountMinor": 1499,
+              "currencyCode": "EUR",
+              "minorUnit": 2
+            },
+            "referencePrice": null,
+            "discountPercentage": null,
+            "discountEndsAtMs": null,
+            "sourceName": "Copper Source",
+            "observedAtMs": 1750000000000,
+            "freshness": "stale"
+          }
+        ]
+      }
+    ],
+    "media": {
+      "cover": {
+        "url": "https://images.igdb.com/igdb/image/upload/t_cover_big/demo-cover.jpg",
+        "profile": "cover",
+        "sourceKind": "cover",
+        "provenance": {
+          "providerSlug": "igdb",
+          "providerName": "IGDB",
+          "observedAtMs": 1750000000000
+        }
+      },
+      "hero": {
+        "url": "https://images.igdb.com/igdb/image/upload/t_1080p/demo-artwork.jpg",
+        "profile": "hero",
+        "sourceKind": "artwork",
+        "provenance": {
+          "providerSlug": "igdb",
+          "providerName": "IGDB",
+          "observedAtMs": 1750000000000
+        },
+        "variants": [
+          {
+            "url": "https://images.igdb.com/igdb/image/upload/t_cover_small/demo-artwork.jpg",
+            "width": 90
+          },
+          {
+            "url": "https://images.igdb.com/igdb/image/upload/t_cover_big/demo-artwork.jpg",
+            "width": 264
+          },
+          {
+            "url": "https://images.igdb.com/igdb/image/upload/t_720p/demo-artwork.jpg",
+            "width": 1280
+          },
+          {
+            "url": "https://images.igdb.com/igdb/image/upload/t_1080p/demo-artwork.jpg",
+            "width": 1920
+          }
+        ]
+      },
+      "screenshots": [
+        {
+          "url": "https://images.igdb.com/igdb/image/upload/t_screenshot_huge/demo-shot-1.jpg",
+          "profile": "gallery",
+          "sourceKind": "screenshot",
+          "provenance": {
+            "providerSlug": "igdb",
+            "providerName": "IGDB",
+            "observedAtMs": 1750000000000
+          },
+          "variants": [
+            {
+              "url": "https://images.igdb.com/igdb/image/upload/t_screenshot_med/demo-shot-1.jpg",
+              "width": 555
+            },
+            {
+              "url": "https://images.igdb.com/igdb/image/upload/t_screenshot_big/demo-shot-1.jpg",
+              "width": 940
+            },
+            {
+              "url": "https://images.igdb.com/igdb/image/upload/t_screenshot_huge/demo-shot-1.jpg",
+              "width": 1280
+            }
+          ]
+        },
+        {
+          "url": "https://images.igdb.com/igdb/image/upload/t_screenshot_huge/demo-shot-2.jpg",
+          "profile": "gallery",
+          "sourceKind": "screenshot",
+          "provenance": {
+            "providerSlug": "igdb",
+            "providerName": "IGDB",
+            "observedAtMs": 1750000000000
+          },
+          "variants": [
+            {
+              "url": "https://images.igdb.com/igdb/image/upload/t_screenshot_med/demo-shot-2.jpg",
+              "width": 555
+            },
+            {
+              "url": "https://images.igdb.com/igdb/image/upload/t_screenshot_big/demo-shot-2.jpg",
+              "width": 940
+            },
+            {
+              "url": "https://images.igdb.com/igdb/image/upload/t_screenshot_huge/demo-shot-2.jpg",
+              "width": 1280
+            }
+          ]
+        }
+      ],
+      "videos": [
+        {
+          "url": "https://www.youtube.com/watch?v=demo-000001",
+          "embedUrl": "https://www.youtube-nocookie.com/embed/demo-000001",
+          "title": "Canonical Demo Game in motion",
+          "provenance": {
+            "providerSlug": "igdb",
+            "providerName": "IGDB",
+            "observedAtMs": 1750000000000
+          }
+        }
+      ]
+    }
+  }
+}

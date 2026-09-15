@@ -265,11 +265,12 @@ describe('the backend is reached only through the API client', () => {
 
   it('the client exposes named operations and no caller-supplied path', () => {
     const source = codeOf(CLIENT);
-    // The three reads this site makes. A fourth is a deliberate decision and
+    // The four reads this site makes. A fifth is a deliberate decision and
     // must fail here until this list is updated to acknowledge it.
     expect(source).toContain("path: '/v1/games'");
     expect(source).toContain("path: '/v1/sales'");
-    expect(source).toContain('path: `/v1/games/${encodeURIComponent(slug)}`');
+    expect(source).toContain('path: `/v1/games/${encodeURIComponent(input.slug)}`');
+    expect(source).toContain("path: '/v1/pricing-regions'");
     // No route outside /v1 is reachable. That is what keeps /ops and the
     // backend's internal surfaces unreachable from here even though a service
     // binding bypasses Cloudflare Access entirely (architecture decision record 0024).

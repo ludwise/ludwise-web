@@ -117,7 +117,7 @@ database binding, which the same test asserts.
 a binding dispatches straight to the target script. So a request arriving over
 the binding has been authenticated by nothing. That is why `/ops` authorization
 lives in the backend's own middleware and must never move to the edge. It is
-also why the API client in this repository exposes three named operations and
+also why the API client in this repository exposes four named operations and
 no path parameter. A client that could be handed a path would be a proxy into a service
 with no other public surface.
 
@@ -298,7 +298,14 @@ Static assets are the exception and always were. `public/_headers` marks the
 fonts immutable. They are content-addressed by filename and never change in
 place.
 
-The media route is the second exception. `/media/*` proxies a provider image
+The supported pricing regions are the third exception, and they are held in the
+Worker rather than in a shared cache. `src/lib/region/region-cache.ts` keeps the
+region list for 60 seconds in each isolate. The backend changes that list only by
+a migration, and it holds its own copy for the same time. When a new read fails,
+the last list stays usable for one hour. That list names no visitor and carries
+no request id.
+
+The media route is the fourth exception. `/media/*` proxies a provider image
 and answers `public, max-age=86400`, with the same ceiling on the edge cache.
 That response carries no request id and no `vary` header. Those are the two
 rules above, applied to the one response a shared cache may hold. The route
@@ -312,6 +319,34 @@ and the pre-paint theme script. There is no client-side router, no data
 fetching in the browser, and no state management library. A visitor comparing
 prices must not download the catalog to read one page.
 
-One backend request per page. A rejected filter combination is the exception. It
-costs one request, and gets its filter form rebuilt in the same response rather
-than in a second round trip.
+One backend request per page, plus the region list when the isolate holds no
+fresh copy. A rejected filter combination costs one request, and gets its filter
+form rebuilt in the same response rather than in a second round trip.
+
+## The visitor pricing region
+
+A visitor reads prices in one pricing region. The backend owns the region list
+and the market and currency pair of each region (backend record 0044). This
+repository chooses the active region, and `src/middleware.ts` resolves it once
+for each request as `locals.visitorRegion()`. The order is fixed:
+
+1. The region the visitor saved, in the first-party `region` cookie.
+2. The country that Cloudflare assigned to the request, `request.cf.country`.
+3. The fallback region that the backend names.
+
+The cookie holds the region identifier only. A saved region that the list no
+longer holds is removed, and the order runs again. The Worker reads no request
+header for the country outside development, and it stores no country and no IP
+address.
+
+Every price-bearing read takes its pair from that region: `/v1/sales`,
+`/v1/games/{slug}`, and `/v1/games` when a filter names a price. A `/v1/games`
+read with no price filter sends no pair. There, the backend reads a pair as a
+filter: it keeps only the games that hold an offer in that pair. No page reads a market or a
+currency from its query string, and no page offers its own control for them.
+
+The header holds the one control that changes the region. It posts to
+`/region`, which checks the choice against the list, saves it, and returns the
+visitor to the page and query they came from. When the currency changes, the
+price bounds leave that query, because they are amounts in the old currency.
+`/region` also renders the chooser without script.

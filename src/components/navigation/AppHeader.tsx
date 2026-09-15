@@ -26,6 +26,7 @@ import {
   WORDMARK_TILE_RATIO,
 } from '../foundation/wordmark-geometry.js';
 import { SearchField } from '../forms/SearchField.js';
+import { RegionControl, type RegionControlProps } from '../region/RegionControl.js';
 import { serializeThemeCookie, type Theme } from '../../lib/http/theme.js';
 import './AppHeader.css';
 
@@ -111,6 +112,8 @@ export interface AppHeaderProps {
   /** Current commercial market and currency, for example "EUR · Eurozone". Distinct
    *  from UI language — never conflate the two. */
   marketLabel?: string | undefined;
+  /** The visitor region control. When supplied, it replaces the static market label. */
+  region?: RegionControlProps | undefined;
   /** Called with the new open state when the compact menu button is pressed.
    *  The header manages its own menu panel. This is only for host-side effects
    *  such as locking body scroll. */
@@ -273,6 +276,7 @@ export function AppHeader({
   theme = 'light',
   onThemeToggle,
   marketLabel,
+  region,
   onMenu,
   authed,
   compact,
@@ -317,17 +321,22 @@ export function AppHeader({
   // Same reasoning as renderNav. The bar copy carries an extra class so CSS
   // can hide it at compact widths. The panel copy needs no such class,
   // because its whole container is already gated on `menuOpen`.
-  const renderMarketButton = (extraClassName?: string) =>
-    marketLabel ? (
-      <button
-        type="button"
-        className={
-          extraClassName ? `lw-header__market-button ${extraClassName}` : 'lw-header__market-button'
-        }
-      >
+  const renderMarketControl = (placement: 'bar' | 'panel') => {
+    const placementClass = placement === 'bar' ? ' lw-header__market-desktop' : '';
+    if (region) {
+      return (
+        <div className={`lw-header__region${placementClass}`}>
+          {/* The bar copy sits at the end of the header, so its panel opens toward the start. */}
+          <RegionControl {...region} align={placement === 'bar' ? 'end' : 'start'} />
+        </div>
+      );
+    }
+    return marketLabel ? (
+      <button type="button" className={`lw-header__market-button${placementClass}`}>
         {marketLabel}
       </button>
     ) : null;
+  };
 
   const themeToggleLabel =
     currentTheme === 'dark' ? copy.switchToLightThemeLabel : copy.switchToDarkThemeLabel;
@@ -375,7 +384,7 @@ export function AppHeader({
 
         <div className="lw-header__utilities-slot">
           <div className="lw-header__utilities">
-            {renderMarketButton('lw-header__market-desktop')}
+            {renderMarketControl('bar')}
 
             {/* A mode switch, not a pressed toggle: the label names the action
                 and aria-pressed stays off. Sized 40/44 by AppHeader.css rather
@@ -450,7 +459,9 @@ export function AppHeader({
       {menuOpen && (
         <div id="lw-header-menu" className="lw-header__mobile-panel">
           {renderNav('panel')}
-          {marketLabel && <div className="lw-header__mobile-market">{renderMarketButton()}</div>}
+          {(region || marketLabel) && (
+            <div className="lw-header__mobile-market">{renderMarketControl('panel')}</div>
+          )}
         </div>
       )}
     </header>
