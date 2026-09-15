@@ -1,6 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
 import { E2E_NOW_MS } from './tests/helpers/e2e-time.js';
+import { e2eWorkers } from './tests/helpers/e2e-workers.js';
 
 /**
  * One browser, and two servers.
@@ -43,14 +44,13 @@ export default defineConfig({
   testIgnore: ['**/degraded.spec.ts', '**/empty.spec.ts'],
   fullyParallel: true,
   forbidOnly: Boolean(process.env.CI),
-  // The Cloudflare development runner shares one module graph and is not safe for
-  // concurrent SSR requests. One worker keeps a module-load failure isolated.
-  ...(process.env.CI ? { workers: 1 } : {}),
+  workers: e2eWorkers(process.env.LUDWISE_E2E_WORKERS),
   // A red CI run needs the first actionable failure, not every timeout caused
   // by the same broken server. Green runs still execute the complete suite.
   maxFailures: process.env.CI ? 1 : 0,
   retries: 0,
   reporter: process.env.CI ? [['github'], ['list']] : [['list']],
+  // One tab crashes after about six dev-server navigations. Open a page per route.
   use: {
     baseURL: BASE_URL,
     extraHTTPHeaders: { 'x-ludwise-test-now': String(E2E_NOW_MS) },
