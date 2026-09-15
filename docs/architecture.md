@@ -230,6 +230,24 @@ backend replays them. That replay is what makes the end-to-end suites evidence
 about the real contract, rather than about shapes invented to match the code
 these tests exercise.
 
+These consumers request the fake backend, and so they depend on the corpus:
+
+- The end-to-end suites. `playwright.config.ts` runs the catalog suites.
+  `playwright.states.config.ts` runs the empty and degraded suites.
+- The cold render check. `scripts/check-dev-ssr.mjs` requests fixed routes.
+- The Lighthouse gate. `lighthouse.config.json` names the routes it measures.
+
+A change to the query that a page sends can make a consumer request a response
+that the corpus does not hold. The fake backend then answers 501 and appends the
+request to `corpus-misses.log`. A page can render a failure state for that 501
+while its test still passes.
+
+Thus `tests/helpers/corpus-misses-gate.ts` empties the log at the start of each
+Playwright run and fails the run when the log holds a request after it. A test
+that sends a request to get a miss names that request in
+`EXPECTED_CORPUS_MISSES`. The gate reads the log for Playwright runs only. The
+cold render check and the Lighthouse gate do not read it.
+
 To change one: add or edit the case in the backend's `CASES`, run its
 `pnpm run contract:corpus` to re-record, then copy the files across unmodified.
 

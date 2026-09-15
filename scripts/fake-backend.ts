@@ -51,6 +51,9 @@ const IMAGE_TYPES: Readonly<Record<string, string>> = {
  * interleaved with the site's and the runner's. That makes it effectively
  * unreadable. "Which requests does the corpus not cover" is the one question a
  * missing recording raises. It must be answerable in one look. Gitignored.
+ *
+ * `tests/helpers/corpus-misses-gate.ts` empties this file before a Playwright
+ * run and fails the run on a request it does not expect.
  */
 const MISSES = resolve(root, 'corpus-misses.log');
 
