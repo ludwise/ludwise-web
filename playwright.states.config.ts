@@ -1,5 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
+import { e2eWorkers } from './tests/helpers/e2e-workers.js';
+
 /**
  * The suites that need a backend answering something other than the catalog.
  *
@@ -50,9 +52,7 @@ export default defineConfig({
   testMatch: MODE === 'empty' ? '**/empty.spec.ts' : '**/degraded.spec.ts',
   fullyParallel: true,
   forbidOnly: Boolean(process.env.CI),
-  // The Cloudflare development runner shares one module graph and is not safe
-  // for concurrent SSR requests. One worker keeps a module-load failure isolated.
-  ...(process.env.CI ? { workers: 1 } : {}),
+  workers: e2eWorkers(process.env.LUDWISE_E2E_WORKERS),
   maxFailures: process.env.CI ? 1 : 0,
   retries: 0,
   reporter: process.env.CI ? [['github'], ['list']] : [['list']],

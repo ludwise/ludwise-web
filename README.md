@@ -137,6 +137,8 @@ for the supported development configuration.
 - `pnpm typecheck:tests` type-checks the test tree.
 - `pnpm test` runs unit, architecture, and contract tests.
 - `pnpm test:e2e` runs Playwright end-to-end tests.
+  It uses one worker, because the development server is not safe for
+  concurrent SSR requests. Set `LUDWISE_E2E_WORKERS` to use more workers.
 - `pnpm test:coverage` runs tests with coverage reporting.
 - `pnpm i18n:compile` compiles Paraglide messages.
 - `pnpm cf-typegen` regenerates Cloudflare binding types.
