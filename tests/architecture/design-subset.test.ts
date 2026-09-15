@@ -52,6 +52,8 @@ describe('the design-system subset', () => {
       'src/components/legal/PolicyHeader.astro',
       'src/components/legal/PolicyToc.astro',
       'src/components/navigation/SiteFooter.astro',
+      'src/components/region/RegionControl.tsx',
+      'src/components/region/RegionStatement.astro',
     ];
     const accounted = [
       ...ADOPTED_SUBSET.map((component) => component.file),

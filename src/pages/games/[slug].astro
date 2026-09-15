@@ -8,6 +8,7 @@ import FreshnessNotice from '../../components/game/FreshnessNotice.astro';
 import GameArtwork from '../../components/game/GameArtwork.astro';
 import OfferTable from '../../components/game/OfferTable.astro';
 import PageContainer from '../../components/layout/PageContainer.astro';
+import RegionStatement from '../../components/region/RegionStatement.astro';
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import type { GameDetailView, ProvenanceView } from '../../lib/api/contract.js';
 import { isApiError, toLogContext } from '../../lib/api/errors.js';
@@ -15,6 +16,7 @@ import { formatReleaseDate } from '../../lib/formatting/game-detail.js';
 import { provenanceFieldLabel } from '../../lib/formatting/provenance.js';
 import { mediaForRendering } from '../../lib/game/media.js';
 import { EVENTS } from '../../lib/logging/events.js';
+import type { VisitorRegion } from '../../lib/region/visitor-region.js';
 import type { PageIndexing } from '../../lib/seo/page-head.js';
 import { surfaceFreshness } from '../../lib/state/freshness.js';
 import { surfaceProvenance } from '../../lib/state/provenance.js';
@@ -22,11 +24,17 @@ import { surfaceProvenance } from '../../lib/state/provenance.js';
 export const prerender = false;
 
 const slug = Astro.params.slug ?? '';
+let region: VisitorRegion | null = null;
 let view: GameDetailView | null = null;
 let failureCode: string | null = null;
 
 try {
-  view = await Astro.locals.backend().getGameDetail(slug);
+  region = (await Astro.locals.visitorRegion()).region;
+  view = await Astro.locals.backend().getGameDetail({
+    slug,
+    marketCode: region.marketCode,
+    currencyCode: region.currencyCode,
+  });
 } catch (error) {
   if (!isApiError(error)) throw error;
 
@@ -242,11 +250,9 @@ const PROVENANCE_METHODS: Record<ProvenanceView['method'], string> = {
                 <h2 id="current-offers-title" class="lw-text-heading-md">
                   Current offers
                 </h2>
+                {region && <RegionStatement region={region} />}
                 {view.offerGroups.length > 0 && (
-                  <p class="lw-text-body-sm">
-                    Offers are grouped by market and currency. Available prices are lowest first
-                    within each currency.
-                  </p>
+                  <p class="lw-text-body-sm">Available prices are lowest first.</p>
                 )}
               </div>
               <FreshnessNotice freshness={offerFreshness} nowMs={nowMs} />
@@ -254,7 +260,7 @@ const PROVENANCE_METHODS: Record<ProvenanceView['method'], string> = {
 
               {view.offerGroups.length === 0 ? (
                 <EmptyState icon="store" title="No current offers" compact>
-                  There are no current store offers to compare for this game.
+                  No store has a current offer for this game in this region.
                 </EmptyState>
               ) : (
                 <div class="lw-game-detail__offer-groups">

@@ -160,6 +160,29 @@
   white-space: nowrap;
 }
 
+/* The region control's trigger takes the market button's look. The Popover
+   owns the button, so the look is applied through its trigger class. */
+.lw-header__region {
+  display: inline-flex;
+  flex: none;
+}
+.lw-header__region .lw-popover__trigger {
+  height: 36px;
+  min-height: 36px;
+  padding: 0 var(--space-3);
+  border: var(--border-width-hairline) solid var(--color-border-component);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-secondary);
+  font: var(--text-label-md);
+}
+.lw-header__region .lw-popover__trigger:hover {
+  background: var(--color-surface-interactive-hover);
+}
+.lw-header__mobile-market .lw-popover__trigger {
+  height: var(--target-min-touch);
+  min-height: var(--target-min-touch);
+}
+
 .lw-header__search-slot {
   flex: 1 1 0;
   min-width: 0;

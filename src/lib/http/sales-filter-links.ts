@@ -4,8 +4,7 @@
  * Pulled out of `sales.astro`. Each pairing rule encoded here is one line a test can fail on
  * its own. It is not logic a future edit to the page can silently drop unnoticed.
  *
- * Four pairing rules are encoded here.
- * Market and currency travel together.
+ * Three pairing rules are encoded here.
  * A price bound's minimum and maximum travel together.
  * A release-year range's two ends travel together.
  * Removing any filter resets the page.
@@ -37,14 +36,6 @@ export function pathWithoutFilter(params: URLSearchParams, name: string, value?:
     }
   } else {
     next.delete(name);
-    if (name === 'market' || name === 'currency') {
-      next.delete('market');
-      next.delete('currency');
-      // Price bounds are amounts in the currency being removed, so keeping
-      // them would silently reinterpret them in another one.
-      next.delete('min');
-      next.delete('max');
-    }
     if (name === 'min') next.delete('max');
     if (name === 'fromYear') next.delete('toYear');
   }
@@ -63,16 +54,13 @@ export function pathForPage(params: URLSearchParams, page: number): string {
 /**
  * The link a "remove every filter" control points to.
  *
- * The market, the currency and the sort order survive it. A visitor who asks
- * to see the results a filter excluded does not ask to be moved to another
- * market. The price bounds they set are amounts in the currency they read.
- * Sort is an order rather than a filter, so it excludes nothing.
+ * The sort order survives it. Sort is an order rather than a filter, so it
+ * excludes nothing. The market and the currency are not in the query at all,
+ * because the visitor region sets them.
  */
 export function pathWithFiltersCleared(params: URLSearchParams): string {
   const next = new URLSearchParams();
-  for (const name of ['market', 'currency', 'sort'] as const) {
-    const value = params.get(name);
-    if (value !== null) next.set(name, value);
-  }
+  const sort = params.get('sort');
+  if (sort !== null) next.set('sort', sort);
   return pathWithQuery(next);
 }

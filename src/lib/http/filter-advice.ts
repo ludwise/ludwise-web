@@ -5,17 +5,24 @@
  * deliberately does not cross the wire. Those strings name internal expectations for whoever
  * reads the logs, so wording one for a person is a presentation decision made here.
  *
- * One table rather than one per page. `marketCode` and `currencyCode` are refused together and
- * share a sentence, while `/games` and `/sales` word the same rule differently. An unknown field
+ * One table for each page. `marketCode` and `currencyCode` are refused together and share one
+ * sentence. The visitor region is the only source of the pair, so that sentence points to the
+ * region control. An unknown field
  * is dropped rather than shown, because it means a newer backend refused something this build
  * has no control for. It is still logged, so the skew reaches an operator.
  */
 
+/**
+ * The pair comes from the region list this Worker holds. A refusal means that list and the
+ * backend disagree, so saving a region again reads the list again.
+ */
+const REGION_ADVICE = "LUDWISE couldn't use your region. Choose your region again.";
+
 /** Advice for `/games`, keyed by the field names `/v1/games` may refuse. */
 const GAME_SEARCH_ADVICE: Readonly<Record<string, string>> = {
   page: 'Page numbers start at 1.',
-  marketCode: 'Choose a market and a currency together, or leave both on Any.',
-  currencyCode: 'Choose a market and a currency together, or leave both on Any.',
+  marketCode: REGION_ADVICE,
+  currencyCode: REGION_ADVICE,
   minPriceMinor: 'Enter prices as whole numbers, with the lowest no higher than the highest.',
   maxPriceMinor: 'Enter prices as whole numbers, with the lowest no higher than the highest.',
   releaseYearFrom: 'Enter release years between 1 and 9999, with the earliest one first.',
@@ -25,8 +32,8 @@ const GAME_SEARCH_ADVICE: Readonly<Record<string, string>> = {
 /** Advice for `/sales`, keyed by the field names `/v1/sales` may refuse. */
 const SALES_ADVICE: Readonly<Record<string, string>> = {
   page: 'Page numbers start at 1.',
-  marketCode: 'Choose a market and a currency together.',
-  currencyCode: 'Choose a market and a currency together.',
+  marketCode: REGION_ADVICE,
+  currencyCode: REGION_ADVICE,
   minDiscountPercentage: 'Enter a smallest discount between 1 and 100.',
   minPriceMajor: 'Enter prices as whole numbers, with the lowest no higher than the highest.',
   maxPriceMajor: 'Enter prices as whole numbers, with the lowest no higher than the highest.',

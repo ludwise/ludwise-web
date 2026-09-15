@@ -3,6 +3,7 @@
 import type { LudwiseApi } from './lib/api/client.js';
 import type { AppConfig } from './lib/config/index.js';
 import type { MediaProxy } from './lib/media/proxy.js';
+import type { VisitorRegionContext } from './lib/region/visitor-region.js';
 import type { Logger } from './lib/logging/types.js';
 
 declare global {
@@ -50,6 +51,13 @@ declare global {
        * alone. `tests/architecture/boundaries.test.ts` enforces both.
        */
       media: () => MediaProxy;
+      /**
+       * The pricing region of this request, resolved on first use and memoised.
+       *
+       * Every price-bearing read takes its market and currency from here, and from nowhere
+       * else. It rejects with a `LudwiseApiError` when the region list cannot be read.
+       */
+      visitorRegion: () => Promise<VisitorRegionContext>;
     }
   }
 

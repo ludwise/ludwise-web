@@ -1,0 +1,43 @@
+{
+  "status": 200,
+  "body": {
+    "regions": [
+      {
+        "countryCode": "DE",
+        "marketCode": "DE",
+        "marketName": "Germany",
+        "currencyCode": "EUR",
+        "currencyMinorUnit": 2
+      },
+      {
+        "countryCode": "EU",
+        "marketCode": "EU",
+        "marketName": "European Union",
+        "currencyCode": "EUR",
+        "currencyMinorUnit": 2
+      },
+      {
+        "countryCode": "GB",
+        "marketCode": "GB",
+        "marketName": "United Kingdom",
+        "currencyCode": "GBP",
+        "currencyMinorUnit": 2
+      },
+      {
+        "countryCode": "JP",
+        "marketCode": "JP",
+        "marketName": "Japan",
+        "currencyCode": "JPY",
+        "currencyMinorUnit": 0
+      },
+      {
+        "countryCode": "US",
+        "marketCode": "US",
+        "marketName": "United States",
+        "currencyCode": "USD",
+        "currencyMinorUnit": 2
+      }
+    ],
+    "fallbackCountryCode": "DE"
+  }
+}

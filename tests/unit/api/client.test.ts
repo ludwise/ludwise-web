@@ -146,8 +146,35 @@ describe('the request it sends', () => {
     // A slug is caller-controlled and lands in a URL path. Unescaped, `../`
     // walks out of /v1/games and reaches a route the allowlist never named.
     const { calls, fetchImpl } = recording(json(null, 404));
-    await clientOver(fetchImpl).getGameDetail('../ops/api/logs');
+    await clientOver(fetchImpl).getGameDetail({ slug: '../ops/api/logs' });
     expect(new URL(calls[0]!.url).pathname).toBe('/v1/games/..%2Fops%2Fapi%2Flogs');
+  });
+
+  it("sends the visitor's market and currency with a game detail read", async () => {
+    const { calls, fetchImpl } = recording(json(DETAIL_WITHOUT_MEDIA));
+
+    await clientOver(fetchImpl).getGameDetail({
+      slug: 'canonical-demo',
+      marketCode: 'EU',
+      currencyCode: 'EUR',
+    });
+
+    const url = new URL(calls[0]!.url);
+    expect(url.pathname).toBe('/v1/games/canonical-demo');
+    expect(url.searchParams.get('market')).toBe('EU');
+    expect(url.searchParams.get('currency')).toBe('EUR');
+  });
+
+  it('asks for the supported pricing regions with no query at all', async () => {
+    const regions = { regions: [], fallbackCountryCode: 'DE' };
+    const { calls, fetchImpl } = recording(json(regions));
+
+    const view = await clientOver(fetchImpl).listPricingRegions();
+
+    const url = new URL(calls[0]!.url);
+    expect(url.pathname).toBe('/v1/pricing-regions');
+    expect(url.search).toBe('');
+    expect(view).toEqual(regions);
   });
 
   it('reads a detail from a backend that predates media, without inventing one', async () => {
@@ -156,7 +183,7 @@ describe('the request it sends', () => {
     // arrived, rather than fill a gap with an empty object nobody sent.
     const { fetchImpl } = recording(json(DETAIL_WITHOUT_MEDIA));
 
-    const view = await clientOver(fetchImpl).getGameDetail('older-backend');
+    const view = await clientOver(fetchImpl).getGameDetail({ slug: 'older-backend' });
 
     expect(view).toEqual(DETAIL_WITHOUT_MEDIA);
     expect(view).not.toHaveProperty('media');
@@ -165,7 +192,7 @@ describe('the request it sends', () => {
   it('passes media through unchanged when the backend sends it', async () => {
     const { fetchImpl } = recording(json({ ...DETAIL_WITHOUT_MEDIA, media: EMPTY_MEDIA }));
 
-    const view = await clientOver(fetchImpl).getGameDetail('newer-backend');
+    const view = await clientOver(fetchImpl).getGameDetail({ slug: 'newer-backend' });
 
     // Unchanged, because the client transports and does not interpret. What a
     // page does with an empty gallery is a rendering decision made in a page.
@@ -389,7 +416,7 @@ describe('an absent game is an answer rather than a failure', () => {
         404,
       )) as unknown as typeof fetch;
 
-    await expect(clientOver(fetchImpl).getGameDetail('no-such-game')).resolves.toBeNull();
+    await expect(clientOver(fetchImpl).getGameDetail({ slug: 'no-such-game' })).resolves.toBeNull();
   });
 
   it('but a 404 on a list read is not', async () => {
@@ -434,12 +461,17 @@ describe('nothing the backend said reaches a caller', () => {
 });
 
 describe('the operations it will perform', () => {
-  it('are three, and none takes a path', () => {
+  it('are four, and none takes a path', () => {
     // The allowlist as an object shape. A client that could be handed a path
     // would be a proxy. A proxy reachable from a page is how /ops and
     // internal routes become publicly reachable through the front door.
     const client = clientOver(vi.fn() as unknown as typeof fetch);
-    expect(Object.keys(client).sort()).toEqual(['browseSales', 'getGameDetail', 'searchGames']);
+    expect(Object.keys(client).sort()).toEqual([
+      'browseSales',
+      'getGameDetail',
+      'listPricingRegions',
+      'searchGames',
+    ]);
   });
 });
 

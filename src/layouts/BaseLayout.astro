@@ -4,6 +4,9 @@ import { getRelativeLocaleUrl } from 'astro:i18n';
 import { AppHeader } from '../components/navigation/AppHeader.tsx';
 import SiteFooter from '../components/navigation/SiteFooter.astro';
 import { getTextDirection, messages as m, resolveLocale } from '../i18n/index.js';
+import type { RegionControlProps } from '../components/region/RegionControl.tsx';
+import { isApiError } from '../lib/api/errors.js';
+import { formatRegionLabel, regionOptions } from '../lib/formatting/region.js';
 import type { MediaPicture } from '../lib/game/media.js';
 import { readThemeCookie } from '../lib/http/theme.js';
 import { pageHead, type PageIndexing } from '../lib/seo/page-head.js';
@@ -21,9 +24,11 @@ interface Props {
   indexing?: PageIndexing | undefined;
   /** The game cover that `og:image` names. Omit it on a page with no cover. */
   shareCover?: MediaPicture | null | undefined;
+  /** Where a region change returns to. The default is this page, with its query. */
+  regionReturnPath?: string | undefined;
 }
 
-const { title, description, activeNavId, shareCover } = Astro.props;
+const { title, description, activeNavId, shareCover, regionReturnPath } = Astro.props;
 const locale = resolveLocale(Astro.currentLocale);
 const messageOptions = { locale } as const;
 
@@ -50,6 +55,31 @@ const headerCopy = {
   signInLabel: m.shell_sign_in({}, messageOptions),
   menuLabel: m.shell_menu_label({}, messageOptions),
 };
+
+// The region control needs the region list. Without it, the header renders
+// without the control, and a price-bearing page reports the failure itself.
+let region: RegionControlProps | undefined;
+try {
+  const context = await Astro.locals.visitorRegion();
+  region = {
+    label: formatRegionLabel(context.region, locale),
+    currentCountryCode: context.region.countryCode,
+    options: regionOptions(context.regions, locale),
+    action: getRelativeLocaleUrl(locale, 'region'),
+    returnTo: regionReturnPath ?? `${Astro.url.pathname}${Astro.url.search}`,
+    copy: {
+      triggerPrefix: m.shell_region_trigger_prefix({}, messageOptions),
+      heading: m.shell_region_heading({}, messageOptions),
+      explanation: m.shell_region_explanation({}, messageOptions),
+      selectLabel: m.shell_region_select_label({}, messageOptions),
+      currencyLabel: m.shell_region_currency_label({}, messageOptions),
+      noConversion: m.shell_region_no_conversion({}, messageOptions),
+      save: m.shell_region_save({}, messageOptions),
+    },
+  };
+} catch (error) {
+  if (!isApiError(error)) throw error;
+}
 
 // Resolved server-side so the first response carries the right theme. `null` is
 // "no preference expressed", which differs from "light": it hands the decision
@@ -155,6 +185,7 @@ const head = pageHead({
       theme={theme ?? 'light'}
       searchAction={gamesHref}
       searchValue={Astro.url.searchParams.get('q') ?? undefined}
+      region={region}
     />
 
     {

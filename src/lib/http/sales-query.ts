@@ -13,49 +13,20 @@
 
 import { optionalInteger, optionalText, repeatedText } from './query-params.js';
 import type { BrowseSalesInput } from '../api/contract.js';
+import type { PricingPair } from '../region/visitor-region.js';
+
+/** The `/sales` filters a visitor can set. The market and the currency are not among them. */
+export type SalesFilters = Omit<BrowseSalesInput, 'marketCode' | 'currencyCode'>;
 
 /**
- * Joins a combined `pair` value's two sides. Kept out of query-params.ts,
- * because no other boundary needs it. Exported so the page builds an option
- * value with the identical separator this function splits on. A second
- * literal could drift from this one.
- */
-export const PAIR_SEPARATOR = '|';
-
-/**
- * Reads a combined `market|currency` value, as the filter form's one
- * market/currency control submits it (#2: a single control offering only
- * the pairs that hold a sale. So a visitor cannot submit a market and a
- * currency that were never paired). It returns `undefined` for anything that
- * is not exactly two non-empty sides. That is not a value to guess at a
- * meaning for. It falls the caller back to `market` / `currency` read separately.
- */
-function readPair(
-  params: URLSearchParams,
-): { marketCode: string; currencyCode: string } | undefined {
-  const value = optionalText(params, 'pair');
-  if (value === undefined) return undefined;
-
-  const sides = value.split(PAIR_SEPARATOR);
-  if (sides.length !== 2 || sides[0] === '' || sides[1] === '') return undefined;
-  return { marketCode: sides[0]!, currencyCode: sides[1]! };
-}
-
-/**
- * Reads the filters a visitor asked for. Range and pairing rules belong to the
- * use case.
+ * Reads the filters a visitor asked for. Range rules belong to the use case.
  *
- * `min` and `max` are whole units of whichever currency the resolved context
- * turns out to use - what a visitor typed into "Lowest price" - not minor
- * units. `browseSales` converts them once it knows that currency's exponent.
- * This boundary has no way to know it and does not try.
+ * `min` and `max` are whole units of the region's currency, as a visitor types
+ * them into "Lowest price". They are not minor units. `browseSales` converts
+ * them once it knows that currency's exponent.
  */
-export function toBrowseSalesInput(params: URLSearchParams): BrowseSalesInput {
-  const pair = readPair(params);
-
+export function readSalesFilters(params: URLSearchParams): SalesFilters {
   return {
-    marketCode: pair?.marketCode ?? optionalText(params, 'market'),
-    currencyCode: pair?.currencyCode ?? optionalText(params, 'currency'),
     stores: repeatedText(params, 'store'),
     minDiscountPercentage: optionalInteger(params, 'minDiscount'),
     minPriceMajor: optionalInteger(params, 'min'),
@@ -65,4 +36,9 @@ export function toBrowseSalesInput(params: URLSearchParams): BrowseSalesInput {
     sort: optionalText(params, 'sort'),
     page: optionalInteger(params, 'page'),
   };
+}
+
+/** The `/v1/sales` input: the visitor's filters, in the visitor region's pair. */
+export function toBrowseSalesInput(filters: SalesFilters, pair: PricingPair): BrowseSalesInput {
+  return { ...filters, marketCode: pair.marketCode, currencyCode: pair.currencyCode };
 }

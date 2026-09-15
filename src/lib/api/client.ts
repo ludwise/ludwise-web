@@ -18,9 +18,11 @@ import type {
   ApiErrorBody,
   BrowseSalesInput,
   BrowseSalesView,
+  GameDetailInput,
   GameDetailView,
   GameSearchInput,
   GameSearchView,
+  PricingRegionsView,
 } from './contract.js';
 import { apiErrorFromBody, LudwiseApiError } from './errors.js';
 
@@ -179,6 +181,16 @@ function salesParams(input: BrowseSalesInput): URLSearchParams {
   return params;
 }
 
+/** The `/v1/games/{slug}` query string: the pricing pair, and nothing else. */
+function detailParams(input: GameDetailInput): URLSearchParams {
+  const params = new URLSearchParams();
+
+  put(params, 'market', input.marketCode);
+  put(params, 'currency', input.currencyCode);
+
+  return params;
+}
+
 interface RequestSpec {
   readonly path: string;
   readonly params?: URLSearchParams | undefined;
@@ -332,14 +344,16 @@ async function requireOne<T>(
 export interface LudwiseApi {
   searchGames(input?: GameSearchInput, signal?: AbortSignal): Promise<GameSearchView>;
   /** `null` when no game carries that slug, which is an answer rather than a fault. */
-  getGameDetail(slug: string, signal?: AbortSignal): Promise<GameDetailView | null>;
+  getGameDetail(input: GameDetailInput, signal?: AbortSignal): Promise<GameDetailView | null>;
   browseSales(input?: BrowseSalesInput, signal?: AbortSignal): Promise<BrowseSalesView>;
+  /** The supported visitor pricing regions and the fallback region (backend record 0044). */
+  listPricingRegions(signal?: AbortSignal): Promise<PricingRegionsView>;
 }
 
 /**
  * Builds the client.
  *
- * An explicit allowlist of three operations rather than a general "call the
+ * An explicit allowlist of four operations rather than a general "call the
  * backend" function, and that is a security boundary rather than an interface
  * preference. A client that could be handed a path would be a proxy. A proxy
  * reachable from a page is how `/ops` and internal routes become publicly
@@ -359,11 +373,12 @@ export function createApiClient(options: ClientOptions): LudwiseApi {
       );
     },
 
-    getGameDetail(slug: string, signal?: AbortSignal): Promise<GameDetailView | null> {
+    getGameDetail(input: GameDetailInput, signal?: AbortSignal): Promise<GameDetailView | null> {
       return request<GameDetailView>(
         options,
         {
-          path: `/v1/games/${encodeURIComponent(slug)}`,
+          path: `/v1/games/${encodeURIComponent(input.slug)}`,
+          params: detailParams(input),
           operation: 'games.detail',
           notFoundIsNull: true,
         },
@@ -375,6 +390,14 @@ export function createApiClient(options: ClientOptions): LudwiseApi {
       return requireOne<BrowseSalesView>(
         options,
         { path: '/v1/sales', params: salesParams(input), operation: 'sales.browse' },
+        signal,
+      );
+    },
+
+    listPricingRegions(signal?: AbortSignal): Promise<PricingRegionsView> {
+      return requireOne<PricingRegionsView>(
+        options,
+        { path: '/v1/pricing-regions', operation: 'pricing-regions.list' },
         signal,
       );
     },

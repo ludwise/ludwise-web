@@ -95,11 +95,9 @@ export const AWAITING_COMPOSITION: readonly string[] = [
   'src/components/feedback/Banner.astro',
   'src/components/forms/Checkbox.astro',
   'src/components/forms/Radio.astro',
-  'src/components/forms/Select.tsx',
   'src/components/game/GameRow.astro',
   'src/components/game/OfferRow.astro',
   'src/components/navigation/Breadcrumbs.astro',
   'src/components/navigation/Pagination.astro',
-  'src/components/overlays/Popover.tsx',
   'src/components/overlays/Tooltip.tsx',
 ];

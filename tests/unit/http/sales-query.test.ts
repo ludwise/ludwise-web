@@ -1,21 +1,23 @@
 import { describe, expect, it } from 'vitest';
 
-import { toBrowseSalesInput } from '../../../src/lib/http/sales-query.js';
+import { readSalesFilters, toBrowseSalesInput } from '../../../src/lib/http/sales-query.js';
 
-const read = (query: string) => toBrowseSalesInput(new URLSearchParams(query));
+const REGION = { marketCode: 'JP', currencyCode: 'JPY' } as const;
+const read = (query: string) =>
+  toBrowseSalesInput(readSalesFilters(new URLSearchParams(query)), REGION);
 
 describe('toBrowseSalesInput', () => {
   it('reads a filled-in form as the filters it names', () => {
-    // min/max are whole units of whatever currency the resolved context uses:
-    // 500 here is 500 euros, not 500 cents. This boundary does not know the
+    // min/max are whole units of the region's currency: 500 here is 500 yen.
+    // It is not a count of a minor unit. This boundary does not know the
     // currency and does not convert. browseSales does, once it does.
     expect(
       read(
-        'market=DE&currency=EUR&store=orbit&store=copper&minDiscount=40&min=500&max=6000&fromYear=2015&toYear=2026&sort=price&page=2',
+        'store=orbit&store=copper&minDiscount=40&min=500&max=6000&fromYear=2015&toYear=2026&sort=price&page=2',
       ),
     ).toEqual({
-      marketCode: 'DE',
-      currencyCode: 'EUR',
+      marketCode: 'JP',
+      currencyCode: 'JPY',
       stores: ['orbit', 'copper'],
       minDiscountPercentage: 40,
       minPriceMajor: 500,
@@ -34,11 +36,9 @@ describe('toBrowseSalesInput', () => {
    * into a request the page itself had just made impossible.
    */
   it('treats an untouched form as no filters at all', () => {
-    expect(
-      read('market=&currency=&store=&minDiscount=&min=&max=&fromYear=&toYear=&sort=&page='),
-    ).toEqual({
-      marketCode: undefined,
-      currencyCode: undefined,
+    expect(read('store=&minDiscount=&min=&max=&fromYear=&toYear=&sort=&page=')).toEqual({
+      marketCode: 'JP',
+      currencyCode: 'JPY',
       stores: [],
       minDiscountPercentage: undefined,
       minPriceMajor: undefined,
@@ -52,8 +52,8 @@ describe('toBrowseSalesInput', () => {
 
   it('reads an empty query string as no filters', () => {
     expect(read('')).toEqual({
-      marketCode: undefined,
-      currencyCode: undefined,
+      marketCode: 'JP',
+      currencyCode: 'JPY',
       stores: [],
       minDiscountPercentage: undefined,
       minPriceMajor: undefined,
@@ -81,54 +81,18 @@ describe('toBrowseSalesInput', () => {
     expect(read('sort=rating').sort).toBe('rating');
   });
 
-  it('keeps a market without its currency, so the pairing rule can refuse it', () => {
-    expect(read('market=DE')).toMatchObject({ marketCode: 'DE', currencyCode: undefined });
-    expect(read('currency=EUR')).toMatchObject({ marketCode: undefined, currencyCode: 'EUR' });
-  });
-
-  it('does not upper-case a market a visitor typed in lower case', () => {
-    // Correcting it here would hide a malformed link rather than report it.
-    // The use case is where the shape of a market code is decided.
-    expect(read('market=de&currency=eur')).toMatchObject({
-      marketCode: 'de',
-      currencyCode: 'eur',
-    });
-  });
-
-  it('drops blank repeated store values and keeps the rest', () => {
-    expect(read('store=orbit&store=&store=%20copper%20').stores).toEqual(['orbit', 'copper']);
-  });
-
   /**
-   * The market/currency select the filter form renders is one control
-   * offering only the pairs that actually hold a sale (#2's fix for a
-   * visitor being able to submit an impossible pair). So its one submitted
-   * value carries both codes together, joined by `|`. `market`/`currency`
-   * stay readable separately. A direct link still names them that way.
-   * `pair` is this parser's problem to translate, not a second public
-   * contract.
+   * The visitor region is the only source of the pair (ludwise-web#135). A
+   * market or a currency in the address bar is not a page-level filter.
    */
-  it('reads a combined market/currency pair as both codes', () => {
-    expect(read('pair=JP|JPY')).toMatchObject({ marketCode: 'JP', currencyCode: 'JPY' });
-  });
-
-  it('prefers a combined pair over separately named market and currency', () => {
-    expect(read('pair=JP|JPY&market=DE&currency=EUR')).toMatchObject({
+  it('reads the market and the currency from the region, never from the query', () => {
+    expect(read('market=DE&currency=EUR&pair=US|USD')).toMatchObject({
       marketCode: 'JP',
       currencyCode: 'JPY',
     });
   });
 
-  it('ignores a pair with no separator, falling back to market and currency', () => {
-    expect(read('pair=JPJPY')).toMatchObject({ marketCode: undefined, currencyCode: undefined });
-    expect(read('pair=JPJPY&market=DE&currency=EUR')).toMatchObject({
-      marketCode: 'DE',
-      currencyCode: 'EUR',
-    });
-  });
-
-  it('ignores a pair with an empty side', () => {
-    expect(read('pair=|JPY')).toMatchObject({ marketCode: undefined, currencyCode: undefined });
-    expect(read('pair=JP|')).toMatchObject({ marketCode: undefined, currencyCode: undefined });
+  it('drops blank repeated store values and keeps the rest', () => {
+    expect(read('store=orbit&store=&store=%20copper%20').stores).toEqual(['orbit', 'copper']);
   });
 });

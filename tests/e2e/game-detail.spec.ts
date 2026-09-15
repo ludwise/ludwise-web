@@ -3,6 +3,7 @@ import { expect, test, type Page } from '@playwright/test';
 
 import { THEME_COOKIE_NAME } from '../../src/lib/http/theme.js';
 import { DATA_NOTES, DATA_NOTES_SUMMARY, DATA_SOURCES_LEAD } from '../helpers/data-notes.js';
+import { detectCountry, TEST_COUNTRY_HEADER } from '../helpers/e2e-region.js';
 import { E2E_NOW_MS } from '../helpers/e2e-time.js';
 import { LOGOTYPES } from '../helpers/logotypes.js';
 
@@ -11,6 +12,14 @@ const DETAIL_ROUTE = '/games/canonical-demo';
 const STATES_ROUTE = '/games/states-demo';
 const VIEWPORT_HEIGHT = 900;
 const THEMES = ['light', 'dark'] as const;
+
+/**
+ * The canonical fixture prices its offers in the EU region, which the game
+ * detail fixture seeds. A test of a game priced in Germany detects DE instead.
+ */
+test.use({
+  extraHTTPHeaders: { 'x-ludwise-test-now': String(E2E_NOW_MS), [TEST_COUNTRY_HEADER]: 'EU' },
+});
 
 async function auditFor(page: Page): Promise<void> {
   const builder = new AxeBuilder({ page }).withTags([
@@ -96,16 +105,32 @@ test.describe('game detail', () => {
     await expect(page.getByText('Orbit Market', { exact: true }).first()).toBeVisible();
     await expect(page.getByText('Copper Shop', { exact: true }).first()).toBeVisible();
     await expect(page.getByText('Free')).toBeVisible();
-    await expect(page.getByText('¥1,800')).toBeVisible();
-    await expect(page.getByText('KWD 3.500')).toBeVisible();
-    await expect(page.getByText('Unavailable', { exact: true }).first()).toBeVisible();
     await expect(page.getByRole('link', { name: /View at Orbit Market/ }).first()).toBeVisible();
     await expect(
       page.getByRole('region', { name: 'European Union · EUR' }).getByRole('row').nth(1),
     ).toContainText('Free');
   });
 
+  test("shows only the active region's offers, in its own currency", async ({ page }) => {
+    await page.goto(DETAIL_ROUTE);
+
+    await expect(page.getByText('Prices for European Union · EUR.')).toBeVisible();
+    await expect(page.getByRole('region', { name: 'European Union · EUR' })).toBeVisible();
+    // The fixture also holds a yen and a dinar offer. Neither belongs to this region.
+    await expect(page.getByText('¥1,800')).toHaveCount(0);
+    await expect(page.getByText('KWD 3.500')).toHaveCount(0);
+  });
+
+  test("shows another region's offers once that region is active", async ({ page }) => {
+    await detectCountry(page, 'DE');
+    await page.goto('/games/half-off-demo');
+
+    await expect(page.getByText('Prices for Germany · EUR.')).toBeVisible();
+    await expect(page.getByRole('region', { name: 'Germany · EUR' })).toBeVisible();
+  });
+
   test('omits empty classification groups without inventing metadata', async ({ page }) => {
+    await detectCountry(page, 'DE');
     const response = await page.goto('/games/half-off-demo');
 
     expect(response?.status()).toBe(200);
@@ -221,6 +246,7 @@ test.describe('game detail', () => {
   });
 
   test('renders a truthful no-offer state without treating it as an error', async ({ page }) => {
+    await detectCountry(page, 'DE');
     const response = await page.goto('/games/no-offers-demo');
 
     expect(response?.status()).toBe(200);
@@ -237,6 +263,7 @@ test.describe('game detail', () => {
     // This fixture's `metadata` is null. Every detail section is conditional,
     // so without this the page is a heading followed by nothing, which reads
     // as content that failed to load.
+    await detectCountry(page, 'DE');
     await page.goto('/games/no-offers-demo');
 
     await expect(page.getByText('No catalogue details yet')).toBeVisible();
@@ -276,6 +303,7 @@ test.describe('game detail', () => {
   test('does not warn on a page whose every price is recently verified', async ({ page }) => {
     // Its instant is a year before the suite's clock. The word is the
     // backend's, and this client holds no horizon to overrule it.
+    await detectCountry(page, 'DE');
     await page.goto('/games/half-off-demo');
 
     await expect(page.locator('.lw-freshness').first()).toHaveAttribute(
@@ -309,6 +337,7 @@ test.describe('game detail', () => {
   });
 
   test('explains a stale price only where the backend called one stale', async ({ page }) => {
+    await detectCountry(page, 'DE');
     await page.goto('/games/half-off-demo');
 
     await page.getByText(DATA_NOTES_SUMMARY).click();
@@ -411,6 +440,7 @@ test.describe('game detail', () => {
   test('sends a text card and no description for a game with no cover and no summary', async ({
     page,
   }) => {
+    await detectCountry(page, 'DE');
     await page.goto('/games/half-off-demo');
 
     await expect(page.locator('meta[name="description"]')).toHaveCount(0);
@@ -500,6 +530,7 @@ test.describe('game detail media', () => {
     // Staging holds no hero-kind asset, so a cover the backend promoted is one
     // of the two shapes that exist. The identity block frames it at its own
     // ratio, which is the ratio the picture already has.
+    await detectCountry(page, 'DE');
     const response = await page.goto('/games/promoted-cover-demo');
 
     expect(response?.status()).toBe(200);
@@ -526,6 +557,7 @@ test.describe('game detail media', () => {
   });
 
   test('says nothing at all about media on a game that carries none', async ({ page }) => {
+    await detectCountry(page, 'DE');
     for (const route of ['/games/half-off-demo', '/games/no-offers-demo']) {
       await page.goto(route);
 
@@ -561,8 +593,9 @@ test.describe('canonical game search', () => {
   });
 
   test('renders active filters, reset links, and a truthful no-results state', async ({ page }) => {
+    // The price filters are amounts in the currency of the EU region.
     await page.goto(
-      '/games?store=orbit-market&market=EU&currency=EUR&min=1000&max=1500&discounted=true&fromYear=2025&toYear=2025',
+      '/games?store=orbit-market&min=1000&max=1500&discounted=true&fromYear=2025&toYear=2025',
     );
 
     await expect(page.getByText('Active filters')).toBeVisible();
@@ -624,34 +657,15 @@ test.describe('canonical game search', () => {
     await expect(page.getByRole('link', { name: 'No Offers Demo Game' })).toHaveCount(0);
   });
 
-  test('asks for the missing half of a market and currency pair instead of failing', async ({
-    page,
-  }) => {
-    await page.goto('/games');
-
-    await page.locator('select[name="market"]').selectOption('EU');
-    const [response] = await Promise.all([
-      page.waitForNavigation(),
-      page.getByRole('button', { name: 'Apply filters' }).click(),
-    ]);
-
-    expect(response?.status()).toBe(400);
-    await expect(page.getByText('The game catalogue could not be loaded')).toHaveCount(0);
-    await expect(page.getByText('Those filters do not go together')).toBeVisible();
-    await expect(
-      page.getByText('Choose a market and a currency together, or leave both on Any.'),
-    ).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Apply filters' })).toBeVisible();
-    await expect(page.locator('select[name="market"]')).toHaveValue('EU');
-  });
-
   test('keeps filter controls usable in the responsive disclosure', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 900 });
     await page.goto('/games');
 
     await expect(page.getByText('Filters', { exact: true })).toBeVisible();
-    await expect(page.locator('select[name="market"]')).toBeVisible();
+    await expect(page.getByLabel('Minimum price (minor units)')).toBeVisible();
     await expect(page.getByLabel('Currently discounted')).toBeVisible();
+    // The visitor region sets the pair. The catalog offers no control for it.
+    await expect(page.locator('select[name="market"], select[name="currency"]')).toHaveCount(0);
   });
 });
 
@@ -676,7 +690,7 @@ test.describe('game detail accessibility', () => {
 
 test.describe('catalog accessibility', () => {
   for (const theme of THEMES) {
-    for (const path of ['/games', '/games?market=EU']) {
+    for (const path of ['/games', '/games?store=orbit-market']) {
       test(`has no axe violations on ${path} in the ${theme} theme`, async ({ browser }) => {
         const context = await browser.newContext();
         await context.addCookies([{ name: THEME_COOKIE_NAME, value: theme, url: BASE_URL }]);
@@ -734,8 +748,7 @@ test.describe('game detail responsive layout', () => {
           'A small fixture proving that a game page reads canonical data without knowing its source.',
         ),
       ).toBeVisible();
-      await expect(page.getByText('¥1,800')).toBeVisible();
-      await expect(page.getByText('KWD 3.500')).toBeVisible();
+      await expect(page.getByText('€14.99')).toBeVisible();
 
       const overflow = await page.evaluate(() => ({
         body: document.body.scrollWidth > document.body.clientWidth,

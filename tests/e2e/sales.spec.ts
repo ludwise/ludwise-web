@@ -2,6 +2,7 @@ import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
 
 import { DATA_NOTES, DATA_NOTES_SUMMARY } from '../helpers/data-notes.js';
+import { detectCountry } from '../helpers/e2e-region.js';
 import { LOGOTYPES } from '../helpers/logotypes.js';
 
 /**
@@ -33,14 +34,14 @@ async function auditFor(page: Page): Promise<void> {
 }
 
 test.describe('sales browsing', () => {
-  test('shows the games on sale in a named market and currency', async ({ page }) => {
+  test('shows the games on sale in the named visitor region', async ({ page }) => {
     const response = await page.goto('/sales');
     expect(response?.status()).toBe(200);
 
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('Current sales');
-    // Germany sorts before the European Union and Japan. So it is the default
-    // pair, and the page says so rather than leaving it to be inferred.
-    await expect(page.getByText('Showing Germany prices, in EUR.')).toBeVisible();
+    // No country is detected, so the fallback region applies, and the page
+    // says so rather than leaving it to be inferred.
+    await expect(page.getByText('Prices for Germany · EUR.')).toBeVisible();
 
     const results = page.getByRole('list', { name: 'Games on sale' });
     await expect(results.getByRole('listitem')).toHaveCount(3);
@@ -119,7 +120,8 @@ test.describe('sales browsing', () => {
     await expect(card.locator('.lw-freshness')).toHaveAttribute('data-state', 'recently_verified');
     await expect(card.locator('.lw-freshness')).not.toContainText('out of date');
 
-    await page.goto('/sales?market=JP&currency=JPY');
+    await detectCountry(page, 'JP');
+    await page.goto('/sales');
 
     const stale = page.getByRole('listitem').filter({ hasText: 'Yen Sale Demo Game' });
     await expect(stale.locator('.lw-freshness')).toHaveAttribute('data-state', 'stale');
@@ -133,7 +135,8 @@ test.describe('sales browsing', () => {
    * is today's price.
    */
   test('says once that a page with a stale price may be out of date', async ({ page }) => {
-    await page.goto('/sales?market=JP&currency=JPY');
+    await detectCountry(page, 'JP');
+    await page.goto('/sales');
 
     const notice = page.getByText('These prices may be out of date');
     await expect(notice).toBeVisible();
@@ -161,7 +164,8 @@ test.describe('sales browsing', () => {
     // A visitor who learned what a check time means on one surface must not
     // have to learn it again on the next. The shared list in
     // tests/helpers/data-notes.ts is what makes that assertable.
-    await page.goto('/sales?market=JP&currency=JPY');
+    await detectCountry(page, 'JP');
+    await page.goto('/sales');
 
     const summary = page.getByText(DATA_NOTES_SUMMARY);
     await expect(summary).toHaveCount(1);
@@ -177,16 +181,18 @@ test.describe('sales browsing', () => {
   test('explains nothing beside a market that holds no sale', async ({ page }) => {
     // The notes describe prices on the page. This one has none, and the
     // sentence for that is the empty state above them.
-    await page.goto('/sales?market=US&currency=USD');
+    await detectCountry(page, 'US');
+    await page.goto('/sales');
 
     await expect(page.getByText(DATA_NOTES_SUMMARY)).toHaveCount(0);
     await expect(page.getByText(DATA_NOTES.checkTimes)).toHaveCount(0);
   });
 
-  test('switches market and currency together, and never mixes them', async ({ page }) => {
-    await page.goto('/sales?market=JP&currency=JPY');
+  test("shows one region's prices in its own currency, and never mixes them", async ({ page }) => {
+    await detectCountry(page, 'JP');
+    await page.goto('/sales');
 
-    await expect(page.getByText('Showing Japan prices, in JPY.')).toBeVisible();
+    await expect(page.getByText('Prices for Japan · JPY.')).toBeVisible();
     await expect(page.getByText('Yen Sale Demo Game')).toBeVisible();
     await expect(page.getByText('Half Off Demo Game')).toHaveCount(0);
 
@@ -197,33 +203,25 @@ test.describe('sales browsing', () => {
     await expect(card.getByText('¥5,980')).toBeVisible();
   });
 
-  /**
-   * #2's fix: one control offering only pairs that hold a sale. It replaces
-   * two independent selects a visitor could submit in a combination that
-   * exists for neither of them. Switching through it, rather than a direct
-   * link, is what actually exercises the control.
-   */
-  test('switches market and currency through the one combined control', async ({ page }) => {
+  test('offers no market or currency control of its own', async ({ page }) => {
+    // The site-level region control is the one way to change the pair (#135).
     await page.goto('/sales');
 
-    await page.getByLabel('Market and currency').selectOption({ label: 'Japan, JPY' });
-    await page.getByRole('button', { name: 'Apply market' }).click();
-
-    await expect(page.getByText('Showing Japan prices, in JPY.')).toBeVisible();
-    await expect(page.getByText('Yen Sale Demo Game')).toBeVisible();
-    await expect(page.getByLabel('Market and currency')).toBeVisible();
+    await expect(page.getByLabel('Market and currency')).toHaveCount(0);
+    await expect(page.locator('select[name="pair"], input[name="market"]')).toHaveCount(0);
+    await expect(page.locator('input[name="currency"]')).toHaveCount(0);
   });
 
-  test('says which market holds no sale rather than looking broken', async ({ page }) => {
-    await page.goto('/sales?market=US&currency=USD');
+  test('says which region holds no sale rather than looking broken', async ({ page }) => {
+    await detectCountry(page, 'US');
+    await page.goto('/sales');
 
     await expect(page.getByText('No United States sales right now')).toBeVisible();
     await expect(page.getByText('Sales could not be loaded')).toHaveCount(0);
-    // The visitor asked for this pair, so there is a market to go back from.
-    await expect(page.getByRole('link', { name: 'See all sales' })).toHaveAttribute(
-      'href',
-      '/sales',
-    );
+    // The way out is another region, never a page-level pair.
+    await expect(
+      page.getByRole('main').getByRole('link', { name: 'Change region' }).last(),
+    ).toHaveAttribute('href', '/region?return=%2Fsales');
   });
 
   test('narrows to one store, and offers the way back', async ({ page }) => {
@@ -297,7 +295,7 @@ test.describe('sales browsing', () => {
       'Half Off Demo Game',
     ]);
 
-    await page.goto('/sales?market=DE&currency=EUR&sort=price');
+    await page.goto('/sales?sort=price');
     const byPrice = await page
       .getByRole('list', { name: 'Games on sale' })
       .getByRole('heading', { level: 3 })
@@ -334,11 +332,11 @@ test.describe('sales browsing', () => {
 
     const panel = page.locator('.lw-sale-filters');
     await expect(panel).not.toHaveJSProperty('open', true);
-    await expect(page.getByLabel('Market and currency')).not.toBeVisible();
+    await expect(page.getByLabel('Smallest discount (%)')).not.toBeVisible();
 
     await panel.locator('summary').click();
     await expect(panel).toHaveJSProperty('open', true);
-    await expect(page.getByLabel('Market and currency')).toBeVisible();
+    await expect(page.getByLabel('Smallest discount (%)')).toBeVisible();
   });
 
   test('shows no advertising slot and claims no affiliate relationship', async ({ page }) => {

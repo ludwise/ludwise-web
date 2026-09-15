@@ -2,12 +2,14 @@
 import EmptyState from '../components/feedback/EmptyState.astro';
 import InlineMessage from '../components/feedback/InlineMessage.astro';
 import PageContainer from '../components/layout/PageContainer.astro';
+import RegionStatement from '../components/region/RegionStatement.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
-import type { GameSearchInput, GameSearchView } from '../lib/api/contract.js';
+import type { GameSearchView } from '../lib/api/contract.js';
 import { isApiError, toLogContext } from '../lib/api/errors.js';
 import { adviseGameSearch } from '../lib/http/filter-advice.js';
-import { toGameSearchInput } from '../lib/http/game-search-query.js';
+import { readGameSearchFilters, toGameSearchInput } from '../lib/http/game-search-query.js';
 import { EVENTS } from '../lib/logging/events.js';
+import type { VisitorRegion } from '../lib/region/visitor-region.js';
 import { listingIndexing } from '../lib/seo/page-head.js';
 
 export const prerender = false;
@@ -15,7 +17,7 @@ export const prerender = false;
 const { locals } = Astro;
 const params = Astro.url.searchParams;
 
-const input: GameSearchInput = toGameSearchInput(params);
+const input = readGameSearchFilters(params);
 
 /**
  * Three outcomes, and they are deliberately not two.
@@ -29,12 +31,14 @@ const input: GameSearchInput = toGameSearchInput(params);
  * A rejection is the third: the request was refused for what it contained, the
  * visitor can fix it. The filter form has to come back so they can.
  */
+let region: VisitorRegion | null = null;
 let view: GameSearchView | null = null;
 let failureCode: string | null = null;
 let rejectedFilters: readonly string[] = [];
 
 try {
-  view = await locals.backend().searchGames(input);
+  const search = await toGameSearchInput(input, async () => (await locals.visitorRegion()).region);
+  view = await locals.backend().searchGames(search);
 } catch (error) {
   if (!isApiError(error)) throw error;
 
@@ -76,6 +80,13 @@ try {
 
 const filtersRejected = rejectedFilters.length > 0;
 
+// Stated when the region list is readable. A search with no price filter does not need it.
+try {
+  region = (await locals.visitorRegion()).region;
+} catch (error) {
+  if (!isApiError(error)) throw error;
+}
+
 function pathWith(next: URLSearchParams): string {
   const query = next.toString();
   return query === '' ? '/games' : `/games?${query}`;
@@ -90,10 +101,6 @@ function without(name: string, value?: string): string {
     }
   } else {
     next.delete(name);
-    if (name === 'market' || name === 'currency') {
-      next.delete('market');
-      next.delete('currency');
-    }
     if (name === 'min') next.delete('max');
     if (name === 'fromYear') next.delete('toYear');
   }
@@ -108,17 +115,8 @@ function pagePath(page: number): string {
 }
 
 const selectedStores = new Set(input.stores ?? []);
-const selectedMarket = view?.facets.markets.find((market) => market.code === input.marketCode);
-const currencyOptions = selectedMarket
-  ? selectedMarket.currencies
-  : (view?.facets.markets.flatMap((market) => market.currencies) ?? []).filter(
-      (currency, index, currencies) =>
-        currencies.findIndex((item) => item.code === currency.code) === index,
-    );
 const hasFilters =
   (input.stores?.length ?? 0) > 0 ||
-  input.marketCode !== undefined ||
-  input.currencyCode !== undefined ||
   input.minPriceMinor !== undefined ||
   input.maxPriceMinor !== undefined ||
   input.discounted === true ||
@@ -153,6 +151,7 @@ const retryHref = `${Astro.url.pathname}${Astro.url.search}`;
       <div>
         <h1 class="lw-text-heading-xl">Games</h1>
         <p class="lw-text-body-md lw-games__intro">Search the canonical LUDWISE game catalogue.</p>
+        {region && <RegionStatement region={region} />}
       </div>
       {
         view && !filtersRejected && (
@@ -216,38 +215,7 @@ const retryHref = `${Astro.url.pathname}${Astro.url.search}`;
               </fieldset>
 
               <fieldset>
-                <legend>Market and currency</legend>
-                <div class="lw-game-filters__pair">
-                  <label>
-                    <span>Market</span>
-                    <select name="market">
-                      <option value="">Any market</option>
-                      {view.facets.markets.map((market) => (
-                        <option value={market.code} selected={market.code === input.marketCode}>
-                          {market.name} ({market.code})
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  <label>
-                    <span>Currency</span>
-                    <select name="currency">
-                      <option value="">Any currency</option>
-                      {currencyOptions.map((currency) => (
-                        <option
-                          value={currency.code}
-                          selected={currency.code === input.currencyCode}
-                        >
-                          {currency.code}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                </div>
-              </fieldset>
-
-              <fieldset>
-                <legend>Price in the selected market and currency</legend>
+                <legend>Price in {region?.currencyCode}</legend>
                 <div class="lw-game-filters__pair">
                   <label>
                     <span>Minimum price (minor units)</span>
@@ -333,13 +301,6 @@ const retryHref = `${Astro.url.pathname}${Astro.url.search}`;
                     </li>
                   );
                 })}
-                {input.marketCode && input.currencyCode && (
-                  <li>
-                    <a href={without('market')} aria-label="Remove market and currency filter">
-                      {input.marketCode} · {input.currencyCode} ×
-                    </a>
-                  </li>
-                )}
                 {(input.minPriceMinor !== undefined || input.maxPriceMinor !== undefined) && (
                   <li>
                     <a href={without('min')} aria-label="Remove minimum price filter">

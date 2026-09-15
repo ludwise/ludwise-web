@@ -45,3 +45,25 @@ _Avoid_: fallback hero, substitute hero
 **Gallery**:
 The screenshots of one game, below a heading that states how many there are.
 _Avoid_: carousel, slider, lightbox
+
+### Prices
+
+**Pricing region**:
+The one area a visitor reads prices for. It binds one region identifier to one
+market and one currency, and the backend owns that binding.
+_Avoid_: locale, country setting, market selector
+
+**Active region**:
+The pricing region that applies to one request: the saved region, else the
+detected country, else the fallback region.
+_Avoid_: current market, default currency
+
+**Fallback region**:
+The pricing region the backend names for a visitor with no saved region and no
+supported detected country.
+_Avoid_: default market
+
+**Saved region**:
+The pricing region a visitor chose with the region control, kept in the
+`region` cookie.
+_Avoid_: preference, override

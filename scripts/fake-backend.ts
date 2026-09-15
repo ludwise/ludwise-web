@@ -77,13 +77,13 @@ interface Recorded {
  * A table would be a third place the set of covered requests lives, after the
  * backend's `CASES` and the files themselves. The two would drift.
  *
- * `game-detail` cases key on their slug, which is read from the recording
- * rather than from the filename. The backend chose that slug. Parsing it out of
- * `game-detail-canonical.json` would be inferring it from a naming convention
- * nobody promised to keep.
+ * A game detail request keys the same way, with its pricing pair. A slug that no
+ * recording carries answers the recorded 404. The slugs are read from the
+ * recordings rather than from the filenames, because the backend chose them.
  */
 const byRequest = new Map<string, Recorded>();
-const byDetailSlug = new Map<string, Recorded>();
+const recordedDetailSlugs = new Set<string>();
+const queryBlindDetails = new Map<string, Recorded>();
 let absentDetail: Recorded | undefined;
 
 interface Fixture {
@@ -134,6 +134,17 @@ const CASE_URLS: Readonly<Record<string, string>> = {
   'games-search-full-title': '/v1/games?q=Canonical+Demo+Game',
   'games-store-only': '/v1/games?store=orbit-market',
   'games-rejected': '/v1/games?market=de',
+  'games-unsupported-pair': '/v1/games?market=KW&currency=KWD',
+  'game-detail': '/v1/games/half-off-demo',
+  'game-detail-canonical': '/v1/games/canonical-demo',
+  'game-detail-no-offers': '/v1/games/no-offers-demo',
+  'game-detail-promoted-cover': '/v1/games/promoted-cover-demo',
+  'game-detail-pair': '/v1/games/canonical-demo?market=EU&currency=EUR',
+  'game-detail-unsupported-pair': '/v1/games/canonical-demo?market=DE&currency=USD',
+  'game-detail-canonical-de': '/v1/games/canonical-demo?market=DE&currency=EUR',
+  'game-detail-de': '/v1/games/half-off-demo?market=DE&currency=EUR',
+  'game-detail-no-offers-de': '/v1/games/no-offers-demo?market=DE&currency=EUR',
+  'game-detail-promoted-cover-de': '/v1/games/promoted-cover-demo?market=DE&currency=EUR',
   sales: '/v1/sales',
   'sales-by-price': '/v1/sales?sort=price',
   'sales-de-by-price': '/v1/sales?market=DE&currency=EUR&sort=price',
@@ -147,19 +158,34 @@ const CASE_URLS: Readonly<Record<string, string>> = {
   'sales-min-price-70': '/v1/sales?market=DE&currency=EUR&min=70',
   'sales-rejected-page': '/v1/sales?minDiscount=0&page=0',
   'sales-rejected': '/v1/sales?market=de',
+  'sales-mismatched-pair': '/v1/sales?market=DE&currency=USD',
+  'sales-unknown-pair': '/v1/sales?market=XX&currency=XXX',
+  'sales-de': '/v1/sales?market=DE&currency=EUR',
+  'sales-de-store': '/v1/sales?market=DE&currency=EUR&store=vertex-store',
+  'sales-de-min-discount': '/v1/sales?market=DE&currency=EUR&minDiscount=1',
+  'sales-de-min-discount-99': '/v1/sales?market=DE&currency=EUR&minDiscount=99',
+  'sales-de-page-999': '/v1/sales?market=DE&currency=EUR&page=999',
+  'sales-de-page-1': '/v1/sales?market=DE&currency=EUR&page=1',
+  'sales-de-rejected-page': '/v1/sales?market=DE&currency=EUR&minDiscount=0&page=0',
+  'sales-jp-by-price': '/v1/sales?market=JP&currency=JPY&sort=price',
   'home-current-discounts': '/v1/home/current-discounts',
   'home-recently-added': '/v1/home/recently-added',
+  'home-current-discounts-jp': '/v1/home/current-discounts?market=JP&currency=JPY',
+  'home-recently-added-jp': '/v1/home/recently-added?market=JP&currency=JPY',
+  'home-current-discounts-unsupported': '/v1/home/current-discounts?market=DE&currency=USD',
+  'pricing-regions': '/v1/pricing-regions',
 };
 
-/** Case names whose recording is a game detail, keyed by the slug it carries. */
-const DETAIL_CASES = [
-  'game-detail',
-  'game-detail-canonical',
-  'game-detail-no-offers',
-  'game-detail-promoted-cover',
-  'game-detail-states',
-];
+/**
+ * Game detail recordings that answer every query for their slug.
+ *
+ * `game-detail-states` has no case in the backend corpus, so no recording with
+ * a pricing pair exists for it. It holds offer groups that no pair would return
+ * together. The suites use it to test how a page renders those groups.
+ */
+const QUERY_BLIND_DETAIL_CASES = ['game-detail-states'];
 const ABSENT_CASE = 'game-detail-absent';
+const DETAIL_PATH_PREFIX = '/v1/games/';
 
 function load(): void {
   const files = readdirSync(CORPUS).filter((name) => name.endsWith('.json'));
@@ -176,13 +202,17 @@ function load(): void {
     if (recorded === undefined) throw new Error(`corpus is missing ${name}.json`);
     const parsed = new URL(url, 'http://fake');
     byRequest.set(keyFor(parsed.pathname, parsed.searchParams), recorded);
+    if (parsed.pathname.startsWith(DETAIL_PATH_PREFIX)) {
+      recordedDetailSlugs.add(parsed.pathname.slice(DETAIL_PATH_PREFIX.length));
+    }
   }
 
-  for (const name of DETAIL_CASES) {
+  for (const name of QUERY_BLIND_DETAIL_CASES) {
     const recorded = loaded.get(name);
     if (recorded === undefined) throw new Error(`corpus is missing ${name}.json`);
     const { slug } = recorded.body as { slug: string };
-    byDetailSlug.set(slug, recorded);
+    queryBlindDetails.set(slug, recorded);
+    recordedDetailSlugs.add(slug);
   }
 
   absentDetail = loaded.get(ABSENT_CASE);
@@ -190,7 +220,7 @@ function load(): void {
 
   // Every file accounted for. A recording nobody serves is a case the interface
   // is not actually being tested against, which is worth knowing about.
-  const known = new Set([...Object.keys(CASE_URLS), ...DETAIL_CASES, ABSENT_CASE]);
+  const known = new Set([...Object.keys(CASE_URLS), ...QUERY_BLIND_DETAIL_CASES, ABSENT_CASE]);
   const orphans = [...loaded.keys()].filter((name) => !known.has(name));
   if (orphans.length > 0) {
     throw new Error(`corpus files nothing serves: ${orphans.join(', ')}`);
@@ -263,11 +293,12 @@ load();
 function answer(url: URL): Recorded | undefined {
   if (MODE === 'empty') return emptyAnswer(url);
 
-  if (url.pathname.startsWith('/v1/games/')) {
-    const slug = decodeURIComponent(url.pathname.slice('/v1/games/'.length));
-    return byDetailSlug.get(slug) ?? absentDetail;
-  }
-  return byRequest.get(keyFor(url.pathname, url.searchParams));
+  const recorded = byRequest.get(keyFor(url.pathname, url.searchParams));
+  if (recorded !== undefined || !url.pathname.startsWith(DETAIL_PATH_PREFIX)) return recorded;
+
+  // A known slug with an unrecorded query is a gap in the corpus, not an absent game.
+  const slug = decodeURIComponent(url.pathname.slice(DETAIL_PATH_PREFIX.length));
+  return queryBlindDetails.get(slug) ?? (recordedDetailSlugs.has(slug) ? undefined : absentDetail);
 }
 
 /**
@@ -285,7 +316,10 @@ function answer(url: URL): Recorded | undefined {
  * `hasAnyOfferData: false` is what tells the page which to render.
  */
 function emptyAnswer(url: URL): Recorded | undefined {
-  if (url.pathname.startsWith('/v1/games/')) return absentDetail;
+  if (url.pathname.startsWith(DETAIL_PATH_PREFIX)) return absentDetail;
+
+  // Reference data a migration seeds, so an empty catalog still holds it.
+  if (url.pathname === '/v1/pricing-regions') return byRequest.get('/v1/pricing-regions?');
 
   if (url.pathname === '/v1/games') {
     return emptied(byRequest.get('/v1/games?')!, { facets: { stores: [], markets: [] } });
@@ -425,7 +459,7 @@ const server = createServer((request, response) => {
 server.listen(PORT, () => {
   process.stdout.write(
     `fake backend listening on ${String(PORT)} in ${MODE} mode, ` +
-      `${String(byRequest.size + byDetailSlug.size + 1)} recordings, ` +
+      `${String(byRequest.size + queryBlindDetails.size + 1)} recordings, ` +
       `${String(byImagePath.size)} images\n`,
   );
 });

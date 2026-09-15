@@ -50,9 +50,8 @@ test.describe('an empty catalogue', () => {
     // rendered for a catalog that has never seen a price.
     await expect(page.getByText('LUDWISE has not collected any prices yet')).toBeVisible();
     await expect(page.getByText('No games are on sale right now')).toHaveCount(0);
-    // Nothing is on sale, so there is no market to name and no filter form
-    // built from one.
-    await expect(page.getByText(/Showing .+ prices, in/u)).toHaveCount(0);
+    // Nothing is on sale, so there is no filter form built from a pair.
+    await expect(page.locator('.lw-sale-filters')).toHaveCount(0);
     await expect(page.getByText('Sales could not be loaded')).toHaveCount(0);
   });
 

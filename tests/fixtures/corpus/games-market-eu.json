@@ -62,16 +62,6 @@
               "minorUnit": 0
             }
           ]
-        },
-        {
-          "code": "KW",
-          "name": "Kuwait",
-          "currencies": [
-            {
-              "code": "KWD",
-              "minorUnit": 3
-            }
-          ]
         }
       ]
     }

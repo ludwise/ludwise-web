@@ -58,6 +58,9 @@ export function Popover({
     };
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key !== 'Escape') return;
+      // Captured and stopped, so an enclosing disclosure such as the header
+      // menu stays open. One Escape closes one layer.
+      event.stopPropagation();
       close();
       // Escape returns focus to the trigger. An outside click does not: focus
       // is already where the visitor put it.
@@ -65,10 +68,10 @@ export function Popover({
     };
 
     document.addEventListener('mousedown', onPointerDown);
-    document.addEventListener('keydown', onKeyDown);
+    document.addEventListener('keydown', onKeyDown, true);
     return () => {
       document.removeEventListener('mousedown', onPointerDown);
-      document.removeEventListener('keydown', onKeyDown);
+      document.removeEventListener('keydown', onKeyDown, true);
     };
   }, [open, onOpenChange]);
 
