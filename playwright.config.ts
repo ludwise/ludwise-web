@@ -42,6 +42,8 @@ export default defineConfig({
   // backend is not there" are properties of the whole process, and toggling
   // either mid-suite would let one test change another's world.
   testIgnore: ['**/degraded.spec.ts', '**/empty.spec.ts'],
+  // Fails the run when the fake backend answered 501 for a request that no test expects to miss.
+  globalSetup: './tests/helpers/corpus-misses-gate.ts',
   fullyParallel: true,
   forbidOnly: Boolean(process.env.CI),
   workers: e2eWorkers(process.env.LUDWISE_E2E_WORKERS),

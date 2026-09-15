@@ -50,6 +50,8 @@ export default defineConfig({
   // Only the suite that matches the mode. Running the catalog suites against
   // an empty backend would fail for the right reason and the wrong purpose.
   testMatch: MODE === 'empty' ? '**/empty.spec.ts' : '**/degraded.spec.ts',
+  // Fails the run when the fake backend answered 501 for a request that no test expects to miss.
+  globalSetup: './tests/helpers/corpus-misses-gate.ts',
   fullyParallel: true,
   forbidOnly: Boolean(process.env.CI),
   workers: e2eWorkers(process.env.LUDWISE_E2E_WORKERS),
