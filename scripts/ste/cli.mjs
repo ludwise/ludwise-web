@@ -26,7 +26,7 @@ const COMMANDS = ['check', 'audit', 'report', 'check-text'];
 const USAGE = `Usage: ste <${COMMANDS.join('|')}> [options]
 
   check        Run the deterministic checks over the paths that the rollout enforces.
-  audit        Run the deterministic checks over every tracked file and report the result.
+  audit        Run the deterministic checks over every file that git does not ignore and report the result.
   report       Print the conformance matrix and the rules that no check supports.
   check-text   Run the checks over one text file, such as a draft description.
 
@@ -42,8 +42,9 @@ const REGISTRY = {
   implementedExemptionIds: IMPLEMENTED_EXEMPTION_IDS,
 };
 
-const trackedFiles = (rootDir) =>
-  execFileSync('git', ['ls-files', '-z'], {
+// Untracked files count: an agent runs the check before it stages new work.
+const repositoryFiles = (rootDir) =>
+  execFileSync('git', ['ls-files', '-z', '--cached', '--others', '--exclude-standard'], {
     cwd: rootDir,
     encoding: 'utf8',
     maxBuffer: 64 * 1024 * 1024,
@@ -60,7 +61,7 @@ const emit = (result, documents, scope, format) => {
 
 const runOverRepository = (documents, options, scope) => {
   const configuration = validateConfiguration(documents, REGISTRY);
-  const files = trackedFiles(options.root);
+  const files = repositoryFiles(options.root);
   const targets = scope === 'enforced' ? enforcedFiles(files, documents.policy) : files;
   const result = checkFiles({ rootDir: options.root, files: targets, documents, allFiles: files });
 

@@ -39,6 +39,8 @@ const textFile = (contents: string): string => {
   return path;
 };
 
+type ViolationState = 'staged' | 'untracked' | 'ignored';
+
 /**
  * A throwaway repository holding one file that is known to violate the profile.
  *
@@ -47,24 +49,27 @@ const textFile = (contents: string): string => {
  * would make the test pass only while some file is still non-compliant. It
  * would then fail the moment the repository was cleaned up, which is backwards.
  *
- * The checker enumerates its scope with `git ls-files`, so the copy has to be
- * a real repository with the fixture committed. The language documents are
- * copied because the checker loads its policy from the root it is given.
+ * The checker enumerates its scope through git, so the copy has to be a real
+ * repository. The language documents are copied because the checker loads its
+ * policy from the root it is given.
  */
-const repositoryWithAViolation = (): string => {
+const repositoryWithAViolation = (state: ViolationState = 'staged'): string => {
   const root = mkdtempSync(join(tmpdir(), 'ste-repo-'));
   mkdirSync(join(root, 'docs/language'), { recursive: true });
 
   for (const name of readdirSync('docs/language')) {
     copyFileSync(join('docs/language', name), join(root, 'docs/language', name));
   }
-  copyFileSync('tests/fixtures/ste/violations.md', join(root, 'violations.md'));
 
   const git = (...args: string[]): void => {
     execFileSync('git', args, { cwd: root, stdio: 'ignore' });
   };
   git('init');
   git('add', '-A');
+
+  copyFileSync('tests/fixtures/ste/violations.md', join(root, 'violations.md'));
+  if (state === 'staged') git('add', 'violations.md');
+  if (state === 'ignored') writeFileSync(join(root, '.git/info/exclude'), 'violations.md\n');
 
   return root;
 };
@@ -107,6 +112,36 @@ describe('the command line entry point', () => {
     'fails the audit when the strict option is given and violations exist',
     () => {
       expect(run(['audit', '--strict', '--root', repositoryWithAViolation()]).status).toBe(1);
+    },
+    AUDIT_TIMEOUT,
+  );
+
+  it(
+    'fails the check on a violation in a file that git does not track yet',
+    () => {
+      const result = run(['check', '--root', repositoryWithAViolation('untracked')]);
+      expect(result.status, result.output).toBe(1);
+      expect(result.output).toContain('violations.md');
+      expect(result.output).toContain('LW-STE-CONTRACTION');
+    },
+    AUDIT_TIMEOUT,
+  );
+
+  it(
+    'fails the strict audit on a violation in a file that git does not track yet',
+    () => {
+      const result = run(['audit', '--strict', '--root', repositoryWithAViolation('untracked')]);
+      expect(result.status, result.output).toBe(1);
+      expect(result.output).toContain('violations.md');
+    },
+    AUDIT_TIMEOUT,
+  );
+
+  it(
+    'does not read a file that git ignores',
+    () => {
+      const result = run(['check', '--root', repositoryWithAViolation('ignored')]);
+      expect(result.output).not.toContain('violations.md');
     },
     AUDIT_TIMEOUT,
   );
