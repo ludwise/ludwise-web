@@ -7,7 +7,7 @@
     { "id": "home", "path": "/" },
     { "id": "games", "path": "/games" },
     { "id": "sales", "path": "/sales" },
-    { "id": "game-detail", "path": "/games/canonical-demo" }
+    { "id": "game-detail", "path": "/games/canonical-demo", "region": "EU" }
   ],
   "categories": {
     "performance": 95,

@@ -369,3 +369,14 @@ The header holds the one control that changes the region. It posts to
 visitor to the page and query they came from. When the currency changes, the
 price bounds leave that query, because they are amounts in the old currency.
 `/region` also renders the chooser without script.
+
+Two failures have a fixed answer (#144):
+
+- **The region list cannot be read, and no usable copy exists.** A price page
+  renders its failure state. No region is guessed. A read with no pair is not
+  a safe fallback, because `/v1/games/{slug}` then returns the offers of every
+  region. A region written in this repository would copy backend data that can
+  drift.
+- **The region choice is refused.** `/region` answers 400 with the reason and a
+  link back to the same path and query. The explanation stays on that page, not
+  in the header control, so the recovery also works without script.

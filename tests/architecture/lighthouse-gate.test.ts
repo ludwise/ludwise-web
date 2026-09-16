@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 
 import { THEME_COOKIE_NAME } from '../../src/lib/http/theme.js';
+import { REGION_COOKIE_NAME } from '../../src/lib/region/region-cookie.js';
 
 /**
  * The gate has one definition of a limit, and the repository has one browser.
@@ -116,6 +117,12 @@ describe('the Lighthouse gate pins what it measures with', () => {
   it('pins the theme with the cookie name that the site reads', () => {
     expect(read('scripts/lighthouse/measure.mjs')).toContain(
       `const THEME_COOKIE_NAME = '${THEME_COOKIE_NAME}'`,
+    );
+  });
+
+  it('pins a route region with the cookie name that the site reads', () => {
+    expect(read('scripts/lighthouse/measure.mjs')).toContain(
+      `const REGION_COOKIE_NAME = '${REGION_COOKIE_NAME}'`,
     );
   });
 });
