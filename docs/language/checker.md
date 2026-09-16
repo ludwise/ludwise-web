@@ -6,13 +6,14 @@ ste-prose: descriptive
 
 The checker lives in [../../scripts/ste/](../../scripts/ste/).
 It performs deterministic checks only and does not rewrite prose.
+Both commands read tracked files and untracked files that git does not ignore.
 
 ## Commands
 
 | Command                     | Purpose                                     |
 | --------------------------- | ------------------------------------------- |
 | `pnpm run check:ste`        | Run the current blocking scope              |
-| `pnpm run check:ste:audit`  | Audit every tracked file                    |
+| `pnpm run check:ste:audit`  | Audit every file that git does not ignore   |
 | `pnpm run check:ste:report` | Print the standard map and checker controls |
 
 ## Model
