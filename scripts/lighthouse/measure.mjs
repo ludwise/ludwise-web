@@ -21,6 +21,9 @@ import { observationFrom, summarizeObservations } from './evaluate.mjs';
 /** Kept in step with `THEME_COOKIE_NAME` in src/lib/http/theme.ts. */
 const THEME_COOKIE_NAME = 'theme';
 
+/** Kept in step with `REGION_COOKIE_NAME` in src/lib/region/region-cookie.ts. */
+const REGION_COOKIE_NAME = 'region';
+
 const THROTTLING = {
   desktop: constants.throttling.desktopDense4G,
   mobile: constants.throttling.mobileSlow4G,
@@ -41,22 +44,29 @@ function freePort() {
 }
 
 /**
- * The cookie that pins the theme for one run.
+ * The cookies that pin the theme and, for some routes, the region of one run.
  *
- * `src/lib/http/theme.ts` reads this cookie before the first paint, so the
+ * `src/lib/http/theme.ts` reads the theme cookie before the first paint, so the
  * server renders the theme the gate asked for. Without it the page follows the
  * color scheme of whatever launched the browser, and two launchers measure two
  * different pages.
+ *
+ * A route with a region reads its prices in that region, as a visitor who saved
+ * it does. docs/operations/lighthouse-gate.md says which route has one, and why.
  */
-const themeHeader = (theme) => ({ Cookie: `${THEME_COOKIE_NAME}=${theme}` });
+function cookieHeader(config, routeClass) {
+  const cookies = [`${THEME_COOKIE_NAME}=${config.theme}`];
+  if (routeClass.region !== undefined) cookies.push(`${REGION_COOKIE_NAME}=${routeClass.region}`);
+  return { Cookie: cookies.join('; ') };
+}
 
-function settingsFor(config, formFactor, skipAudits) {
+function settingsFor(config, routeClass, formFactor, skipAudits) {
   return {
     formFactor,
     screenEmulation: constants.screenEmulationMetrics[formFactor],
     emulatedUserAgent: constants.userAgents[formFactor],
     throttling: THROTTLING[formFactor],
-    extraHeaders: themeHeader(config.theme),
+    extraHeaders: cookieHeader(config, routeClass),
     ...(skipAudits.length > 0 ? { skipAudits: [...skipAudits] } : {}),
   };
 }
@@ -104,7 +114,7 @@ export async function measure({ config, target, mode, samples, reportDir }) {
             { port, hostname: '127.0.0.1', output: ['json', 'html'], logLevel: 'error' },
             {
               extends: 'lighthouse:default',
-              settings: settingsFor(config, formFactor, skipAudits),
+              settings: settingsFor(config, routeClass, formFactor, skipAudits),
             },
           );
 

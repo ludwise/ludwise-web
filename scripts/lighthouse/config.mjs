@@ -54,6 +54,12 @@ const KNOWN_KEYS = new Set([
   'deterministic',
 ]);
 
+/** The keys a route class may carry. */
+const ROUTE_CLASS_KEYS = new Set(['id', 'path', 'region']);
+
+/** Kept in step with `readCountryCode` in src/lib/region/country-code.ts. */
+const REGION_IDENTIFIER = /^[A-Z]{2}$/u;
+
 const fail = (message) => {
   throw new Error(`lighthouse.config.json is invalid: ${message}`);
 };
@@ -69,14 +75,28 @@ function validateRouteClasses(raw) {
   for (const route of raw) {
     if (!isPlainObject(route)) fail('routeClasses must hold objects.');
     if (typeof route.id !== 'string' || route.id === '') fail('a routeClasses entry has no id.');
+    for (const key of Object.keys(route)) {
+      if (!ROUTE_CLASS_KEYS.has(key)) fail(`${key} is not a key of the route class ${route.id}.`);
+    }
     if (seen.has(route.id)) fail(`the route class ${route.id} is declared more than once.`);
     seen.add(route.id);
     if (typeof route.path !== 'string' || !route.path.startsWith('/')) {
       fail(`the path of ${route.id} must start with a slash and stay site relative.`);
     }
+    if ('region' in route && !REGION_IDENTIFIER.test(String(route.region))) {
+      fail(`the region of ${route.id} must be two upper-case letters.`);
+    }
   }
 
-  return Object.freeze(raw.map((route) => Object.freeze({ id: route.id, path: route.path })));
+  return Object.freeze(
+    raw.map((route) =>
+      Object.freeze({
+        id: route.id,
+        path: route.path,
+        ...('region' in route ? { region: route.region } : {}),
+      }),
+    ),
+  );
 }
 
 function validateFormFactors(raw) {

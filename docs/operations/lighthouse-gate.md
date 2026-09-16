@@ -28,6 +28,15 @@ reads. Without that cookie the page follows the color scheme of whatever
 started the browser. Two launchers then measure two different pages, and the
 run stops being deterministic.
 
+A route class can also set a region. The gate then sends the `region` cookie
+that a visitor sets when they save a region. The game detail route sets `EU`.
+With no cookie, the page reads the fallback region, and the recorded
+`canonical-demo` game has no offer there. The page would then have no offer
+table to measure. The `EU` recording has offers and media.
+
+Set a region only where the corpus holds a recording for that route in that
+region. The fake backend answers 501 to a request that has no recording.
+
 The browser is the Chromium that `@playwright/test` pins. There is no second
 download, and no path that works only in continuous integration.
 

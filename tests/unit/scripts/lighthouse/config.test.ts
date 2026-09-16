@@ -1,3 +1,6 @@
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+
 import { describe, expect, it } from 'vitest';
 
 import {
@@ -45,6 +48,26 @@ describe('validateGateConfig', () => {
     rejects((draft) => delete draft.categories, /categories/);
     rejects((draft) => delete draft.metrics, /metrics/);
     rejects((draft) => delete draft.budgets, /budgets/);
+  });
+
+  it('accepts a route class with a region', () => {
+    const draft = valid();
+    const games = { id: 'games', path: '/games', region: 'GB' };
+    draft.routeClasses[1] = games;
+    expect(validateGateConfig(draft).routeClasses[1]).toEqual({
+      id: 'games',
+      path: '/games',
+      region: 'GB',
+    });
+  });
+
+  it('refuses a route region that is not a region identifier', () => {
+    rejects((draft) => (draft.routeClasses[0].region = 'gb'), /region of home/);
+    rejects((draft) => (draft.routeClasses[0].region = 'GBR'), /region of home/);
+  });
+
+  it('refuses an unknown route class key rather than ignoring a misspelled region', () => {
+    rejects((draft) => (draft.routeClasses[0].regoin = 'GB'), /regoin/);
   });
 
   it('refuses a configuration with no route class', () => {
@@ -124,6 +147,17 @@ describe('the committed configuration', () => {
       'sales',
       'game-detail',
     ]);
+  });
+
+  it('measures the game detail in a region the recorded region list supports', () => {
+    const recorded = JSON.parse(
+      readFileSync(resolve('tests/fixtures/corpus/pricing-regions.json'), 'utf8'),
+    ) as { body: { regions: { countryCode: string }[] } };
+    const gameDetail = config.routeClasses.find(
+      (route: { id: string }) => route.id === 'game-detail',
+    );
+
+    expect(recorded.body.regions.map((region) => region.countryCode)).toContain(gameDetail.region);
   });
 
   it('measures both form factors', () => {
