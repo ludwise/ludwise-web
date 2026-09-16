@@ -233,7 +233,8 @@ these tests exercise.
 These consumers request the fake backend, and so they depend on the corpus:
 
 - The end-to-end suites. `playwright.config.ts` runs the catalog suites.
-  `playwright.states.config.ts` runs the empty and degraded suites.
+  `playwright.states.config.ts` runs the empty and degraded suites, and the
+  suite where one home list fails.
 - The cold render check. `scripts/check-dev-ssr.mjs` requests fixed routes.
 - The Lighthouse gate. `lighthouse.config.json` names the routes it measures.
 

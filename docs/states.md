@@ -111,17 +111,18 @@ can honestly describe it before issue #7 lands. `content-style.md` prohibits
 
 ## Where the assertions live
 
-| Suite                                 | Command                      | What it pins                                                          |
-| ------------------------------------- | ---------------------------- | --------------------------------------------------------------------- |
-| `tests/e2e/empty.spec.ts`             | `pnpm run test:e2e:empty`    | Every empty state, against a backend that has ingested nothing        |
-| `tests/e2e/degraded.spec.ts`          | `pnpm run test:e2e:degraded` | Every failure state, against a backend that is not there              |
-| `tests/e2e/sales.spec.ts`             | `pnpm run test:e2e`          | Stale data and filter recovery, against the recorded corpus           |
-| `tests/e2e/game-detail.spec.ts`       | `pnpm run test:e2e`          | Stale data, partial metadata, and the 404 that is not a failure       |
-| `tests/e2e/home.spec.ts`              | `pnpm run test:e2e`          | Both home lists, stale data, region change, and reflow at four widths |
-| `tests/unit/home/home-lists.test.ts`  | `pnpm test`                  | That one failed home list leaves the other list loaded                |
-| `tests/e2e/shell.spec.ts`             | `pnpm run test:e2e`          | The search field's in-flight state, and that the field keeps its box  |
-| `tests/unit/state/freshness.test.ts`  | `pnpm test`                  | That each backend word renders, and that any stale price warns        |
-| `tests/unit/state/provenance.test.ts` | `pnpm test`                  | Which notes a surface has earned, and that an empty one earns none    |
+| Suite                                     | Command                                   | What it pins                                                          |
+| ----------------------------------------- | ----------------------------------------- | --------------------------------------------------------------------- |
+| `tests/e2e/empty.spec.ts`                 | `pnpm run test:e2e:empty`                 | Every empty state, against a backend that has ingested nothing        |
+| `tests/e2e/degraded.spec.ts`              | `pnpm run test:e2e:degraded`              | Every failure state, against a backend that is not there              |
+| `tests/e2e/home-list-unavailable.spec.ts` | `pnpm run test:e2e:home-list-unavailable` | One failed home list beside one loaded list, and its accessibility    |
+| `tests/e2e/sales.spec.ts`                 | `pnpm run test:e2e`                       | Stale data and filter recovery, against the recorded corpus           |
+| `tests/e2e/game-detail.spec.ts`           | `pnpm run test:e2e`                       | Stale data, partial metadata, and the 404 that is not a failure       |
+| `tests/e2e/home.spec.ts`                  | `pnpm run test:e2e`                       | Both home lists, stale data, region change, and reflow at four widths |
+| `tests/unit/home/home-lists.test.ts`      | `pnpm test`                               | That one failed home list leaves the other list loaded                |
+| `tests/e2e/shell.spec.ts`                 | `pnpm run test:e2e`                       | The search field's in-flight state, and that the field keeps its box  |
+| `tests/unit/state/freshness.test.ts`      | `pnpm test`                               | That each backend word renders, and that any stale price warns        |
+| `tests/unit/state/provenance.test.ts`     | `pnpm test`                               | Which notes a surface has earned, and that an empty one earns none    |
 
 The two state suites are the boundary issue #93 inherits. A redesign may change
 what these states look like. It must not change what they assert.
