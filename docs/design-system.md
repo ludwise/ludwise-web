@@ -206,10 +206,10 @@ These are additions, recorded here rather than invented silently:
   layout diagram. The footer follows design option 5a from issue #124. It has a
   brand column with the lockup and the provider credit, three link columns and
   a closing copyright line.
-- **`game/GameCard` renders one variant and four fewer props.** The handoff's
-  card carries artwork, a rating summary and a price signal. None of those
-  exists in the canonical model, and the product rules forbid rendering a value
-  that is not there. So each is absent rather than stubbed with a placeholder.
+- **`game/GameCard` renders one variant and three fewer props.** The handoff's
+  card carries a rating summary and a price signal. Neither exists in the
+  canonical model, and the product rules forbid rendering a value that is not
+  there. So each is absent rather than stubbed with a placeholder.
   Only the `standard` variant is built, because the handoff is explicit that
   exactly three exist and a fourth needs a system change. The other two arrive
   with a surface that renders them. It adds two things: freshness, which the
@@ -220,6 +220,13 @@ These are additions, recorded here rather than invented silently:
   Its quiet lines use `--color-text-secondary` rather than the tertiary the
   handoff's mock uses. At caption size, tertiary on the default surface
   measures 4.19:1, below WCAG 1.4.3's 4.5:1.
+- **`game/GameCard` draws artwork only where the contract carries it.** The
+  home lists carry artwork, so a home card draws `GameArtwork` at the capsule
+  ratio. A game with no picture gets the missing-artwork frame. The sales
+  contract carries no artwork, so a sale card draws no frame.
+- **A home card can show no price.** A home game can hold no offer in the
+  active region. Its card then says so and shows no price, no store and no
+  freshness.
 - **No `PromoSlot` and no affiliate disclosure on `/sales`.** The handoff's
   sales design has an ad unit in its aside. There is no advertising integration
   and there are no affiliate links. So an empty promo box would be decoration

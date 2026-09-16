@@ -175,6 +175,8 @@ const CASE_URLS: Readonly<Record<string, string>> = {
   'home-recently-added': '/v1/home/recently-added',
   'home-current-discounts-jp': '/v1/home/current-discounts?market=JP&currency=JPY',
   'home-recently-added-jp': '/v1/home/recently-added?market=JP&currency=JPY',
+  'home-current-discounts-de': '/v1/home/current-discounts?market=DE&currency=EUR',
+  'home-recently-added-de': '/v1/home/recently-added?market=DE&currency=EUR',
   'home-current-discounts-unsupported': '/v1/home/current-discounts?market=DE&currency=USD',
   'pricing-regions': '/v1/pricing-regions',
 };
@@ -272,21 +274,21 @@ interface RecordedImage {
  * appear here.
  */
 function imageUrls(body: unknown): string[] {
-  const media = (
-    body as {
-      media?: {
-        cover?: RecordedImage | null;
-        hero?: RecordedImage | null;
-        screenshots?: readonly RecordedImage[];
-      };
-    }
-  ).media;
+  const { media, games } = body as {
+    media?: {
+      cover?: RecordedImage | null;
+      hero?: RecordedImage | null;
+      screenshots?: readonly RecordedImage[];
+    };
+    games?: readonly { artwork?: RecordedImage | null }[];
+  };
 
-  if (media === undefined) return [];
   return [
-    media.cover?.url,
-    media.hero?.url,
-    ...(media.screenshots ?? []).map((one) => one.url),
+    media?.cover?.url,
+    media?.hero?.url,
+    ...(media?.screenshots ?? []).map((one) => one.url),
+    // A home list carries one picture on each game.
+    ...(games ?? []).map((game) => game.artwork?.url),
   ].filter((address): address is string => typeof address === 'string');
 }
 
@@ -339,7 +341,28 @@ function emptyAnswer(url: URL): Recorded | undefined {
     });
   }
 
+  // A home list keeps the resolved pair, and holds no game and no word.
+  if (url.pathname === '/v1/home/current-discounts') {
+    return emptiedHomeList('/v1/home/current-discounts?', { hasAnyOfferData: false });
+  }
+  if (url.pathname === '/v1/home/recently-added') {
+    return emptiedHomeList('/v1/home/recently-added?', {});
+  }
+
   return undefined;
+}
+
+function emptiedHomeList(key: string, overrides: Record<string, unknown>): Recorded {
+  const recorded = byRequest.get(key)!;
+  return {
+    status: 200,
+    body: {
+      ...(recorded.body as Record<string, unknown>),
+      games: [],
+      freshness: null,
+      ...overrides,
+    },
+  };
 }
 
 function emptied(recorded: Recorded, overrides: Record<string, unknown>): Recorded {

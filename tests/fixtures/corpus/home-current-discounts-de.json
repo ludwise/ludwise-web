@@ -1,0 +1,88 @@
+{
+  "status": 200,
+  "body": {
+    "context": {
+      "marketCode": "DE",
+      "marketName": "Germany",
+      "currencyCode": "EUR",
+      "currencyMinorUnit": 2
+    },
+    "games": [
+      {
+        "id": "00000000-0000-7000-8000-000000000115",
+        "slug": "steep-discount-demo",
+        "title": "Steep Discount Demo Game",
+        "artwork": null,
+        "offer": {
+          "storeSlug": "aurora-market",
+          "storeName": "Aurora Market",
+          "editionLabel": null,
+          "price": {
+            "amountMinor": 8000,
+            "currencyCode": "EUR",
+            "minorUnit": 2
+          },
+          "referencePrice": {
+            "amountMinor": 40000,
+            "currencyCode": "EUR",
+            "minorUnit": 2
+          },
+          "discountPercentage": 80,
+          "observedAtMs": 1750000000000,
+          "freshness": "recently_verified"
+        }
+      },
+      {
+        "id": "00000000-0000-7000-8000-000000000111",
+        "slug": "two-store-demo",
+        "title": "Two Store Demo Game",
+        "artwork": null,
+        "offer": {
+          "storeSlug": "vertex-store",
+          "storeName": "Vertex Store",
+          "editionLabel": null,
+          "price": {
+            "amountMinor": 1999,
+            "currencyCode": "EUR",
+            "minorUnit": 2
+          },
+          "referencePrice": {
+            "amountMinor": 5999,
+            "currencyCode": "EUR",
+            "minorUnit": 2
+          },
+          "discountPercentage": 66,
+          "observedAtMs": 1750000000000,
+          "freshness": "recently_verified"
+        }
+      },
+      {
+        "id": "00000000-0000-7000-8000-000000000110",
+        "slug": "half-off-demo",
+        "title": "Half Off Demo Game",
+        "artwork": null,
+        "offer": {
+          "storeSlug": "aurora-market",
+          "storeName": "Aurora Market",
+          "editionLabel": null,
+          "price": {
+            "amountMinor": 2999,
+            "currencyCode": "EUR",
+            "minorUnit": 2
+          },
+          "referencePrice": {
+            "amountMinor": 5999,
+            "currencyCode": "EUR",
+            "minorUnit": 2
+          },
+          "discountPercentage": 50,
+          "observedAtMs": 1750000000000,
+          "freshness": "recently_verified"
+        }
+      }
+    ],
+    "limit": 8,
+    "freshness": "recently_verified",
+    "hasAnyOfferData": true
+  }
+}
