@@ -21,7 +21,7 @@ ste-prose: descriptive
 | Switch | border.component track | — | — | ring | amber track, knob right | 55% opacity | — | — |
 | Chip | surface + border.component | interactive-hover | — | ring | surface.selected + accent.border, `aria-pressed` | disabled text | — | — |
 | Tabs | text.secondary, no rule | text.primary | — | ring | 2px amber underline + semibold | disabled text | — | — |
-| GameCard | border.component | border.component | — | ring on the whole card | — | — | `GameArtwork loading` + skeleton text | — |
+| GameCard | surface + border.component | surface.interactive-hover | — | ring on the whole card | — | — | `GameArtwork loading` + skeleton text | — |
 | GameRow | transparent | interactive-hover | — | ring | — | — | skeleton row | — |
 | OfferRow | surface.default | interactive-hover | — | ring on the action | best = 3px amber left rule + primary button | 60% opacity, action disabled, "Unavailable" | — | freshness `unavailable` |
 | DataTable header | text.tertiary, `arrow-up-down` | text.primary | — | ring on the header button | text.primary + directional arrow + `aria-sort` | — | body at 55% opacity, rows retained | — |

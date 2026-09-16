@@ -224,6 +224,17 @@ These are additions, recorded here rather than invented silently:
   home lists carry artwork, so a home card draws `GameArtwork` at the capsule
   ratio. A game with no picture gets the missing-artwork frame. The sales
   contract carries no artwork, so a sale card draws no frame.
+- **`game/GameCard` hovers on its surface, not on its border.** The handoff's
+  card changes its border from `--color-border-default` to
+  `--color-border-strong`. The card border is `--color-border-component` at
+  rest, because a component boundary must measure 3:1. No border token is
+  stronger. So a hover changes the background to
+  `--color-surface-interactive-hover`, as `GameRow`, `OfferRow` and `Chip` do.
+  The border then measures 3.82:1 in both themes.
+- **A card grid stays a card grid below `md`.** The handoff changes it to a
+  `GameRow` list. A row requires a price, so it cannot show a home game with no
+  offer in the region. A row also has no place for the store count, the edition
+  or the release year.
 - **A home card can show no price.** A home game can hold no offer in the
   active region. Its card then says so and shows no price, no store and no
   freshness.
