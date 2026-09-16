@@ -247,6 +247,13 @@ These are additions, recorded here rather than invented silently:
 - **No grid and list density toggle on `/sales`.** The handoff's design has one.
   It needs either a second React island on a page that otherwise loads no
   framework, or a full page load per toggle. It also changes nothing factual.
+- **`navigation/AppHeader` has a `region` prop.** The handoff's prop contract
+  has only `marketLabel`, a static label. A visitor must change the pricing
+  region from one site-level control (#135). So `region` takes the props of
+  `region/RegionControl`, a `Popover` with one native form. When `region` is
+  supplied, it replaces `marketLabel`. `marketLabel` stays, with the handoff's
+  name and meaning. `design/` is not edited. The next handoff must add `region`
+  to the prop contract or name a replacement (#144).
 
 ## When a new token or component is justified
 
