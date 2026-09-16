@@ -36,12 +36,12 @@ export default defineConfig({
   // Vitest owns tests/**/*.test.ts. Keeping the extensions disjoint means
   // neither runner ever tries to execute the other's files.
   testMatch: '**/*.spec.ts',
-  // Two suites need the backend answering something other than the catalog,
+  // Three suites need the backend answering something other than the catalog,
   // and each runs with playwright.states.config.ts with its own pair of
   // servers. That is not a convenience: "the backend has nothing" and "the
   // backend is not there" are properties of the whole process, and toggling
   // either mid-suite would let one test change another's world.
-  testIgnore: ['**/degraded.spec.ts', '**/empty.spec.ts'],
+  testIgnore: ['**/degraded.spec.ts', '**/empty.spec.ts', '**/home-list-unavailable.spec.ts'],
   // Fails the run when the fake backend answered 501 for a request that no test expects to miss.
   globalSetup: './tests/helpers/corpus-misses-gate.ts',
   fullyParallel: true,

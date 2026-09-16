@@ -5,7 +5,7 @@ import { e2eWorkers } from './tests/helpers/e2e-workers.js';
 /**
  * The suites that need a backend answering something other than the catalog.
  *
- * Three states live here, and they share a configuration. The reason is that
+ * Four states live here, and they share a configuration. The reason is that
  * each state is a property of the whole backend process rather than of one
  * request. It cannot be toggled mid-suite without one test changing another
  * test's world.
@@ -18,6 +18,9 @@ import { e2eWorkers } from './tests/helpers/e2e-workers.js';
  *                 claiming the catalog is empty.
  * - `malformed`   something answered and it was not a view. Same visitor-facing
  *                 outcome, different investigation.
+ * - `home-list-unavailable`
+ *                 the backend does not answer one home list and answers all
+ *                 other paths. The other home list must still load.
  *
  * The mode is chosen by `LUDWISE_FAKE_BACKEND_MODE`, and each suite is run
  * separately by its own script. Both servers set `reuseExistingServer: false`.
@@ -45,11 +48,17 @@ const BASE_URL = `http://localhost:${String(PORT)}`;
 const BACKEND_PORT = '8788';
 const MODE = process.env.LUDWISE_FAKE_BACKEND_MODE ?? 'empty';
 
+/** The suite for each mode. Every other mode runs `degraded.spec.ts`. */
+const SUITES: Readonly<Record<string, string>> = {
+  empty: '**/empty.spec.ts',
+  'home-list-unavailable': '**/home-list-unavailable.spec.ts',
+};
+
 export default defineConfig({
   testDir: './tests/e2e',
   // Only the suite that matches the mode. Running the catalog suites against
   // an empty backend would fail for the right reason and the wrong purpose.
-  testMatch: MODE === 'empty' ? '**/empty.spec.ts' : '**/degraded.spec.ts',
+  testMatch: SUITES[MODE] ?? '**/degraded.spec.ts',
   // Fails the run when the fake backend answered 501 for a request that no test expects to miss.
   globalSetup: './tests/helpers/corpus-misses-gate.ts',
   fullyParallel: true,

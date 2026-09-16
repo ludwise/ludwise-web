@@ -67,6 +67,14 @@ const MISSES = resolve(root, 'corpus-misses.log');
 const MODE = process.env['LUDWISE_FAKE_BACKEND_MODE'] ?? 'populated';
 const PORT = Number(process.env['LUDWISE_FAKE_BACKEND_PORT'] ?? '8788');
 
+/**
+ * The one path that `home-list-unavailable` mode does not answer.
+ *
+ * Every other path replays as in `populated` mode. The home page thus shows one
+ * failed list beside one loaded list (ludwise-web#123).
+ */
+const UNAVAILABLE_HOME_LIST_PATH = '/v1/home/current-discounts';
+
 interface Recorded {
   readonly status: number;
   readonly body: unknown;
@@ -405,7 +413,10 @@ const server = createServer((request, response) => {
     return;
   }
 
-  if (MODE === 'unavailable') {
+  if (
+    MODE === 'unavailable' ||
+    (MODE === 'home-list-unavailable' && url.pathname === UNAVAILABLE_HOME_LIST_PATH)
+  ) {
     // Destroyed rather than answered with a 503, deliberately. A 503 is the
     // backend telling us something. This is the backend not being there, which
     // is a different code path in the client and the one a real outage takes.

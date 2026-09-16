@@ -35,6 +35,7 @@
     "test:e2e": "pnpm run i18n:compile && playwright test",
     "test:e2e:empty": "pnpm run i18n:compile && playwright test --config=playwright.states.config.ts",
     "test:e2e:degraded": "pnpm run i18n:compile && node scripts/run-degraded.mjs",
+    "test:e2e:home-list-unavailable": "pnpm run i18n:compile && node scripts/run-degraded.mjs home-list-unavailable",
     "lighthouse": "node scripts/lighthouse.mjs",
     "check": "pnpm run i18n:compile && pnpm run format:check && pnpm run lint && pnpm run check:ste && pnpm run cf-typegen && pnpm exec astro check && pnpm exec tsc -p tsconfig.test.json --noEmit && pnpm exec vitest run && pnpm exec astro build",
     "prepare": "husky"

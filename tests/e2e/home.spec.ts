@@ -10,7 +10,8 @@ import { LOGOTYPES } from '../helpers/logotypes.js';
  *
  * With no detected country the fallback DE pair applies, and its lists are
  * `recently_verified`. The JP lists are `stale`, so a JP visitor sees the
- * stale state. `empty.spec.ts` and `degraded.spec.ts` cover the other states.
+ * stale state. `empty.spec.ts`, `degraded.spec.ts` and
+ * `home-list-unavailable.spec.ts` cover the other states.
  */
 
 const BASE_URL = 'http://localhost:4321';
