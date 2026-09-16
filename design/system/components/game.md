@@ -399,7 +399,7 @@ export function GameCard({
 
 ## GameRow
 
-The list counterpart to `GameCard`: search results, wishlists, sale lists, mobile grids that have collapsed.
+The list counterpart to `GameCard`: search results, wishlists, sale lists.
 
 ```jsx
 <GameRow title="Baldur's Gate 3" subtitle="Larian Studios · 2023" price={{ amount: 47.99, currency: "EUR" }} discountPercentage={20} />
@@ -408,7 +408,7 @@ The list counterpart to `GameCard`: search results, wishlists, sale lists, mobil
 
 - Price is right-aligned and tabular so a column of rows scans vertically.
 - `compact` (40px) is for lists over ~25 rows. Below that use `comfortable`.
-- On viewports under 768px, a `GameCard` grid becomes a `GameRow` list rather than a one-column stack of tall cards.
+- A `GameCard` grid does not become a `GameRow` list on a narrow viewport. See `guidelines/layout.md`.
 
 ### Prop contract
 

@@ -109,6 +109,36 @@ for (const theme of THEMES) {
     await context.close();
   });
 
+  test(`${theme} hovered game cards change surface and keep a 3:1 boundary`, async ({
+    browser,
+  }) => {
+    // Reduced motion ends the color transition at once, so the hover styles read final.
+    const context = await browser.newContext({ reducedMotion: 'reduce' });
+    await context.addCookies([{ name: THEME_COOKIE_NAME, value: theme, url: BASE_URL }]);
+
+    for (const route of ['/', '/sales']) {
+      const page = await context.newPage();
+      await page.goto(route);
+      const item: BoundaryCase = {
+        label: `${route} card`,
+        route,
+        selector: '.lw-game-card',
+        side: 'top',
+      };
+      const rest = await readBoundary(page, item);
+
+      await page.locator(item.selector).first().hover();
+      const hovered = await readBoundary(page, item);
+
+      expect(hovered.background, `${theme} ${item.label} hover surface`).not.toBe(rest.background);
+      const ratio = contrastRatio(cssColorToHex(hovered.border), cssColorToHex(hovered.background));
+      expect(ratio, `${theme} hovered ${item.label}`).toBeGreaterThanOrEqual(3);
+      await page.close();
+    }
+
+    await context.close();
+  });
+
   test(`${theme} mobile controls keep their identifying boundaries`, async ({ browser }) => {
     const context = await browser.newContext({ viewport: { width: 375, height: 900 } });
     await context.addCookies([{ name: THEME_COOKIE_NAME, value: theme, url: BASE_URL }]);

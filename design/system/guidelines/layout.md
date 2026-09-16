@@ -61,7 +61,7 @@ Five, named by intent, all min-width.
 ## Below lg — mobile is a first-class surface
 
 - **Header.** Wordmark, theme and account stay in the bar. Nav collapses behind the menu button into a panel below it, and the market control moves into that panel. Search takes its own full-width row beneath the bar, sticky with it. `AppHeader` implements this itself through `useIsCompactHeader`; no host media query is needed.
-- **Card grids become row lists.** A `GameCard` grid below `md` becomes a `GameRow` list. A one-column stack of tall cards buries the prices below the fold.
+- **Card grids stay card grids.** A `GameCard` grid keeps its auto-fill, 230px-minimum columns at every width, down to one column. It does not become a `GameRow` list: a row cannot show a card with no price in the region, the store count, the edition or the release year.
 - **Tables scroll horizontally inside their own border.** They do not reflow into cards: a price comparison read as a stack of cards is no longer a comparison. The first column may be sticky.
 - **Filters live in a bottom sheet** opened by a persistent "Filters (3)" button, with the count of applied filters in the label. Applied filters still appear as chips above the results.
 - **The best-offer rail becomes a sticky bottom bar** carrying price, store and the single primary action. Nothing else.
