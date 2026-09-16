@@ -1,64 +1,240 @@
 ---
+import Button from '../components/actions/Button.astro';
+import EmptyState from '../components/feedback/EmptyState.astro';
+import InlineMessage from '../components/feedback/InlineMessage.astro';
+import { SearchField } from '../components/forms/SearchField.js';
+import DataNotes from '../components/game/DataNotes.astro';
+import FreshnessNotice from '../components/game/FreshnessNotice.astro';
+import GameCard from '../components/game/GameCard.astro';
 import PageContainer from '../components/layout/PageContainer.astro';
+import RegionStatement from '../components/region/RegionStatement.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { toLogContext } from '../lib/api/errors.js';
+import { homeGameCard, homeListFreshness, homeListProvenance } from '../lib/home/home-cards.js';
+import { homeResponseStatus, readHomeLists } from '../lib/home/home-lists.js';
+import { EVENTS } from '../lib/logging/events.js';
+import { regionPagePath } from '../lib/region/return-path.js';
 
 export const prerender = false;
+
+const { locals } = Astro;
+
+const lists = await readHomeLists({
+  resolveRegion: async () => (await locals.visitorRegion()).region,
+  api: locals.backend(),
+});
+Astro.response.status = homeResponseStatus(lists);
+
+const { region, currentDiscounts, recentlyAdded } = lists;
+
+for (const [outcome, message] of [
+  [currentDiscounts, 'Home current discounts failed'],
+  [recentlyAdded, 'Home recently added failed'],
+] as const) {
+  if (outcome.status === 'failed') {
+    locals.logger.error(EVENTS.APPLICATION_QUERY_FAILED, message, {
+      error: outcome.error,
+      error_category: 'application',
+      ...toLogContext(outcome.error),
+    });
+  }
+}
+
+const nowMs = locals.nowMs ?? Date.now();
+const retryHref = `${Astro.url.pathname}${Astro.url.search}`;
+const changeRegionHref = regionPagePath(retryHref);
+const discountsMarket =
+  currentDiscounts.status === 'loaded'
+    ? (currentDiscounts.view.context?.marketName ?? region?.marketName ?? null)
+    : null;
 ---
 
 <BaseLayout
   title="LUDWISE"
-  description="Transparent PC game store comparison and discovery platform."
+  description="Search PC games and see current discounts, each price with its store and check time."
   activeNavId="home"
 >
-  <PageContainer width="reading">
-    <h1 class="lw-text-heading-xl">LUDWISE</h1>
-    <p class="lw-text-body-lg">Transparent PC game store comparison and discovery platform.</p>
+  <PageContainer width="wide">
+    <div class="lw-home">
+      <section class="lw-home__search" aria-labelledby="lw-home-search-heading">
+        <h1 id="lw-home-search-heading" class="lw-text-heading-xl">Search the catalogue</h1>
+        <p class="lw-text-body-lg lw-home__lead">
+          Find a game. Every price shows its store and when LUDWISE last checked it.
+        </p>
+        <form method="get" action="/games" class="lw-home__search-form">
+          <SearchField
+            size="lg"
+            label="Search the catalogue"
+            placeholder="Game name"
+            clearLabel="Clear search"
+          />
+          <Button type="submit" variant="primary" size="lg">Search</Button>
+        </form>
+        <div class="lw-home__context">
+          {region && <RegionStatement region={region} />}
+          <p class="lw-text-body-sm">LUDWISE reads prices from one store for now.</p>
+        </div>
+      </section>
 
-    {
-      /* Not a placeholder any more, and it must not read like one. One store
-         is connected, a schedule keeps its catalog filled, and /games can be
-         searched. What this page must not do is imply the comparison the
-         product describes is finished. One store cannot compare anything, and
-         how much of it is here depends on how far the schedule has walked. */
-    }
-    <p class="lw-text-body-md">
-      One store is connected so far, and its catalogue fills over days rather than at once. You can
-      search what is here; comparing prices across stores needs a second store, which is not
-      connected yet.
-    </p>
-    <p class="lw-text-body-md">
-      <a href="/games">Browse games</a>
-    </p>
-    {
-      /* The spaces after each link are explicit. Prettier wraps a long anchor
-         as `</a\n>`, which collapses the whitespace that followed it entirely -
-         rendering "READMEfor" and giving a screen reader an unpronounceable
-         token. A literal expression survives reformatting. A space in the
-         source does not.
+      <section class="lw-home__section" aria-labelledby="lw-home-discounts-heading">
+        <div class="lw-home__section-head">
+          <h2 id="lw-home-discounts-heading" class="lw-text-heading-lg">Current discounts</h2>
+          <a href="/sales">All sales</a>
+        </div>
 
-         These point at this repository rather than at the backend's own
-         documents. The interface is public and its README describes what a
-         reader is looking at. The catalog logic is not public. Linking to a
-         private repository from a public page produces a 404 for everyone
-         except the handful of people who can already read it. */
-    }
-    <p class="lw-text-body-md">
-      See <a href="https://github.com/ludwise/ludwise-web">the source</a>{' '}
-      for how this interface is built, and{' '}
-      <a href="https://github.com/ludwise/ludwise-web/blob/main/docs/architecture.md">
-        the architecture notes
-      </a>{' '}
-      for how it reaches the catalogue.
-    </p>
+        {
+          currentDiscounts.status === 'failed' ? (
+            <InlineMessage tone="danger" title="Current discounts could not be loaded">
+              Something failed on our side, so this list isn't shown. If you report this, the code
+              is <code class="lw-text-code">{currentDiscounts.error.code}</code> and the request id
+              is <code class="lw-text-code">{locals.requestId}</code>.
+              <a slot="action" href={retryHref}>
+                Try again
+              </a>
+            </InlineMessage>
+          ) : currentDiscounts.view.games.length === 0 ? (
+            currentDiscounts.view.hasAnyOfferData ? (
+              <EmptyState
+                icon="tag"
+                title={`No discounts in ${discountsMarket ?? 'this region'} right now`}
+                compact
+              >
+                LUDWISE shows prices for one region at a time, so discounts in other regions don't
+                appear here.
+                <a slot="action" href={changeRegionHref}>
+                  Change region
+                </a>
+              </EmptyState>
+            ) : (
+              <EmptyState icon="tag" title="LUDWISE has not collected any prices yet" compact>
+                LUDWISE hasn't read a price from any store yet. That isn't a claim that no game is
+                discounted.
+              </EmptyState>
+            )
+          ) : (
+            <Fragment>
+              <FreshnessNotice freshness={homeListFreshness(currentDiscounts.view)} nowMs={nowMs} />
+              <DataNotes provenance={homeListProvenance(currentDiscounts.view)} />
+              <ul class="lw-home__grid" aria-labelledby="lw-home-discounts-heading">
+                {currentDiscounts.view.games.map((game) => (
+                  <li>
+                    <GameCard {...homeGameCard(game)} />
+                  </li>
+                ))}
+              </ul>
+            </Fragment>
+          )
+        }
+      </section>
+
+      <section class="lw-home__section" aria-labelledby="lw-home-recent-heading">
+        <div class="lw-home__section-head">
+          <h2 id="lw-home-recent-heading" class="lw-text-heading-lg">Recently added</h2>
+          <a href="/games">All games</a>
+        </div>
+
+        {
+          recentlyAdded.status === 'failed' ? (
+            <InlineMessage tone="danger" title="Recently added games could not be loaded">
+              Something failed on our side, so this list isn't shown. If you report this, the code
+              is <code class="lw-text-code">{recentlyAdded.error.code}</code> and the request id is{' '}
+              <code class="lw-text-code">{locals.requestId}</code>.
+              <a slot="action" href={retryHref}>
+                Try again
+              </a>
+            </InlineMessage>
+          ) : recentlyAdded.view.games.length === 0 ? (
+            <EmptyState icon="grid-2x2" title="No games in the catalogue yet" compact>
+              LUDWISE hasn't recorded any games yet.
+            </EmptyState>
+          ) : (
+            <Fragment>
+              <FreshnessNotice freshness={homeListFreshness(recentlyAdded.view)} nowMs={nowMs} />
+              <DataNotes provenance={homeListProvenance(recentlyAdded.view)} />
+              <ul class="lw-home__grid" aria-labelledby="lw-home-recent-heading">
+                {recentlyAdded.view.games.map((game) => (
+                  <li>
+                    <GameCard {...homeGameCard(game)} />
+                  </li>
+                ))}
+              </ul>
+            </Fragment>
+          )
+        }
+      </section>
+    </div>
   </PageContainer>
 </BaseLayout>
 
 <style>
-  h1 {
-    margin-block-end: var(--space-4);
+  .lw-home {
+    display: grid;
+    gap: var(--space-12);
   }
 
-  p + p {
-    margin-block-start: var(--space-4);
+  .lw-home__search {
+    display: grid;
+    gap: var(--space-4);
+    padding: var(--space-6);
+    border: var(--border-width-hairline) solid var(--color-border-component);
+    border-radius: var(--radius-card);
+    background: var(--color-surface-default);
+  }
+
+  .lw-home__lead,
+  .lw-home__context {
+    color: var(--color-text-secondary);
+  }
+
+  .lw-home__search-form {
+    display: flex;
+    gap: var(--space-3);
+    max-inline-size: var(--layout-max-width-reading);
+  }
+
+  .lw-home__search-form > :global(.lw-search) {
+    flex: 1;
+  }
+
+  .lw-home__context {
+    display: grid;
+    gap: var(--space-1);
+  }
+
+  .lw-home__section {
+    display: grid;
+    gap: var(--space-4);
+  }
+
+  .lw-home__section-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-2) var(--space-4);
+  }
+
+  .lw-home__section-head a {
+    color: var(--color-text-link);
+    font: var(--text-label-lg);
+  }
+
+  /* design/system/guidelines/layout.md: auto-fill, 230px minimum. `min()` keeps 320px in one column. */
+  .lw-home__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 230px), 1fr));
+    gap: var(--space-4);
+    list-style: none;
+  }
+
+  /* Below --breakpoint-sm the button goes under the field, so neither is squeezed. */
+  @media (max-width: 479px) {
+    .lw-home__search {
+      padding: var(--space-4);
+    }
+
+    .lw-home__search-form {
+      flex-direction: column;
+    }
   }
 </style>

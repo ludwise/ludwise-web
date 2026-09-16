@@ -150,24 +150,56 @@ test.describe('the backend is unavailable', () => {
   test('the pages that need no backend still work', async ({ page }) => {
     // The health endpoint deliberately does not probe the backend, which is
     // what makes it usable during an outage rather than another casualty of
-    // one. `robots.txt` and the home page have nothing to fetch at all.
+    // one. `robots.txt` has nothing to fetch at all.
     const health = await page.goto('/api/health');
     expect(health?.status()).toBe(200);
-
-    const home = await page.goto('/');
-    expect(home?.status()).toBe(200);
 
     const robots = await page.goto('/robots.txt');
     expect(robots?.status()).toBe(200);
   });
 
-  test('a failure page is still accessible', async ({ page }) => {
+  test('the home page scopes each failure to its own list and keeps the search', async ({
+    page,
+  }) => {
+    await page.setExtraHTTPHeaders({ 'x-request-id': VISITOR_REQUEST_ID });
+    const response = await page.goto('/');
+    expect(response?.status()).toBe(503);
+
+    await expect(page.getByRole('searchbox', { name: 'Search the catalogue' })).toBeVisible();
+    for (const [name, title] of [
+      ['Current discounts', 'Current discounts could not be loaded'],
+      ['Recently added', 'Recently added games could not be loaded'],
+    ] as const) {
+      const section = page.getByRole('region', { name });
+      await expect(section.getByRole('alert')).toContainText(title);
+      await expect(section.getByText(VISITOR_REQUEST_ID, { exact: true })).toBeVisible();
+      await expect(section.getByRole('link', { name: 'Try again' })).toHaveAttribute('href', '/');
+    }
+    await expect(page.locator('.lw-empty-state')).toHaveCount(0);
+    await expect(page.getByText('These prices may be out of date')).toHaveCount(0);
+    await expect(page.getByText('Prices for')).toHaveCount(0);
+  });
+
+  test('the home page claims nothing and leaks nothing', async ({ page }) => {
+    const body = await readUnavailableBody(page, '/');
+    for (const claim of [...FALSE_CLAIMS, 'No discounts in']) {
+      expect(body, `/ claimed: ${claim}`).not.toContain(claim);
+    }
+    for (const leak of LEAKS) {
+      expect(body, `/ leaked ${leak}`).not.toContain(leak);
+    }
+  });
+
+  test('a failure page is still accessible', async ({ context }) => {
     // An error state is exactly where an accessibility regression goes
     // unnoticed, because nobody looks at it until something has already gone
     // wrong. Every failing route class, because each composes its own.
-    for (const path of PAGES) {
+    for (const path of ['/', ...PAGES]) {
+      // One tab per route, as in playwright.config.ts: a tab crashes after many navigations.
+      const page = await context.newPage();
       await page.goto(path);
       await auditFor(page);
+      await page.close();
     }
   });
 });

@@ -18,6 +18,8 @@ interface BoundaryCase {
 const BOUNDARIES: readonly BoundaryCase[] = [
   { label: 'global header', route: '/', selector: '.lw-header', side: 'bottom' },
   { label: 'header search', route: '/', selector: '.lw-search:visible', side: 'top' },
+  { label: 'home search panel', route: '/', selector: '.lw-home__search', side: 'top' },
+  { label: 'home card', route: '/', selector: '.lw-game-card', side: 'top' },
   { label: 'game filters panel', route: '/games', selector: '.lw-game-filters', side: 'top' },
   {
     label: 'game filter number field',

@@ -444,15 +444,9 @@ const changeRegionHref = regionPagePath(retryHref);
                         <GameCard
                           title={game.title}
                           href={`/games/${game.slug}`}
-                          price={game.offer.price}
-                          referencePrice={game.offer.referencePrice}
-                          discountPercentage={game.offer.discountPercentage}
+                          offer={game.offer}
                           storeCount={game.storeCount}
-                          editionLabel={game.offer.editionLabel}
                           releaseDate={game.releaseDate}
-                          observedAtMs={game.offer.observedAtMs}
-                          freshness={game.offer.freshness}
-                          storeName={game.offer.storeName}
                         />
                       </li>
                     ))}

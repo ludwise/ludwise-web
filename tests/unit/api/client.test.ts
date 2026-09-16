@@ -461,7 +461,7 @@ describe('nothing the backend said reaches a caller', () => {
 });
 
 describe('the operations it will perform', () => {
-  it('are four, and none takes a path', () => {
+  it('are six, and none takes a path', () => {
     // The allowlist as an object shape. A client that could be handed a path
     // would be a proxy. A proxy reachable from a page is how /ops and
     // internal routes become publicly reachable through the front door.
@@ -469,7 +469,9 @@ describe('the operations it will perform', () => {
     expect(Object.keys(client).sort()).toEqual([
       'browseSales',
       'getGameDetail',
+      'listCurrentDiscounts',
       'listPricingRegions',
+      'listRecentlyAdded',
       'searchGames',
     ]);
   });
@@ -542,5 +544,54 @@ describe('browseSales', () => {
       .browseSales()
       .catch((e: unknown) => e);
     expect(isApiError(error)).toBe(true);
+  });
+});
+
+/** The narrowest valid home list, so tests assert on what they changed. */
+const HOME_LIST_VIEW = { context: null, games: [], limit: 8, freshness: null };
+
+describe('the home lists', () => {
+  it.each([
+    ['listCurrentDiscounts', '/v1/home/current-discounts'],
+    ['listRecentlyAdded', '/v1/home/recently-added'],
+  ] as const)("%s sends the visitor's market and currency", async (operation, path) => {
+    const { calls, fetchImpl } = recording(json(HOME_LIST_VIEW));
+
+    await clientOver(fetchImpl)[operation]({ marketCode: 'JP', currencyCode: 'JPY' });
+
+    const url = new URL(calls[0]!.url);
+    expect(url.pathname).toBe(path);
+    expect(url.searchParams.get('market')).toBe('JP');
+    expect(url.searchParams.get('currency')).toBe('JPY');
+  });
+
+  it.each(['listCurrentDiscounts', 'listRecentlyAdded'] as const)(
+    '%s resolves with the view the backend answered',
+    async (operation) => {
+      const { fetchImpl } = recording(json(HOME_LIST_VIEW));
+
+      await expect(
+        clientOver(fetchImpl)[operation]({ marketCode: 'DE', currencyCode: 'EUR' }),
+      ).resolves.toEqual(HOME_LIST_VIEW);
+    },
+  );
+
+  it.each([
+    ['listCurrentDiscounts', 'home.current-discounts'],
+    ['listRecentlyAdded', 'home.recently-added'],
+  ] as const)('%s names its own operation when it fails', async (operation, name) => {
+    const fetchImpl = (async () =>
+      json(
+        { status: 'error', code: 'ERR_APP_VALIDATION', request_id: 'r' },
+        400,
+      )) as unknown as typeof fetch;
+
+    const client = clientOver(fetchImpl);
+    const error = await client[operation]({ marketCode: 'DE', currencyCode: 'USD' }).catch(
+      (e: unknown) => e,
+    );
+
+    expect(error).toBeInstanceOf(LudwiseApiError);
+    expect((error as LudwiseApiError).message).toBe(`rejected: ${name}`);
   });
 });

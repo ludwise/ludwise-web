@@ -97,14 +97,14 @@ test.describe('an empty catalogue', () => {
     await expect(page.getByRole('link', { name: 'Browse the whole catalogue' })).toHaveCount(0);
   });
 
-  for (const path of ['/games', '/sales']) {
+  for (const path of ['/', '/games', '/sales']) {
     test(`${path} renders an empty state rather than an alert`, async ({ page }) => {
       // The semantic half of "empty and error are distinct". An empty state is
       // a designed region of the page. A failure is an alert a screen reader
       // is interrupted by. Rendering the first as the second cries wolf.
       await page.goto(path);
 
-      await expect(page.locator('.lw-empty-state')).toBeVisible();
+      await expect(page.locator('.lw-empty-state').first()).toBeVisible();
       await expect(page.locator('[role="alert"]')).toHaveCount(0);
     });
 
@@ -132,13 +132,31 @@ test.describe('an empty catalogue', () => {
     });
   }
 
-  test('has no accessibility violations in an empty state', async ({ page }) => {
+  test('gives each home list its own empty state, and keeps the search', async ({ page }) => {
+    const response = await page.goto('/');
+
+    expect(response?.status()).toBe(200);
+    await expect(page.getByRole('searchbox', { name: 'Search the catalogue' })).toBeVisible();
+    const discounts = page.getByRole('region', { name: 'Current discounts' });
+    const recent = page.getByRole('region', { name: 'Recently added' });
+    // No price was ever observed, so the list must not claim that no game is discounted.
+    await expect(discounts.getByText('LUDWISE has not collected any prices yet')).toBeVisible();
+    await expect(discounts.getByText(/^No discounts in/u)).toHaveCount(0);
+    await expect(recent.getByText('No games in the catalogue yet')).toBeVisible();
+    await expect(page.locator('.lw-empty-state')).toHaveCount(2);
+    await expect(page.getByRole('list', { name: 'Current discounts' })).toHaveCount(0);
+  });
+
+  test('has no accessibility violations in an empty state', async ({ context }) => {
     // Empty states are composed differently from populated ones. An EmptyState
     // stands where a list would be. So an audit of the populated pages says
     // nothing about them.
-    for (const path of ['/games', '/sales', '/games?q=nothing-is-ingested-yet']) {
+    for (const path of ['/', '/games', '/sales', '/games?q=nothing-is-ingested-yet']) {
+      // One tab per route, as in playwright.config.ts: a tab crashes after many navigations.
+      const page = await context.newPage();
       await page.goto(path);
       await auditFor(page);
+      await page.close();
     }
   });
 });

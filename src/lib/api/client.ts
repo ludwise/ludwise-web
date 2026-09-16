@@ -18,11 +18,14 @@ import type {
   ApiErrorBody,
   BrowseSalesInput,
   BrowseSalesView,
+  CurrentDiscountsView,
   GameDetailInput,
   GameDetailView,
   GameSearchInput,
   GameSearchView,
+  HomeReadInput,
   PricingRegionsView,
+  RecentlyAddedView,
 } from './contract.js';
 import { apiErrorFromBody, LudwiseApiError } from './errors.js';
 
@@ -181,8 +184,8 @@ function salesParams(input: BrowseSalesInput): URLSearchParams {
   return params;
 }
 
-/** The `/v1/games/{slug}` query string: the pricing pair, and nothing else. */
-function detailParams(input: GameDetailInput): URLSearchParams {
+/** The query string of a read that takes the pricing pair and nothing else. */
+function pairParams(input: GameDetailInput | HomeReadInput): URLSearchParams {
   const params = new URLSearchParams();
 
   put(params, 'market', input.marketCode);
@@ -348,12 +351,16 @@ export interface LudwiseApi {
   browseSales(input?: BrowseSalesInput, signal?: AbortSignal): Promise<BrowseSalesView>;
   /** The supported visitor pricing regions and the fallback region (backend record 0044). */
   listPricingRegions(signal?: AbortSignal): Promise<PricingRegionsView>;
+  /** The home list of discounted games, in the order the backend chose. */
+  listCurrentDiscounts(input: HomeReadInput, signal?: AbortSignal): Promise<CurrentDiscountsView>;
+  /** The home list of the games LUDWISE recorded last, in the order the backend chose. */
+  listRecentlyAdded(input: HomeReadInput, signal?: AbortSignal): Promise<RecentlyAddedView>;
 }
 
 /**
  * Builds the client.
  *
- * An explicit allowlist of four operations rather than a general "call the
+ * An explicit allowlist of six operations rather than a general "call the
  * backend" function, and that is a security boundary rather than an interface
  * preference. A client that could be handed a path would be a proxy. A proxy
  * reachable from a page is how `/ops` and internal routes become publicly
@@ -378,7 +385,7 @@ export function createApiClient(options: ClientOptions): LudwiseApi {
         options,
         {
           path: `/v1/games/${encodeURIComponent(input.slug)}`,
-          params: detailParams(input),
+          params: pairParams(input),
           operation: 'games.detail',
           notFoundIsNull: true,
         },
@@ -398,6 +405,33 @@ export function createApiClient(options: ClientOptions): LudwiseApi {
       return requireOne<PricingRegionsView>(
         options,
         { path: '/v1/pricing-regions', operation: 'pricing-regions.list' },
+        signal,
+      );
+    },
+
+    listCurrentDiscounts(
+      input: HomeReadInput,
+      signal?: AbortSignal,
+    ): Promise<CurrentDiscountsView> {
+      return requireOne<CurrentDiscountsView>(
+        options,
+        {
+          path: '/v1/home/current-discounts',
+          params: pairParams(input),
+          operation: 'home.current-discounts',
+        },
+        signal,
+      );
+    },
+
+    listRecentlyAdded(input: HomeReadInput, signal?: AbortSignal): Promise<RecentlyAddedView> {
+      return requireOne<RecentlyAddedView>(
+        options,
+        {
+          path: '/v1/home/recently-added',
+          params: pairParams(input),
+          operation: 'home.recently-added',
+        },
         signal,
       );
     },

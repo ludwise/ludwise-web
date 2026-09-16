@@ -61,7 +61,7 @@ test.describe('the application shell', () => {
     await expect(page.getByRole('banner')).toBeVisible();
     await expect(page.getByRole('main')).toBeVisible();
     await expect(page.getByRole('navigation', { name: 'Primary' })).toBeVisible();
-    await expect(page.getByRole('heading', { level: 1 })).toHaveText('LUDWISE');
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Search the catalogue');
   });
 
   test('serves the brand mark as a favicon rather than letting the tab fall blank', async ({

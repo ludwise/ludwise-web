@@ -265,12 +265,14 @@ describe('the backend is reached only through the API client', () => {
 
   it('the client exposes named operations and no caller-supplied path', () => {
     const source = codeOf(CLIENT);
-    // The four reads this site makes. A fifth is a deliberate decision and
+    // The six reads this site makes. A seventh is a deliberate decision and
     // must fail here until this list is updated to acknowledge it.
     expect(source).toContain("path: '/v1/games'");
     expect(source).toContain("path: '/v1/sales'");
     expect(source).toContain('path: `/v1/games/${encodeURIComponent(input.slug)}`');
     expect(source).toContain("path: '/v1/pricing-regions'");
+    expect(source).toContain("path: '/v1/home/current-discounts'");
+    expect(source).toContain("path: '/v1/home/recently-added'");
     // No route outside /v1 is reachable. That is what keeps /ops and the
     // backend's internal surfaces unreachable from here even though a service
     // binding bypasses Cloudflare Access entirely (architecture decision record 0024).
@@ -293,6 +295,7 @@ describe('the backend is reached only through the API client', () => {
       'src/pages/games.astro',
       'src/pages/sales.astro',
       'src/pages/games/[slug].astro',
+      'src/pages/index.astro',
     ]) {
       expect(readFileSync(page, 'utf8')).toMatch(/\.backend\(\)/u);
     }
