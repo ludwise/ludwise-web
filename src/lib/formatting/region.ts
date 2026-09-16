@@ -31,6 +31,13 @@ export function formatRegionLabel(
   return `${formatRegionName(region, locale)} · ${region.currencyCode}`;
 }
 
+/** The codes of the market and currency that a region binds, for example "DE · EUR". */
+export function formatRegionCodes(
+  region: Pick<PricingRegionView, 'marketCode' | 'currencyCode'>,
+): string {
+  return `${region.marketCode} · ${region.currencyCode}`;
+}
+
 /** One choice in a region selector. */
 export interface RegionOption {
   readonly countryCode: string;

@@ -6,9 +6,11 @@ import SiteFooter from '../components/navigation/SiteFooter.astro';
 import { getTextDirection, messages as m, resolveLocale } from '../i18n/index.js';
 import type { RegionControlProps } from '../components/region/RegionControl.tsx';
 import { isApiError } from '../lib/api/errors.js';
-import { formatRegionLabel, regionOptions } from '../lib/formatting/region.js';
+import { formatRegionCodes, formatRegionName, regionOptions } from '../lib/formatting/region.js';
 import type { MediaPicture } from '../lib/game/media.js';
+import { readHeaderSearch } from '../lib/http/header-search.js';
 import { readThemeCookie } from '../lib/http/theme.js';
+import type { RegionSource } from '../lib/region/visitor-region.js';
 import { pageHead, type PageIndexing } from '../lib/seo/page-head.js';
 import '../styles/global.css';
 
@@ -35,13 +37,11 @@ const messageOptions = { locale } as const;
 const homeHref = getRelativeLocaleUrl(locale);
 const gamesHref = getRelativeLocaleUrl(locale, 'games');
 const salesHref = getRelativeLocaleUrl(locale, 'sales');
-const aboutHref = getRelativeLocaleUrl(locale, 'about');
 
 const navItems = [
   { id: 'home', label: m.shell_navigation_home({}, messageOptions), href: homeHref },
   { id: 'games', label: m.shell_navigation_games({}, messageOptions), href: gamesHref },
   { id: 'sales', label: m.shell_navigation_sales({}, messageOptions), href: salesHref },
-  { id: 'about', label: m.shell_navigation_about({}, messageOptions), href: aboutHref },
 ];
 
 const headerCopy = {
@@ -58,11 +58,18 @@ const headerCopy = {
 
 // The region control needs the region list. Without it, the header renders
 // without the control, and a price-bearing page reports the failure itself.
+const REGION_SOURCE_STATEMENTS: Record<RegionSource, () => string> = {
+  selected: () => m.shell_region_source_selected({}, messageOptions),
+  detected: () => m.shell_region_source_detected({}, messageOptions),
+  fallback: () => m.shell_region_source_fallback({}, messageOptions),
+};
+
 let region: RegionControlProps | undefined;
 try {
   const context = await Astro.locals.visitorRegion();
   region = {
-    label: formatRegionLabel(context.region, locale),
+    name: formatRegionName(context.region, locale),
+    codes: formatRegionCodes(context.region),
     currentCountryCode: context.region.countryCode,
     options: regionOptions(context.regions, locale),
     action: getRelativeLocaleUrl(locale, 'region'),
@@ -70,11 +77,13 @@ try {
     copy: {
       triggerPrefix: m.shell_region_trigger_prefix({}, messageOptions),
       heading: m.shell_region_heading({}, messageOptions),
-      explanation: m.shell_region_explanation({}, messageOptions),
+      source: REGION_SOURCE_STATEMENTS[context.region.source](),
+      refresh: m.shell_region_refresh({}, messageOptions),
       selectLabel: m.shell_region_select_label({}, messageOptions),
       currencyLabel: m.shell_region_currency_label({}, messageOptions),
       noConversion: m.shell_region_no_conversion({}, messageOptions),
-      save: m.shell_region_save({}, messageOptions),
+      apply: m.shell_region_apply({}, messageOptions),
+      cancel: m.shell_region_cancel({}, messageOptions),
     },
   };
 } catch (error) {
@@ -85,6 +94,8 @@ try {
 // "no preference expressed", which differs from "light": it hands the decision
 // to the pre-paint script rather than asserting a preference nobody made.
 const theme = readThemeCookie(Astro.request.headers.get('cookie'));
+
+const headerSearch = readHeaderSearch(Astro.url, gamesHref);
 
 // Outside production, the robots element repeats the X-Robots-Tag header for a
 // page saved or re-served without it. Neither is a security control. In
@@ -184,7 +195,8 @@ const head = pageHead({
       copy={headerCopy}
       theme={theme ?? 'light'}
       searchAction={gamesHref}
-      searchValue={Astro.url.searchParams.get('q') ?? undefined}
+      searchValue={headerSearch.value}
+      searchCarriedParams={headerSearch.carriedParams}
       region={region}
     />
 

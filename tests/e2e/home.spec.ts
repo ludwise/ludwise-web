@@ -193,10 +193,10 @@ test.describe('the home page', () => {
     await page.goto('/');
     await page.waitForFunction(() => document.querySelector('astro-island[ssr]') === null);
 
-    await page.getByRole('button', { name: 'Region: Germany · EUR' }).first().click();
-    const dialog = page.getByRole('dialog', { name: 'Region: Germany · EUR' });
+    await page.getByRole('button', { name: 'Region: Germany, DE · EUR' }).first().click();
+    const dialog = page.getByRole('dialog', { name: 'Region: Germany, DE · EUR' });
     await dialog.getByLabel('Choose a region').selectOption('JP');
-    await dialog.getByRole('button', { name: 'Save' }).click();
+    await dialog.getByRole('button', { name: 'Apply' }).click();
 
     await page.waitForURL('/');
     await expect(page.getByText('Prices for Japan · JPY.')).toBeVisible();

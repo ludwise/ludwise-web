@@ -105,6 +105,8 @@ export interface AppHeaderProps {
   searchValue?: string | undefined;
   /** Native GET destination for the server-rendered search form. */
   searchAction?: string | undefined;
+  /** Query pairs the search form submits again beside the term, as hidden fields. */
+  searchCarriedParams?: readonly (readonly [string, string])[] | undefined;
   onSearchChange?: ((event: ChangeEvent<HTMLInputElement>) => void) | undefined;
   onSearchClear?: (() => void) | undefined;
   theme?: Theme | undefined;
@@ -271,6 +273,7 @@ export function AppHeader({
   copy,
   searchValue,
   searchAction,
+  searchCarriedParams = [],
   onSearchChange,
   onSearchClear,
   theme = 'light',
@@ -364,6 +367,9 @@ export function AppHeader({
         aria-label={copy.searchLabel}
         onSubmit={onSearchSubmit}
       >
+        {searchCarriedParams.map(([name, value], index) => (
+          <input key={`${name}-${String(index)}`} type="hidden" name={name} value={value} />
+        ))}
         {field}
       </form>
     );

@@ -53,7 +53,7 @@ test.describe('automatic region selection', () => {
     const response = await page.goto('/sales');
 
     expect(response?.status()).toBe(200);
-    await expect(regionButton(page, 'Germany · EUR')).toBeVisible();
+    await expect(regionButton(page, 'Germany, DE · EUR')).toBeVisible();
     await expect(page.getByText('Prices for Germany · EUR.')).toBeVisible();
     // Nothing is saved on the device until the visitor saves a region.
     expect(await response?.headerValue('set-cookie')).toBeNull();
@@ -66,7 +66,7 @@ test.describe('automatic region selection', () => {
     await detectCountry(page, 'JP');
     await page.goto('/sales');
 
-    await expect(regionButton(page, 'Japan · JPY')).toBeVisible();
+    await expect(regionButton(page, 'Japan, JP · JPY')).toBeVisible();
     await expect(page.getByText('Prices for Japan · JPY.')).toBeVisible();
     await expect(page.getByText('Yen Sale Demo Game')).toBeVisible();
     await expect(page.getByText('Half Off Demo Game')).toHaveCount(0);
@@ -78,7 +78,7 @@ test.describe('automatic region selection', () => {
     await detectCountry(page, 'CZ');
     await page.goto('/sales');
 
-    await expect(regionButton(page, 'Germany · EUR')).toBeVisible();
+    await expect(regionButton(page, 'Germany, DE · EUR')).toBeVisible();
     await expect(page.getByText('Half Off Demo Game')).toBeVisible();
   });
 
@@ -86,17 +86,24 @@ test.describe('automatic region selection', () => {
     await detectCountry(page, 'GB');
     await page.goto('/about');
 
-    await expect(regionButton(page, 'United Kingdom · GBP')).toBeVisible();
+    await expect(regionButton(page, 'United Kingdom, GB · GBP')).toBeVisible();
   });
 });
 
 test.describe('the region control', () => {
   test('explains the choice, and derives the currency from the region', async ({ page }) => {
     await page.goto('/sales');
-    const dialog = await openRegionControl(page, 'Germany · EUR');
+    const dialog = await openRegionControl(page, 'Germany, DE · EUR');
 
     await expect(dialog.getByRole('heading', { name: 'Region' })).toBeVisible();
-    await expect(dialog.getByText('Prices and availability depend on your region.')).toBeVisible();
+    await expect(
+      dialog.getByText("LUDWISE couldn't match your location to a region, so it uses this one."),
+    ).toBeVisible();
+    await expect(
+      dialog.getByText(
+        "Applying a different region reloads this page with every store's offers for that region.",
+      ),
+    ).toBeVisible();
     await expect(
       dialog.getByText("LUDWISE doesn't convert prices between currencies."),
     ).toBeVisible();
@@ -108,20 +115,54 @@ test.describe('the region control', () => {
     await expect(dialog.locator('output')).toHaveText('JPY');
   });
 
+  test('states that the region came from the detected location', async ({ page }) => {
+    await detectCountry(page, 'JP');
+    await page.goto('/sales');
+    const dialog = await openRegionControl(page, 'Japan, JP · JPY');
+
+    await expect(
+      dialog.getByText('LUDWISE picked this region based on your location.'),
+    ).toBeVisible();
+  });
+
+  test('labels the control with the market and currency codes', async ({ page }) => {
+    await page.goto('/sales');
+
+    await expect(page.locator('.lw-header__market-desktop .lw-region-control__codes')).toHaveText(
+      'DE · EUR',
+    );
+  });
+
+  test('discards the choice on Cancel and returns focus to the control', async ({ page }) => {
+    await page.goto('/sales');
+    const dialog = await openRegionControl(page, 'Germany, DE · EUR');
+
+    await dialog.getByLabel('Choose a region').selectOption({ label: 'Japan · JPY' });
+    await dialog.getByRole('button', { name: 'Cancel' }).click();
+
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+    await expect(regionButton(page, 'Germany, DE · EUR')).toBeFocused();
+    await expect(page).toHaveURL('/sales');
+
+    const reopened = await openRegionControl(page, 'Germany, DE · EUR');
+    await expect(reopened.getByLabel('Choose a region')).toHaveValue('DE');
+    await expect(reopened.locator('output')).toHaveText('EUR');
+  });
+
   test('saves a choice that wins over detection and survives a reload and a later visit', async ({
     browser,
     page,
   }) => {
     await detectCountry(page, 'JP');
     await page.goto('/sales?sort=price');
-    const dialog = await openRegionControl(page, 'Japan · JPY');
+    const dialog = await openRegionControl(page, 'Japan, JP · JPY');
 
     await dialog.getByLabel('Choose a region').selectOption({ label: 'Germany · EUR' });
-    await dialog.getByRole('button', { name: 'Save' }).click();
+    await dialog.getByRole('button', { name: 'Apply' }).click();
 
     // Back on the same page, with its query, now in the chosen region.
     await page.waitForURL('/sales?sort=price');
-    await expect(regionButton(page, 'Germany · EUR')).toBeVisible();
+    await expect(regionButton(page, 'Germany, DE · EUR')).toBeVisible();
     await expect(
       page.getByRole('list', { name: 'Games on sale' }).getByRole('heading', { level: 3 }),
     ).toHaveText(['Two Store Demo Game', 'Half Off Demo Game', 'Steep Discount Demo Game']);
@@ -136,14 +177,15 @@ test.describe('the region control', () => {
     expect(saved?.expires ?? 0).toBeGreaterThan(Date.now() / 1000 + 300 * 24 * 60 * 60);
 
     await page.reload();
-    await expect(regionButton(page, 'Germany · EUR')).toBeVisible();
+    const reloaded = await openRegionControl(page, 'Germany, DE · EUR');
+    await expect(reloaded.getByText('You chose this region.')).toBeVisible();
 
     // A later visit, in a fresh browser session that still holds the cookie.
     const later = await browser.newContext({ storageState: await page.context().storageState() });
     const laterPage = await later.newPage();
     await detectCountry(laterPage, 'JP');
     await laterPage.goto('/sales');
-    await expect(regionButton(laterPage, 'Germany · EUR')).toBeVisible();
+    await expect(regionButton(laterPage, 'Germany, DE · EUR')).toBeVisible();
     await expect(laterPage.getByText('Yen Sale Demo Game')).toHaveCount(0);
     await later.close();
   });
@@ -151,7 +193,7 @@ test.describe('the region control', () => {
   test('changes region with the keyboard alone, and Escape closes it', async ({ page }) => {
     await page.goto('/sales');
     await waitForHydration(page);
-    const trigger = regionButton(page, 'Germany · EUR');
+    const trigger = regionButton(page, 'Germany, DE · EUR');
 
     await trigger.focus();
     await page.keyboard.press('Enter');
@@ -168,11 +210,11 @@ test.describe('the region control', () => {
     await page.keyboard.press('ArrowDown');
     await expect(select).toHaveValue('JP');
     await page.keyboard.press('Tab');
-    await expect(page.getByRole('dialog').getByRole('button', { name: 'Save' })).toBeFocused();
+    await expect(page.getByRole('dialog').getByRole('button', { name: 'Apply' })).toBeFocused();
     await page.keyboard.press('Enter');
 
     await page.waitForURL('/sales');
-    await expect(regionButton(page, 'Japan · JPY')).toBeVisible();
+    await expect(regionButton(page, 'Japan, JP · JPY')).toBeVisible();
   });
 
   test('changes region from the menu at a narrow width', async ({ page }) => {
@@ -181,12 +223,12 @@ test.describe('the region control', () => {
     await waitForHydration(page);
 
     await page.getByRole('banner').getByRole('button', { name: 'Menu', exact: true }).click();
-    const dialog = await openRegionControl(page, 'Germany · EUR');
+    const dialog = await openRegionControl(page, 'Germany, DE · EUR');
     const box = await dialog.boundingBox();
     expect((box?.x ?? -1) >= 0 && (box?.x ?? 0) + (box?.width ?? 0) <= 375).toBe(true);
 
     await dialog.getByLabel('Choose a region').selectOption({ label: 'United States · USD' });
-    await dialog.getByRole('button', { name: 'Save' }).click();
+    await dialog.getByRole('button', { name: 'Apply' }).click();
 
     await page.waitForURL('/sales');
     await expect(page.getByText('No United States sales right now')).toBeVisible();
@@ -194,7 +236,7 @@ test.describe('the region control', () => {
 
   test('keeps the current region and explains a choice it refuses', async ({ page }) => {
     await page.goto('/sales?sort=price');
-    const dialog = await openRegionControl(page, 'Germany · EUR');
+    const dialog = await openRegionControl(page, 'Germany, DE · EUR');
 
     // A region the backend does not support, as a stale or edited form sends it.
     await dialog.getByLabel('Choose a region').evaluate((element) => {
@@ -206,7 +248,7 @@ test.describe('the region control', () => {
           new URL(candidate.url()).pathname === '/region' &&
           candidate.request().method() === 'POST',
       ),
-      dialog.getByRole('button', { name: 'Save' }).click(),
+      dialog.getByRole('button', { name: 'Apply' }).click(),
     ]);
 
     expect(response.status()).toBe(400);
@@ -227,7 +269,7 @@ test.describe('the region control', () => {
     const response = await page.goto('/sales');
 
     // Resolved again through detection, and the stale value removed.
-    await expect(regionButton(page, 'Japan · JPY')).toBeVisible();
+    await expect(regionButton(page, 'Japan, JP · JPY')).toBeVisible();
     expect(await response?.headerValue('set-cookie')).toMatch(/^region=;.*Max-Age=0/u);
     expect((await page.context().cookies()).map((cookie) => cookie.name)).not.toContain(
       REGION_COOKIE_NAME,
@@ -238,7 +280,7 @@ test.describe('the region control', () => {
     await page.context().addCookies([{ name: REGION_COOKIE_NAME, value: 'FR', url: BASE_URL }]);
     const response = await page.goto('/about');
 
-    await expect(regionButton(page, 'Germany · EUR')).toBeVisible();
+    await expect(regionButton(page, 'Germany, DE · EUR')).toBeVisible();
     expect(await response?.headerValue('set-cookie')).toMatch(/^region=;.*Max-Age=0/u);
   });
 
@@ -254,9 +296,9 @@ test.describe('the region control', () => {
     });
 
     await page.goto('/sales');
-    const dialog = await openRegionControl(page, 'Germany · EUR');
+    const dialog = await openRegionControl(page, 'Germany, DE · EUR');
     await dialog.getByLabel('Choose a region').selectOption({ label: 'Japan · JPY' });
-    await dialog.getByRole('button', { name: 'Save' }).click();
+    await dialog.getByRole('button', { name: 'Apply' }).click();
     await page.waitForURL('/sales');
     await waitForHydration(page);
 
@@ -273,7 +315,7 @@ test.describe('the region control', () => {
       await context.addCookies([{ name: THEME_COOKIE_NAME, value: theme, url: BASE_URL }]);
       const page = await context.newPage();
       await page.goto('/sales');
-      await openRegionControl(page, 'Germany · EUR');
+      await openRegionControl(page, 'Germany, DE · EUR');
 
       await auditFor(page);
       await context.close();
