@@ -254,6 +254,23 @@ These are additions, recorded here rather than invented silently:
   supplied, it replaces `marketLabel`. `marketLabel` stays, with the handoff's
   name and meaning. `design/` is not edited. The next handoff must add `region`
   to the prop contract or name a replacement (#144).
+- **The header region control has one selector, not a market and a currency
+  selector.** Issue #155 asks for two `Select` controls and a route that
+  carries `marketCode` and `currencyCode`. A pricing region binds one market to
+  one currency, and the backend owns that binding (backend record 0044). So the
+  control keeps one region selector and the POST to `/region`. It takes the
+  rest of #155. The label shows the market and currency codes. The panel says
+  why the region is active, and it has an Apply and a Cancel button.
+- **The header hairline and the market button border use
+  `--color-border-component`.** Issue #155 names `--color-border-default`.
+  Both borders are in `tests/e2e/boundary-contrast.spec.ts`, which requires
+  3:1.
+- **`overlays/Popover` accepts `children` as a function.** The function
+  receives `close`, which closes the panel and moves focus to the trigger. The
+  Cancel button of the region control uses it.
+- **The header search has no typeahead.** Suggestions need a read from the
+  browser, and `docs/architecture.md` permits none. Issue #157 holds that
+  decision.
 
 ## When a new token or component is justified
 

@@ -480,6 +480,95 @@ test.describe('responsive', () => {
   }
 });
 
+/** The rendered height of the first visible match, in CSS pixels. */
+async function heightOf(locator: Locator): Promise<number> {
+  const box = await locator.first().boundingBox();
+  if (box === null) throw new Error('A header control has no layout box.');
+  return box.height;
+}
+
+/** One header on every route (#155). Only the current item and the search value differ. */
+test.describe('the global header', () => {
+  test('lists Home, Games and Sales, and marks the current route', async ({ page }) => {
+    await page.goto('/sales');
+    const nav = page.getByRole('navigation', { name: 'Primary' });
+
+    await expect(nav.getByRole('link')).toHaveText(['Home', 'Games', 'Sales']);
+    await expect(nav.getByRole('link', { name: 'Sales' })).toHaveAttribute('aria-current', 'page');
+    await expect(nav.locator('[aria-current]')).toHaveCount(1);
+  });
+
+  test('fills the search field only on the games page', async ({ browser }) => {
+    for (const [path, value] of [
+      ['/games?q=Canonical', 'Canonical'],
+      ['/about?q=Canonical', ''],
+    ] as const) {
+      const context = await browser.newContext();
+      const page = await context.newPage();
+      await page.goto(path);
+      await expect(page.getByRole('searchbox', { name: 'Search games' }).first()).toHaveValue(
+        value,
+      );
+      await context.close();
+    }
+  });
+
+  test('keeps the games filters when a new term is submitted', async ({ page }) => {
+    await page.goto('/games?store=orbit-market');
+    // This test checks the address only, so the navigation stops before the results page.
+    await page.route('**/games?**', (route) => route.fulfill({ body: '<!doctype html>' }));
+
+    const search = page.getByRole('searchbox', { name: 'Search games' }).first();
+    await search.fill('Canonical');
+    await search.press('Enter');
+
+    await page.waitForURL('/games?store=orbit-market&q=Canonical');
+  });
+
+  for (const width of [1024, 1600]) {
+    test(`sizes the one-row header controls at ${String(width)}px`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 900 });
+      await page.goto('/');
+      const header = page.getByRole('banner');
+
+      expect(await heightOf(header.locator('.lw-header__bar'))).toBe(60);
+      expect(await heightOf(header.locator('.lw-header__search-slot .lw-search'))).toBe(36);
+      expect(await heightOf(header.locator('.lw-header__market-desktop button'))).toBe(36);
+      expect(await heightOf(header.getByRole('button', { name: /Switch to/u }))).toBe(40);
+
+      const bar = await header.locator('.lw-header__bar').boundingBox();
+      expect(bar?.width).toBe(Math.min(width, 1440));
+    });
+  }
+
+  for (const width of [320, 768]) {
+    test(`uses two rows and touch targets at ${String(width)}px`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 900 });
+      await page.goto('/');
+      await waitForHydration(page);
+      const header = page.getByRole('banner');
+
+      await expect(header.locator('.lw-header__search-slot')).toBeHidden();
+      expect(await heightOf(header.locator('.lw-header__mobile-search .lw-search'))).toBe(40);
+      expect(await heightOf(header.getByRole('button', { name: /Switch to/u }))).toBe(44);
+
+      const menu = header.getByRole('button', { name: 'Menu', exact: true });
+      expect(await heightOf(menu)).toBe(44);
+      await menu.click();
+      const panel = header.locator('#lw-header-menu');
+      for (const link of await panel.getByRole('link').all()) {
+        expect(await heightOf(link)).toBe(44);
+      }
+      expect(await heightOf(panel.locator('.lw-popover__trigger'))).toBe(44);
+
+      const overflows = await page.evaluate(
+        () => document.documentElement.scrollWidth > document.documentElement.clientWidth,
+      );
+      expect(overflows).toBe(false);
+    });
+  }
+});
+
 type Box = NonNullable<Awaited<ReturnType<Locator['boundingBox']>>>;
 
 async function footerBoxes(page: Page): Promise<{ brand: Box; columns: Box[] }> {

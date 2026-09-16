@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  formatRegionCodes,
   formatRegionLabel,
   formatRegionName,
   regionOptions,
@@ -32,6 +33,13 @@ describe('formatRegionName', () => {
 describe('formatRegionLabel', () => {
   it('states the region and the currency it quotes prices in', () => {
     expect(formatRegionLabel(GERMANY, 'en')).toBe('Germany · EUR');
+  });
+});
+
+describe('formatRegionCodes', () => {
+  // The market code, not the country code: two countries can share one market.
+  it('states the market code and the currency code', () => {
+    expect(formatRegionCodes({ marketCode: 'EU', currencyCode: 'EUR' })).toBe('EU · EUR');
   });
 });
 

@@ -13,15 +13,21 @@
  * technology reads. So `trigger` is the label of the button this component
  * renders. Do not put a control inside it.
  */
-import { useEffect, useId, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import './Popover.css';
+
+export interface PopoverControls {
+  /** Closes the panel and moves focus to the trigger, as Escape does. */
+  readonly close: () => void;
+}
 
 export interface PopoverProps {
   /** The label of the control that opens it. Markup, not a control. Supply it
    *  as a prop from React, or as the "trigger" slot from Astro. */
   trigger?: ReactNode | undefined;
-  children: ReactNode;
+  /** A function form receives `close`, for a Cancel button inside the panel. */
+  children: ReactNode | ((controls: PopoverControls) => ReactNode);
   align?: 'start' | 'end' | undefined;
   width?: number | undefined;
   open?: boolean | undefined;
@@ -45,13 +51,18 @@ export function Popover({
   // with no accessible name fails WCAG 2.2 AA.
   const triggerId = useId();
 
+  const close = useCallback(() => {
+    setUncontrolledOpen(false);
+    onOpenChange?.(false);
+  }, [onOpenChange]);
+
+  const closeToTrigger = useCallback(() => {
+    close();
+    triggerRef.current?.focus();
+  }, [close]);
+
   useEffect(() => {
     if (!open) return;
-
-    const close = () => {
-      setUncontrolledOpen(false);
-      onOpenChange?.(false);
-    };
 
     const onPointerDown = (event: MouseEvent) => {
       if (rootRef.current && !rootRef.current.contains(event.target as Node)) close();
@@ -61,10 +72,9 @@ export function Popover({
       // Captured and stopped, so an enclosing disclosure such as the header
       // menu stays open. One Escape closes one layer.
       event.stopPropagation();
-      close();
       // Escape returns focus to the trigger. An outside click does not: focus
       // is already where the visitor put it.
-      triggerRef.current?.focus();
+      closeToTrigger();
     };
 
     document.addEventListener('mousedown', onPointerDown);
@@ -73,7 +83,7 @@ export function Popover({
       document.removeEventListener('mousedown', onPointerDown);
       document.removeEventListener('keydown', onKeyDown, true);
     };
-  }, [open, onOpenChange]);
+  }, [open, close, closeToTrigger]);
 
   return (
     <span className="lw-popover" ref={rootRef}>
@@ -99,7 +109,7 @@ export function Popover({
           data-align={align}
           style={{ width }}
         >
-          {children}
+          {typeof children === 'function' ? children({ close: closeToTrigger }) : children}
         </div>
       )}
     </span>

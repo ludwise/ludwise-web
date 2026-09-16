@@ -39,20 +39,45 @@
   font-weight: var(--font-weight-semibold);
 }
 
-.lw-region-control__save {
-  justify-self: start;
+.lw-region-control__codes {
+  font-variant-numeric: tabular-nums;
+}
+
+.lw-region-control__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.lw-region-control__apply,
+.lw-region-control__cancel {
   min-block-size: var(--target-min-touch);
   padding-inline: var(--space-4);
-  border: 0;
   border-radius: var(--radius-button);
-  background: var(--color-action-primary);
-  color: var(--color-action-primary-text);
   font: var(--text-label-md);
   cursor: pointer;
 }
-.lw-region-control__save:hover {
+
+.lw-region-control__apply {
+  border: 0;
+  background: var(--color-action-primary);
+  color: var(--color-action-primary-text);
+}
+.lw-region-control__apply:hover {
   background: var(--color-action-primary-hover);
 }
-.lw-region-control__save:active {
+.lw-region-control__apply:active {
   background: var(--color-action-primary-active);
+}
+
+.lw-region-control__cancel {
+  border: var(--border-width-hairline) solid var(--color-border-component);
+  background: var(--color-surface-interactive);
+  color: var(--color-action-secondary-text);
+}
+.lw-region-control__cancel:hover {
+  background: var(--color-surface-interactive-hover);
+}
+.lw-region-control__cancel:active {
+  background: var(--color-surface-interactive-active);
 }
